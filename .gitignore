@@ -1,0 +1,11 @@
+/target
+/result
+*.swp
+*.swo
+*~
+.direnv/
+.envrc
+*.log
+.DS_Store
+.idea/
+.vscode/
