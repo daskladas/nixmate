@@ -137,13 +137,13 @@ impl Config {
         }
         match self.ai_provider.as_str() {
             "ollama" => true,
-            _ => self.ai_api_key.as_ref().map_or(false, |k| !k.is_empty()),
+            _ => self.ai_api_key.as_ref().is_some_and(|k| !k.is_empty()),
         }
     }
 
     /// Check if GitHub is configured
     pub fn has_github(&self) -> bool {
-        self.github_token.as_ref().map_or(false, |t| !t.is_empty())
+        self.github_token.as_ref().is_some_and(|t| !t.is_empty())
     }
 }
 

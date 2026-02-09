@@ -4,6 +4,7 @@
 //! flake inputs, builds a dependency graph, groups by directory,
 //! and renders it as a professional SVG node-graph with arrows.
 
+#![allow(clippy::write_with_newline)]
 use std::collections::{HashMap, VecDeque};
 use std::fmt::Write;
 use std::path::{Path, PathBuf};
@@ -298,7 +299,7 @@ fn walk_nix_files(dir: &Path, out: &mut Vec<String>) {
                 continue;
             }
             walk_nix_files(&path, out);
-        } else if path.extension().map_or(false, |e| e == "nix") {
+        } else if path.extension().is_some_and(|e| e == "nix") {
             let name = path.file_name().unwrap_or_default().to_string_lossy();
             if name == "flake.lock" {
                 continue;
@@ -550,8 +551,8 @@ fn extract_inputs_block(content: &str) -> Option<String> {
             continue;
         }
         let trimmed = after.trim_start();
-        if trimmed.starts_with('=') {
-            let after_eq = trimmed[1..].trim_start();
+        if let Some(stripped) = trimmed.strip_prefix('=') {
+            let after_eq = stripped.trim_start();
             if after_eq.starts_with('{') {
                 let mut depth = 0;
                 let mut end = 0;
@@ -833,7 +834,7 @@ fn collapse_to_groups(info: &DiagramInfo) -> GroupedDiagram {
         }
         let node_type = classify_group(key);
         let display = if key.contains('/') {
-            key.split('/').last().unwrap_or(key).to_string()
+            key.split('/').next_back().unwrap_or(key).to_string()
         } else {
             key.clone()
         };
@@ -1005,6 +1006,7 @@ pub fn generate_diagram_svg(info: &DiagramInfo) -> String {
     }
 
     // Smart orphan assignment
+    #[allow(clippy::needless_range_loop)]
     for i in 0..num {
         if depth[i].is_none() && gd.groups[i].node_type != NodeType::FlakeInput {
             depth[i] = Some(smart_orphan_depth(&gd.groups[i].name, info.is_flake));

@@ -1411,7 +1411,7 @@ fn render_diff(frame: &mut Frame, state: &GenerationsState, theme: &Theme, area:
     }
 
     // Split: top for selection lists, bottom for results
-    let selector_height = (inner.height / 3).max(5).min(12);
+    let selector_height = (inner.height / 3).clamp(5, 12);
     let chunks = Layout::vertical([
         Constraint::Length(selector_height),
         Constraint::Min(3),
@@ -1475,6 +1475,7 @@ fn render_diff(frame: &mut Frame, state: &GenerationsState, theme: &Theme, area:
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn render_diff_selector(
     frame: &mut Frame,
     title: &str,

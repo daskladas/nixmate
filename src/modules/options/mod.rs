@@ -946,7 +946,7 @@ fn format_nix_value(v: &serde_json::Value) -> String {
         serde_json::Value::String(s) => format!("\"{}\"", s),
         serde_json::Value::Array(arr) => {
             if arr.len() <= 3 {
-                let items: Vec<String> = arr.iter().map(|v| format_nix_value(v)).collect();
+                let items: Vec<String> = arr.iter().map(format_nix_value).collect();
                 format!("[ {} ]", items.join(" "))
             } else {
                 format!("[ ... ] ({} items)", arr.len())
@@ -1456,7 +1456,7 @@ fn render_browse(
 
             let (icon, name_style) = if row.is_leaf {
                 let tc = type_color(
-                    &state.options.get(row.option_idx.unwrap_or(0))
+                    state.options.get(row.option_idx.unwrap_or(0))
                         .map(|o| o.type_str.as_str())
                         .unwrap_or(""),
                     theme,
@@ -1587,7 +1587,7 @@ fn render_option_list(
         scroll = selected;
     }
 
-    let path_width = (area.width as usize * 2 / 5).max(20).min(60);
+    let path_width = (area.width as usize * 2 / 5).clamp(20, 60);
     let type_width = 14usize.min(area.width as usize / 5);
 
     let items: Vec<ListItem> = indices

@@ -589,7 +589,7 @@ fn load_installed_packages() -> Vec<String> {
                 .lines()
                 .map(|l| {
                     if let Some(pos) = l.rfind('-') {
-                        if l[pos + 1..].chars().next().map_or(false, |c| c.is_ascii_digit()) {
+                        if l[pos + 1..].chars().next().is_some_and(|c| c.is_ascii_digit()) {
                             return l[..pos].to_string();
                         }
                     }

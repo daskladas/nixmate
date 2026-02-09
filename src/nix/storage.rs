@@ -36,7 +36,7 @@ pub struct DiskUsage {
 }
 
 /// Overall store information
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct StoreInfo {
     pub disk_store: Option<DiskUsage>,
     pub disk_root: Option<DiskUsage>,
@@ -48,23 +48,6 @@ pub struct StoreInfo {
     pub live_size: u64,
     pub dead_size: u64,
     pub has_sizes: bool,
-}
-
-impl Default for StoreInfo {
-    fn default() -> Self {
-        Self {
-            disk_store: None,
-            disk_root: None,
-            paths: Vec::new(),
-            total_paths: 0,
-            live_paths: 0,
-            dead_paths: 0,
-            total_size: 0,
-            live_size: 0,
-            dead_size: 0,
-            has_sizes: false,
-        }
-    }
 }
 
 /// Result of a garbage collection run
@@ -132,11 +115,11 @@ impl CleanAction {
 
 /// Load complete store information
 pub fn load_store_info() -> StoreInfo {
-    let mut info = StoreInfo::default();
-
-    // Disk usage (instant)
-    info.disk_store = parse_disk_usage("/nix/store");
-    info.disk_root = parse_disk_usage("/");
+    let mut info = StoreInfo {
+        disk_store: parse_disk_usage("/nix/store"),
+        disk_root: parse_disk_usage("/"),
+        ..Default::default()
+    };
 
     // If store and root are on the same filesystem, only show root
     if let (Some(store), Some(root)) = (&info.disk_store, &info.disk_root) {

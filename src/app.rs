@@ -800,7 +800,7 @@ impl App {
         }
 
         if self.config.ai_provider != "ollama"
-            && self.config.ai_api_key.as_ref().map_or(true, |k| k.is_empty())
+            && self.config.ai_api_key.as_ref().is_none_or(|k| k.is_empty())
         {
             self.errors.show_flash(s.err_ai_no_key, true);
             return;

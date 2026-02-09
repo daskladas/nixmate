@@ -339,12 +339,9 @@ impl ErrorsState {
             }
         } else if self.ai_loading {
             // AI is running — only allow Esc to cancel
-            match key.code {
-                KeyCode::Esc => {
-                    self.ai_loading = false;
-                    self.ai_rx = None;
-                }
-                _ => {}
+            if key.code == KeyCode::Esc {
+                self.ai_loading = false;
+                self.ai_rx = None;
             }
         } else if self.ai_result.is_some() {
             // Viewing AI result

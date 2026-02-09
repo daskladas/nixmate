@@ -3,6 +3,7 @@
 //! Generates a dark-themed system overview infographic.
 //! Designed for r/unixporn, GitHub READMEs, and flex posts.
 
+#![allow(clippy::write_with_newline)]
 use crate::nix::sysinfo::PosterInfo;
 use std::fmt::Write;
 use std::path::PathBuf;

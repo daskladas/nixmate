@@ -200,7 +200,7 @@ pub struct LogLine {
 
 // ── Diff types ──
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct RebuildDiff {
     pub added: Vec<(String, String)>,     // (name, version)
     pub removed: Vec<(String, String)>,   // (name, version)
@@ -209,20 +209,6 @@ pub struct RebuildDiff {
     pub reboot_needed: bool,
     pub services_restarted: Vec<String>,
     pub nixos_version: Option<(String, String)>, // (old, new)
-}
-
-impl Default for RebuildDiff {
-    fn default() -> Self {
-        Self {
-            added: Vec::new(),
-            removed: Vec::new(),
-            updated: Vec::new(),
-            kernel_changed: None,
-            reboot_needed: false,
-            services_restarted: Vec::new(),
-            nixos_version: None,
-        }
-    }
 }
 
 // ── History entry ──
@@ -1158,6 +1144,7 @@ fn render_phase_boxes(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn render_single_phase_box(
     frame: &mut Frame,
     state: &RebuildState,
@@ -1177,7 +1164,7 @@ fn render_single_phase_box(
     let (is_active, is_done, is_failed) = if state.is_running() {
         // Build in progress
         let active = current_idx == Some(idx);
-        let done = current_idx.map_or(false, |ci| idx < ci);
+        let done = current_idx.is_some_and(|ci| idx < ci);
         (active, done, false)
     } else if matches!(state.phase, BuildPhase::Done) {
         // Build succeeded: all non-skipped phases are done
@@ -2169,6 +2156,7 @@ fn render_confirm_popup(
 
 // ── Background rebuild logic ──
 
+#[allow(clippy::too_many_arguments)]
 fn run_rebuild(tx: mpsc::Sender<RebuildMsg>, mode: RebuildMode, uses_flakes: bool, flake_path: Option<&str>, password: Option<String>, show_trace: bool, child_pid: Arc<AtomicU32>, auth_msg: String) {
     use std::io::{BufRead, BufReader, Write};
     use std::process::{Command, Stdio};
@@ -2243,11 +2231,7 @@ fn run_rebuild(tx: mpsc::Sender<RebuildMsg>, mode: RebuildMode, uses_flakes: boo
             let mut stats = BuildStats::default();
             let mut current_phase = BuildPhase::Evaluating;
 
-            for line in reader.lines() {
-                let line = match line {
-                    Ok(l) => l,
-                    Err(_) => continue,
-                };
+            for line in reader.lines().map_while(Result::ok) {
 
                 // Phase detection
                 let new_phase = detect_phase(&line, current_phase);
@@ -2276,10 +2260,8 @@ fn run_rebuild(tx: mpsc::Sender<RebuildMsg>, mode: RebuildMode, uses_flakes: boo
     let stdout_handle = std::thread::spawn(move || {
         if let Some(stdout) = stdout {
             let reader = BufReader::new(stdout);
-            for line in reader.lines() {
-                if let Ok(line) = line {
+            for line in reader.lines().map_while(Result::ok) {
                     let _ = tx_stdout.send(RebuildMsg::OutputLine(line));
-                }
             }
         }
     });
@@ -2605,7 +2587,7 @@ fn parse_store_path_name(path: &str) -> Option<(String, String)> {
     let parts: Vec<&str> = rest.rsplitn(2, '-').collect();
     if parts.len() == 2 {
         let maybe_ver = parts[0];
-        if maybe_ver.chars().next().map_or(false, |c| c.is_ascii_digit()) {
+        if maybe_ver.chars().next().is_some_and(|c| c.is_ascii_digit()) {
             return Some((parts[1].to_string(), maybe_ver.to_string()));
         }
     }
@@ -2623,7 +2605,7 @@ fn should_skip_pkg(name: &str) -> bool {
         "stdenv", "builder", "raw", "env-manifest",
     ];
     skip_prefixes.iter().any(|p| name.starts_with(p))
-        || skip_names.iter().any(|n| name == *n)
+        || skip_names.contains(&name)
 }
 
 // ── Diff calculation ──

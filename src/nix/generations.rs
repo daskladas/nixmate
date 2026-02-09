@@ -203,7 +203,7 @@ fn parse_datetime(s: &str) -> Result<DateTime<Local>> {
     Ok(Local
         .from_local_datetime(&naive)
         .single()
-        .unwrap_or_else(|| Local::now()))
+        .unwrap_or_else(Local::now))
 }
 
 /// Get the current generation ID by reading the profile symlink

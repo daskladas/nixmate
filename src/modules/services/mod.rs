@@ -895,7 +895,7 @@ fn render_overview(
         0
     };
 
-    let name_width = (list_area.width as usize / 3).max(15).min(35);
+    let name_width = (list_area.width as usize / 3).clamp(15, 35);
 
     let items: Vec<ListItem> = filtered
         .iter()

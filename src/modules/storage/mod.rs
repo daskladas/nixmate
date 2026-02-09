@@ -207,8 +207,6 @@ impl StorageState {
         self.explorer_selected = 0;
     }
 
-    /// Ensure data is loaded (called on first render) — REMOVED, replaced by start_loading + poll_load
-
     fn filtered_paths(&self) -> Vec<&StorePath> {
         self.info
             .paths
@@ -285,12 +283,9 @@ impl StorageState {
             CleanAction::FullClean => {
                 match storage::run_gc_full() {
                     Ok(result) => {
-                        let msg = format!(
-                            "{}",
-                            s.stor_fullclean_result
+                        let msg = s.stor_fullclean_result
                                 .replacen("{}", &result.paths_removed.to_string(), 1)
-                                .replacen("{}", &format_bytes(result.bytes_freed), 1)
-                        );
+                                .replacen("{}", &format_bytes(result.bytes_freed), 1);
                         let _ = storage::save_history_entry(HistoryEntry {
                             timestamp: now,
                             action: s.stor_fullclean_action.to_string(),
@@ -368,10 +363,7 @@ impl StorageState {
     }
 
     fn handle_dashboard_key(&mut self, key: KeyEvent) -> Result<()> {
-        match key.code {
-            KeyCode::Char('r') => self.refresh(),
-            _ => {}
-        }
+        if let KeyCode::Char('r') = key.code { self.refresh() }
         Ok(())
     }
 
@@ -734,7 +726,7 @@ fn render_dashboard(
         lines.push(Line::raw(""));
 
         let max_size = info.paths.first().map(|p| p.size).unwrap_or(1).max(1);
-        let name_width = (inner.width as usize).saturating_sub(30).min(40).max(10);
+        let name_width = (inner.width as usize).saturating_sub(30).clamp(10, 40);
         let mini_bar_width: usize = 12;
 
         for (i, path) in info.paths.iter().take(10).enumerate() {
@@ -972,7 +964,7 @@ fn render_explorer(
         0
     };
 
-    let name_width = (inner.width as usize).saturating_sub(28).min(35).max(10);
+    let name_width = (inner.width as usize).saturating_sub(28).clamp(10, 35);
     let mut lines: Vec<Line> = Vec::new();
 
     for (i, path) in paths.iter().enumerate().skip(scroll).take(visible) {

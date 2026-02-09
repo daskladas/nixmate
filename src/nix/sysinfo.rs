@@ -352,8 +352,7 @@ fn shorten_gpu(name: &str) -> String {
             let inner = &name[start + 1..end];
             let short = inner.replace("GeForce ", "")
                 .replace("Radeon ", "")
-                .replace("Lite Hash Rate", "")
-                .replace("/ ", "/ ");
+                .replace("Lite Hash Rate", "");
             let trimmed = short.trim();
             if !trimmed.is_empty() && trimmed.len() <= 22 {
                 return trimmed.to_string();
@@ -626,7 +625,7 @@ fn get_users() -> Vec<String> {
                 let shell = parts[6];
 
                 // Only real users: UID 1000-59999, with real shell, not system accounts
-                if uid < 1000 || uid >= 60000 { return None; }
+                if !(1000..60000).contains(&uid) { return None; }
 
                 // Skip nix build users and other system-like accounts
                 if name.starts_with("nixbld")
