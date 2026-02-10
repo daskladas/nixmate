@@ -63,7 +63,10 @@ impl Pattern {
         if let Some(re) = cache.get(self.regex_str) {
             return re.clone();
         }
-        let re = Regex::new(self.regex_str).expect("Invalid regex pattern");
+        let re = match Regex::new(self.regex_str) {
+            Ok(re) => re,
+            Err(_) => return Regex::new("^$").unwrap(), // skip invalid patterns
+        };
         cache.insert(self.regex_str, re.clone());
         re
     }

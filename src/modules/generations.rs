@@ -664,6 +664,18 @@ impl GenerationsState {
             .join(format!("{}-{}-link", prefix, gen_id));
 
         self.packages_list = nix::get_packages(&gen_path).unwrap_or_default();
+        if self.packages_list.is_empty() {
+            let msg = if !gen_path.exists() {
+                format!("Generation path not found: {}", gen_path.display())
+            } else {
+                format!("No packages found in {}", gen_path.display())
+            };
+            self.packages_list = vec![crate::types::Package {
+                name: msg,
+                version: String::new(),
+                size: 0,
+            }];
+        }
         self.packages_gen_id = Some(gen_id);
         self.packages_profile = profile;
         self.packages_selected = 0;

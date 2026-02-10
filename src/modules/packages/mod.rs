@@ -921,7 +921,9 @@ fn render_detail(
     area: Rect,
 ) {
     let s = i18n::get_strings(lang);
-    let pkg = &state.results[state.selected];
+    let Some(pkg) = state.results.get(state.selected) else {
+        return;
+    };
 
     let mut lines: Vec<Line> = Vec::new();
     lines.push(Line::raw(""));

@@ -14,6 +14,9 @@ Full development history of nixmate — every version, every feature.
 ### Fixed
 - **Services:** systemctl output parser failed on multi-space columns — now correctly loads all systemd units
 - **Services & Storage:** modules now trigger data loading on first visit (was never called)
+- **Package Search:** Fixed potential crash from unchecked index access in detail view
+- **Error Translator:** Invalid regex patterns no longer crash the app
+- **Generations:** Shows diagnostic message instead of empty list when packages cannot be loaded
 
 ### Known Issues
 - Generations: Packages/Diff tabs may show empty content on some configurations
