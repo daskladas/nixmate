@@ -11,10 +11,14 @@ Full development history of nixmate — every version, every feature.
 - **Code quality:** Applied `cargo fmt` to entire codebase. Zero clippy warnings.
 - **Docs:** Updated KEYBINDINGS.md and ADDING_MODULES.md to reflect new keybindings.
 
+### Fixed
+- **Services:** systemctl output parser failed on multi-space columns — now correctly loads all systemd units
+- **Services & Storage:** modules now trigger data loading on first visit (was never called)
+
 ### Known Issues
 - Generations: Packages/Diff tabs may show empty content on some configurations
 - Error Translator: Crashes reported on some setups
-- Services: Service list may not populate on non-standard setups
+- Services: May show incomplete data on non-systemd or containerized setups
 - Package Search: Crashes or fails on some configurations
 
 ---

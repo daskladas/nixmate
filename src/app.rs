@@ -260,6 +260,14 @@ impl App {
         }
 
         // Lazy-load installed packages when entering Packages tab
+        // Lazy-load services when entering Services tab
+        if self.active_tab == ModuleTab::Services {
+            self.services.start_loading();
+        }
+        // Lazy-load storage when entering Storage tab
+        if self.active_tab == ModuleTab::Storage {
+            self.storage.start_loading();
+        }
         if self.active_tab == ModuleTab::Packages {
             self.packages
                 .ensure_source_detected(&self.config.nixpkgs_channel);

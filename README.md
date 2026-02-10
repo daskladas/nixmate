@@ -123,7 +123,7 @@ Working on fixes for these — feedback welcome.
 
 - **Generations:** Packages and Diff tabs may show empty content depending on system configuration
 - **Error Translator:** Crashes reported on some setups
-- **Services:** Service list may not populate on non-standard setups
+- **Services:** May show incomplete data on non-systemd or containerized setups
 - **Package Search:** Crashes or fails on some configurations
 
 Most of these stem from assumptions about flake-based configs in `/etc/nixos`. Improving detection and error handling for non-flake and custom-path setups is the next priority.

@@ -324,15 +324,16 @@ fn list_systemd_services() -> Result<Vec<ServiceEntry>> {
             continue;
         }
 
-        let tokens: Vec<&str> = line
-            .splitn(5, char::is_whitespace)
-            .map(|s| s.trim())
-            .filter(|s| !s.is_empty())
-            .collect();
-
-        if tokens.len() < 4 {
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        if parts.len() < 4 {
             continue;
         }
+        let desc = if parts.len() > 4 {
+            parts[4..].join(" ")
+        } else {
+            String::new()
+        };
+        let tokens: Vec<&str> = vec![parts[0], parts[1], parts[2], parts[3]];
 
         let unit_name = tokens[0];
         if !unit_name.ends_with(".service") {
@@ -342,11 +343,6 @@ fn list_systemd_services() -> Result<Vec<ServiceEntry>> {
         let display = unit_name.trim_end_matches(".service").to_string();
         let active = tokens[2];
         let sub = tokens[3];
-        let desc = if tokens.len() > 4 {
-            tokens[4].to_string()
-        } else {
-            String::new()
-        };
 
         let status = match (active, sub) {
             (_, "running") => RunState::Running,
