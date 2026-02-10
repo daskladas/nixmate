@@ -109,11 +109,11 @@ impl Theme {
             fg: Color::Rgb(205, 214, 244),
             fg_dim: Color::Rgb(108, 112, 134),
             accent: Color::Rgb(137, 180, 250),     // blue
-            accent_dim: Color::Rgb(116, 199, 236),  // sapphire
-            success: Color::Rgb(166, 227, 161),     // green
-            warning: Color::Rgb(249, 226, 175),     // yellow
-            error: Color::Rgb(243, 139, 168),       // red
-            border: Color::Rgb(69, 71, 90),         // surface1
+            accent_dim: Color::Rgb(116, 199, 236), // sapphire
+            success: Color::Rgb(166, 227, 161),    // green
+            warning: Color::Rgb(249, 226, 175),    // yellow
+            error: Color::Rgb(243, 139, 168),      // red
+            border: Color::Rgb(69, 71, 90),        // surface1
             border_focused: Color::Rgb(137, 180, 250),
             selection_bg: Color::Rgb(69, 71, 90),
             selection_fg: Color::Rgb(205, 214, 244),
@@ -129,13 +129,13 @@ impl Theme {
         Self {
             bg: Color::Rgb(40, 42, 54),
             fg: Color::Rgb(248, 248, 242),
-            fg_dim: Color::Rgb(98, 114, 164),       // comment
-            accent: Color::Rgb(189, 147, 249),       // purple
-            accent_dim: Color::Rgb(139, 233, 253),   // cyan
-            success: Color::Rgb(80, 250, 123),       // green
-            warning: Color::Rgb(241, 250, 140),      // yellow
-            error: Color::Rgb(255, 85, 85),          // red
-            border: Color::Rgb(68, 71, 90),          // current line
+            fg_dim: Color::Rgb(98, 114, 164),      // comment
+            accent: Color::Rgb(189, 147, 249),     // purple
+            accent_dim: Color::Rgb(139, 233, 253), // cyan
+            success: Color::Rgb(80, 250, 123),     // green
+            warning: Color::Rgb(241, 250, 140),    // yellow
+            error: Color::Rgb(255, 85, 85),        // red
+            border: Color::Rgb(68, 71, 90),        // current line
             border_focused: Color::Rgb(189, 147, 249),
             selection_bg: Color::Rgb(68, 71, 90),
             selection_fg: Color::Rgb(248, 248, 242),
@@ -152,12 +152,12 @@ impl Theme {
             bg: Color::Rgb(26, 27, 38),
             fg: Color::Rgb(192, 202, 245),
             fg_dim: Color::Rgb(86, 95, 137),
-            accent: Color::Rgb(122, 162, 247),       // blue
-            accent_dim: Color::Rgb(125, 207, 255),   // cyan
-            success: Color::Rgb(158, 206, 106),      // green
-            warning: Color::Rgb(224, 175, 104),       // yellow
-            error: Color::Rgb(247, 118, 142),         // red
-            border: Color::Rgb(41, 46, 66),           // bg_highlight
+            accent: Color::Rgb(122, 162, 247),     // blue
+            accent_dim: Color::Rgb(125, 207, 255), // cyan
+            success: Color::Rgb(158, 206, 106),    // green
+            warning: Color::Rgb(224, 175, 104),    // yellow
+            error: Color::Rgb(247, 118, 142),      // red
+            border: Color::Rgb(41, 46, 66),        // bg_highlight
             border_focused: Color::Rgb(122, 162, 247),
             selection_bg: Color::Rgb(41, 46, 66),
             selection_fg: Color::Rgb(192, 202, 245),
@@ -174,12 +174,12 @@ impl Theme {
             bg: Color::Rgb(35, 33, 54),
             fg: Color::Rgb(224, 222, 244),
             fg_dim: Color::Rgb(110, 106, 134),
-            accent: Color::Rgb(196, 167, 231),       // iris
-            accent_dim: Color::Rgb(156, 207, 216),    // foam
-            success: Color::Rgb(156, 207, 216),       // foam
-            warning: Color::Rgb(246, 193, 119),       // gold
-            error: Color::Rgb(235, 111, 146),         // love
-            border: Color::Rgb(57, 53, 82),           // highlight med
+            accent: Color::Rgb(196, 167, 231),     // iris
+            accent_dim: Color::Rgb(156, 207, 216), // foam
+            success: Color::Rgb(156, 207, 216),    // foam
+            warning: Color::Rgb(246, 193, 119),    // gold
+            error: Color::Rgb(235, 111, 146),      // love
+            border: Color::Rgb(57, 53, 82),        // highlight med
             border_focused: Color::Rgb(196, 167, 231),
             selection_bg: Color::Rgb(57, 53, 82),
             selection_fg: Color::Rgb(224, 222, 244),
@@ -196,12 +196,12 @@ impl Theme {
             bg: Color::Rgb(39, 46, 43),
             fg: Color::Rgb(211, 198, 170),
             fg_dim: Color::Rgb(135, 139, 124),
-            accent: Color::Rgb(167, 192, 128),       // green
-            accent_dim: Color::Rgb(131, 192, 159),    // aqua
-            success: Color::Rgb(167, 192, 128),       // green
-            warning: Color::Rgb(219, 188, 127),       // yellow
-            error: Color::Rgb(230, 126, 128),         // red
-            border: Color::Rgb(58, 67, 62),           // bg3
+            accent: Color::Rgb(167, 192, 128),     // green
+            accent_dim: Color::Rgb(131, 192, 159), // aqua
+            success: Color::Rgb(167, 192, 128),    // green
+            warning: Color::Rgb(219, 188, 127),    // yellow
+            error: Color::Rgb(230, 126, 128),      // red
+            border: Color::Rgb(58, 67, 62),        // bg3
             border_focused: Color::Rgb(167, 192, 128),
             selection_bg: Color::Rgb(58, 67, 62),
             selection_fg: Color::Rgb(211, 198, 170),
@@ -218,12 +218,12 @@ impl Theme {
             bg: Color::Rgb(31, 31, 40),
             fg: Color::Rgb(220, 215, 186),
             fg_dim: Color::Rgb(114, 113, 105),
-            accent: Color::Rgb(126, 156, 216),        // crystal blue
-            accent_dim: Color::Rgb(122, 168, 159),    // spring green
-            success: Color::Rgb(152, 187, 108),       // spring green
-            warning: Color::Rgb(226, 194, 114),       // carp yellow
-            error: Color::Rgb(195, 64, 67),           // autumn red
-            border: Color::Rgb(54, 54, 70),           // sumiInk4
+            accent: Color::Rgb(126, 156, 216),     // crystal blue
+            accent_dim: Color::Rgb(122, 168, 159), // spring green
+            success: Color::Rgb(152, 187, 108),    // spring green
+            warning: Color::Rgb(226, 194, 114),    // carp yellow
+            error: Color::Rgb(195, 64, 67),        // autumn red
+            border: Color::Rgb(54, 54, 70),        // sumiInk4
             border_focused: Color::Rgb(126, 156, 216),
             selection_bg: Color::Rgb(54, 54, 70),
             selection_fg: Color::Rgb(220, 215, 186),
@@ -240,12 +240,12 @@ impl Theme {
             bg: Color::Rgb(0, 43, 54),
             fg: Color::Rgb(131, 148, 150),
             fg_dim: Color::Rgb(88, 110, 117),
-            accent: Color::Rgb(38, 139, 210),         // blue
-            accent_dim: Color::Rgb(42, 161, 152),     // cyan
-            success: Color::Rgb(133, 153, 0),          // green
-            warning: Color::Rgb(181, 137, 0),          // yellow
-            error: Color::Rgb(220, 50, 47),            // red
-            border: Color::Rgb(7, 54, 66),             // base02
+            accent: Color::Rgb(38, 139, 210),     // blue
+            accent_dim: Color::Rgb(42, 161, 152), // cyan
+            success: Color::Rgb(133, 153, 0),     // green
+            warning: Color::Rgb(181, 137, 0),     // yellow
+            error: Color::Rgb(220, 50, 47),       // red
+            border: Color::Rgb(7, 54, 66),        // base02
             border_focused: Color::Rgb(38, 139, 210),
             selection_bg: Color::Rgb(7, 54, 66),
             selection_fg: Color::Rgb(147, 161, 161),
@@ -262,11 +262,11 @@ impl Theme {
             bg: Color::Rgb(40, 44, 52),
             fg: Color::Rgb(171, 178, 191),
             fg_dim: Color::Rgb(92, 99, 112),
-            accent: Color::Rgb(97, 175, 239),          // blue
-            accent_dim: Color::Rgb(86, 182, 194),      // cyan
-            success: Color::Rgb(152, 195, 121),        // green
-            warning: Color::Rgb(229, 192, 123),        // yellow
-            error: Color::Rgb(224, 108, 117),          // red
+            accent: Color::Rgb(97, 175, 239),     // blue
+            accent_dim: Color::Rgb(86, 182, 194), // cyan
+            success: Color::Rgb(152, 195, 121),   // green
+            warning: Color::Rgb(229, 192, 123),   // yellow
+            error: Color::Rgb(224, 108, 117),     // red
             border: Color::Rgb(62, 68, 81),
             border_focused: Color::Rgb(97, 175, 239),
             selection_bg: Color::Rgb(62, 68, 81),
@@ -284,11 +284,11 @@ impl Theme {
             bg: Color::Rgb(39, 40, 34),
             fg: Color::Rgb(248, 248, 242),
             fg_dim: Color::Rgb(117, 113, 94),
-            accent: Color::Rgb(102, 217, 239),         // cyan
-            accent_dim: Color::Rgb(174, 129, 255),     // purple
-            success: Color::Rgb(166, 226, 46),         // green
-            warning: Color::Rgb(230, 219, 116),        // yellow
-            error: Color::Rgb(249, 38, 114),           // pink/red
+            accent: Color::Rgb(102, 217, 239),     // cyan
+            accent_dim: Color::Rgb(174, 129, 255), // purple
+            success: Color::Rgb(166, 226, 46),     // green
+            warning: Color::Rgb(230, 219, 116),    // yellow
+            error: Color::Rgb(249, 38, 114),       // pink/red
             border: Color::Rgb(62, 61, 50),
             border_focused: Color::Rgb(102, 217, 239),
             selection_bg: Color::Rgb(62, 61, 50),
@@ -364,17 +364,27 @@ impl Theme {
 
     pub fn title(&self) -> Style {
         if self.is_transparent {
-            Style::default().fg(self.accent).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(self.accent)
+                .add_modifier(Modifier::BOLD)
         } else {
-            Style::default().fg(self.accent).bg(self.bg).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(self.accent)
+                .bg(self.bg)
+                .add_modifier(Modifier::BOLD)
         }
     }
 
     pub fn selected(&self) -> Style {
         if self.is_transparent {
-            Style::default().fg(self.selection_fg).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(self.selection_fg)
+                .add_modifier(Modifier::BOLD)
         } else {
-            Style::default().fg(self.selection_fg).bg(self.selection_bg).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(self.selection_fg)
+                .bg(self.selection_bg)
+                .add_modifier(Modifier::BOLD)
         }
     }
 
@@ -404,9 +414,14 @@ impl Theme {
 
     pub fn tab_active(&self) -> Style {
         if self.is_transparent {
-            Style::default().fg(self.accent).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(self.accent)
+                .add_modifier(Modifier::BOLD)
         } else {
-            Style::default().fg(self.accent).bg(self.bg).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(self.accent)
+                .bg(self.bg)
+                .add_modifier(Modifier::BOLD)
         }
     }
 

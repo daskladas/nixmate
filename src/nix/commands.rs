@@ -27,12 +27,19 @@ pub fn restore_generation(
     if dry_run {
         return Ok(CommandResult {
             success: true,
-            message: format!("Dry run: Would execute restore to generation {}", generation_id),
+            message: format!(
+                "Dry run: Would execute restore to generation {}",
+                generation_id
+            ),
             command,
         });
     }
 
-    execute_sudo_command(&program, &args, &format!("restore generation {}", generation_id))
+    execute_sudo_command(
+        &program,
+        &args,
+        &format!("restore generation {}", generation_id),
+    )
 }
 
 /// Delete one or more generations
@@ -56,12 +63,19 @@ pub fn delete_generations(
     if dry_run {
         return Ok(CommandResult {
             success: true,
-            message: format!("Dry run: Would delete {} generation(s)", generation_ids.len()),
+            message: format!(
+                "Dry run: Would delete {} generation(s)",
+                generation_ids.len()
+            ),
             command,
         });
     }
 
-    execute_sudo_command(&program, &args, &format!("delete {} generation(s)", generation_ids.len()))
+    execute_sudo_command(
+        &program,
+        &args,
+        &format!("delete {} generation(s)", generation_ids.len()),
+    )
 }
 
 fn build_restore_command(
@@ -75,10 +89,7 @@ fn build_restore_command(
                 .parent()
                 .unwrap_or(Path::new("/nix/var/nix/profiles"))
                 .join(format!("system-{}-link", generation_id));
-            let switch_bin = format!(
-                "{}/bin/switch-to-configuration",
-                gen_path.display()
-            );
+            let switch_bin = format!("{}/bin/switch-to-configuration", gen_path.display());
             ("sudo".into(), vec![switch_bin, "switch".into()])
         }
         ProfileType::HomeManager => {
@@ -146,7 +157,11 @@ fn command_exists(cmd: &str) -> bool {
         .unwrap_or(false)
 }
 
-fn execute_sudo_command(program: &str, args: &[String], description: &str) -> Result<CommandResult> {
+fn execute_sudo_command(
+    program: &str,
+    args: &[String],
+    description: &str,
+) -> Result<CommandResult> {
     let display_cmd = format!("{} {}", program, args.join(" "));
 
     let output = Command::new(program)

@@ -7,6 +7,7 @@ use crate::config::Language;
 use crate::i18n;
 use crate::nix::storage::{self, CleanAction, DiskUsage, HistoryEntry, StoreInfo, StorePath};
 use crate::types::format_bytes;
+use crate::types::FlashMessage;
 use crate::ui::theme::Theme;
 use crate::ui::widgets;
 use anyhow::Result;
@@ -19,7 +20,6 @@ use ratatui::{
     Frame,
 };
 use std::sync::mpsc;
-use crate::types::FlashMessage;
 
 // ── Sub-tabs ──
 
@@ -67,13 +67,8 @@ impl StoSubTab {
 #[derive(Debug, Clone)]
 pub enum StoPopupState {
     None,
-    ConfirmAction {
-        action: CleanAction,
-    },
-    ActionResult {
-        title: String,
-        message: String,
-    },
+    ConfirmAction { action: CleanAction },
+    ActionResult { title: String, message: String },
 }
 
 // ── Explorer filter ──
@@ -188,7 +183,11 @@ impl StorageState {
                     // Still loading
                 }
                 Err(mpsc::TryRecvError::Disconnected) => {
-                    self.load_error = Some(crate::i18n::get_strings(self.lang).thread_crashed.to_string());
+                    self.load_error = Some(
+                        crate::i18n::get_strings(self.lang)
+                            .thread_crashed
+                            .to_string(),
+                    );
                     self.loaded = true;
                     self.loading = false;
                     self.load_rx = None;
@@ -236,72 +235,69 @@ impl StorageState {
         let now = chrono::Local::now().format("%Y-%m-%d %H:%M").to_string();
 
         match action {
-            CleanAction::GarbageCollect => {
-                match storage::run_gc() {
-                    Ok(result) => {
-                        let msg = format!(
-                            "GC complete: {} paths removed, {} freed",
-                            result.paths_removed,
-                            format_bytes(result.bytes_freed)
-                        );
-                        let _ = storage::save_history_entry(HistoryEntry {
-                            timestamp: now,
-                            action: s.stor_gc_action.to_string(),
-                            freed_bytes: result.bytes_freed,
-                            paths_removed: result.paths_removed,
-                        });
-                        self.popup = StoPopupState::ActionResult {
-                            title: s.stor_gc_title.to_string(),
-                            message: msg,
-                        };
-                    }
-                    Err(e) => {
-                        self.show_flash(&format!("{}: {}", s.error, e), true);
-                    }
+            CleanAction::GarbageCollect => match storage::run_gc() {
+                Ok(result) => {
+                    let msg = format!(
+                        "GC complete: {} paths removed, {} freed",
+                        result.paths_removed,
+                        format_bytes(result.bytes_freed)
+                    );
+                    let _ = storage::save_history_entry(HistoryEntry {
+                        timestamp: now,
+                        action: s.stor_gc_action.to_string(),
+                        freed_bytes: result.bytes_freed,
+                        paths_removed: result.paths_removed,
+                    });
+                    self.popup = StoPopupState::ActionResult {
+                        title: s.stor_gc_title.to_string(),
+                        message: msg,
+                    };
                 }
-            }
-            CleanAction::Optimise => {
-                match storage::run_optimise() {
-                    Ok(result) => {
-                        let msg = s.stor_optimize_result.replace("{}", &format_bytes(result.bytes_saved));
-                        let _ = storage::save_history_entry(HistoryEntry {
-                            timestamp: now,
-                            action: s.stor_optimize_action.to_string(),
-                            freed_bytes: result.bytes_saved,
-                            paths_removed: 0,
-                        });
-                        self.popup = StoPopupState::ActionResult {
-                            title: s.stor_optimize_title.to_string(),
-                            message: msg,
-                        };
-                    }
-                    Err(e) => {
-                        self.show_flash(&format!("{}: {}", s.error, e), true);
-                    }
+                Err(e) => {
+                    self.show_flash(&format!("{}: {}", s.error, e), true);
                 }
-            }
-            CleanAction::FullClean => {
-                match storage::run_gc_full() {
-                    Ok(result) => {
-                        let msg = s.stor_fullclean_result
-                                .replacen("{}", &result.paths_removed.to_string(), 1)
-                                .replacen("{}", &format_bytes(result.bytes_freed), 1);
-                        let _ = storage::save_history_entry(HistoryEntry {
-                            timestamp: now,
-                            action: s.stor_fullclean_action.to_string(),
-                            freed_bytes: result.bytes_freed,
-                            paths_removed: result.paths_removed,
-                        });
-                        self.popup = StoPopupState::ActionResult {
-                            title: s.stor_fullclean_title.to_string(),
-                            message: msg,
-                        };
-                    }
-                    Err(e) => {
-                        self.show_flash(&format!("{}: {}", s.error, e), true);
-                    }
+            },
+            CleanAction::Optimise => match storage::run_optimise() {
+                Ok(result) => {
+                    let msg = s
+                        .stor_optimize_result
+                        .replace("{}", &format_bytes(result.bytes_saved));
+                    let _ = storage::save_history_entry(HistoryEntry {
+                        timestamp: now,
+                        action: s.stor_optimize_action.to_string(),
+                        freed_bytes: result.bytes_saved,
+                        paths_removed: 0,
+                    });
+                    self.popup = StoPopupState::ActionResult {
+                        title: s.stor_optimize_title.to_string(),
+                        message: msg,
+                    };
                 }
-            }
+                Err(e) => {
+                    self.show_flash(&format!("{}: {}", s.error, e), true);
+                }
+            },
+            CleanAction::FullClean => match storage::run_gc_full() {
+                Ok(result) => {
+                    let msg = s
+                        .stor_fullclean_result
+                        .replacen("{}", &result.paths_removed.to_string(), 1)
+                        .replacen("{}", &format_bytes(result.bytes_freed), 1);
+                    let _ = storage::save_history_entry(HistoryEntry {
+                        timestamp: now,
+                        action: s.stor_fullclean_action.to_string(),
+                        freed_bytes: result.bytes_freed,
+                        paths_removed: result.paths_removed,
+                    });
+                    self.popup = StoPopupState::ActionResult {
+                        title: s.stor_fullclean_title.to_string(),
+                        message: msg,
+                    };
+                }
+                Err(e) => {
+                    self.show_flash(&format!("{}: {}", s.error, e), true);
+                }
+            },
         }
 
         // Refresh data after action
@@ -347,10 +343,22 @@ impl StorageState {
 
         // Sub-tab switching
         match key.code {
-            KeyCode::F(1) => { self.active_sub_tab = StoSubTab::Dashboard; return Ok(()); }
-            KeyCode::F(2) => { self.active_sub_tab = StoSubTab::Explorer; return Ok(()); }
-            KeyCode::F(3) => { self.active_sub_tab = StoSubTab::Clean; return Ok(()); }
-            KeyCode::F(4) => { self.active_sub_tab = StoSubTab::History; return Ok(()); }
+            KeyCode::F(1) => {
+                self.active_sub_tab = StoSubTab::Dashboard;
+                return Ok(());
+            }
+            KeyCode::F(2) => {
+                self.active_sub_tab = StoSubTab::Explorer;
+                return Ok(());
+            }
+            KeyCode::F(3) => {
+                self.active_sub_tab = StoSubTab::Clean;
+                return Ok(());
+            }
+            KeyCode::F(4) => {
+                self.active_sub_tab = StoSubTab::History;
+                return Ok(());
+            }
             _ => {}
         }
 
@@ -363,7 +371,9 @@ impl StorageState {
     }
 
     fn handle_dashboard_key(&mut self, key: KeyEvent) -> Result<()> {
-        if let KeyCode::Char('r') = key.code { self.refresh() }
+        if let KeyCode::Char('r') = key.code {
+            self.refresh()
+        }
         Ok(())
     }
 
@@ -478,16 +488,15 @@ pub fn render(
         let loading_text = vec![
             Line::raw(""),
             Line::raw(""),
-            Line::styled("⏳  Loading Nix Store ...", Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+            Line::styled(
+                "⏳  Loading Nix Store ...",
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Line::raw(""),
-            Line::styled(
-                s.stor_scanning_desc,
-                theme.text_dim(),
-            ),
-            Line::styled(
-                s.stor_scanning_hint,
-                theme.text_dim(),
-            ),
+            Line::styled(s.stor_scanning_desc, theme.text_dim()),
+            Line::styled(s.stor_scanning_hint, theme.text_dim()),
         ];
         let loading = Paragraph::new(loading_text)
             .alignment(Alignment::Center)
@@ -496,11 +505,7 @@ pub fn render(
         return;
     }
 
-    let layout = Layout::vertical([
-        Constraint::Length(2),
-        Constraint::Min(8),
-    ])
-    .split(area);
+    let layout = Layout::vertical([Constraint::Length(2), Constraint::Min(8)]).split(area);
 
     render_sub_tabs(frame, state, theme, lang, layout[0]);
 
@@ -598,7 +603,9 @@ fn render_dashboard(
     // ── Disk Usage Section ──
     lines.push(Line::styled(
         format!("  ── {} ──", s.sto_disk_title),
-        Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+        Style::default()
+            .fg(theme.accent)
+            .add_modifier(Modifier::BOLD),
     ));
     lines.push(Line::raw(""));
 
@@ -611,7 +618,11 @@ fn render_dashboard(
 
     // Show root disk
     if let Some(disk) = &info.disk_root {
-        let label = if info.disk_store.is_some() { "/" } else { "/ (incl. /nix/store)" };
+        let label = if info.disk_store.is_some() {
+            "/"
+        } else {
+            "/ (incl. /nix/store)"
+        };
         lines.push(make_disk_line(label, disk, bar_width, theme));
         lines.push(make_bar_line(disk.percent, bar_width, theme));
         lines.push(Line::raw(""));
@@ -620,7 +631,9 @@ fn render_dashboard(
     // ── Store Breakdown Section ──
     lines.push(Line::styled(
         format!("  ── {} ──", s.sto_breakdown_title),
-        Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+        Style::default()
+            .fg(theme.accent)
+            .add_modifier(Modifier::BOLD),
     ));
     lines.push(Line::raw(""));
 
@@ -651,7 +664,10 @@ fn render_dashboard(
                 format!("{}  ", format_bytes(info.live_size)),
                 Style::default().fg(theme.success),
             ),
-            Span::styled(format!("{:.0}%", live_pct), Style::default().fg(theme.success)),
+            Span::styled(
+                format!("{:.0}%", live_pct),
+                Style::default().fg(theme.success),
+            ),
         ]));
 
         // Dead
@@ -721,7 +737,9 @@ fn render_dashboard(
     if info.has_sizes && !info.paths.is_empty() {
         lines.push(Line::styled(
             format!("  ── {} ──", s.sto_top_paths_title),
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
         ));
         lines.push(Line::raw(""));
 
@@ -741,12 +759,22 @@ fn render_dashboard(
             };
 
             let dead_marker = if path.is_dead { " ✗" } else { "" };
-            let dead_color = if path.is_dead { theme.error } else { theme.fg_dim };
+            let dead_color = if path.is_dead {
+                theme.error
+            } else {
+                theme.fg_dim
+            };
 
             lines.push(Line::from(vec![
-                Span::styled(format!("  {:>2}  ", i + 1), Style::default().fg(theme.fg_dim)),
+                Span::styled(
+                    format!("  {:>2}  ", i + 1),
+                    Style::default().fg(theme.fg_dim),
+                ),
                 Span::styled(name, Style::default().fg(theme.fg)),
-                Span::styled(format!("  {:>8}", format_bytes(path.size)), Style::default().fg(theme.accent)),
+                Span::styled(
+                    format!("  {:>8}", format_bytes(path.size)),
+                    Style::default().fg(theme.accent),
+                ),
                 Span::styled(format!("  {}", bar), Style::default().fg(dead_color)),
                 Span::styled(dead_marker.to_string(), Style::default().fg(theme.error)),
             ]));
@@ -799,16 +827,15 @@ fn render_dashboard(
     if !recs.is_empty() {
         lines.push(Line::styled(
             format!("  ── {} ──", s.sto_recommendations),
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
         ));
         lines.push(Line::raw(""));
         lines.extend(recs);
     }
 
-    frame.render_widget(
-        Paragraph::new(lines).wrap(Wrap { trim: false }),
-        inner,
-    );
+    frame.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 
 fn make_disk_line<'a>(label: &str, disk: &DiskUsage, _bar_width: usize, theme: &Theme) -> Line<'a> {
@@ -845,7 +872,10 @@ fn make_bar_line<'a>(percent: f64, bar_width: usize, theme: &Theme) -> Line<'a> 
         Span::raw("    "),
         Span::styled("█".repeat(filled), Style::default().fg(color)),
         Span::styled("░".repeat(empty), Style::default().fg(theme.border)),
-        Span::styled(format!("  {:.0}%", percent), Style::default().fg(color).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            format!("  {:.0}%", percent),
+            Style::default().fg(color).add_modifier(Modifier::BOLD),
+        ),
     ])
 }
 
@@ -896,7 +926,10 @@ fn render_explorer(
             ),
             Span::styled(&state.explorer_search, Style::default().fg(theme.accent)),
             Span::styled("█", Style::default().fg(theme.accent)),
-            Span::styled(format!("  │  {} {}", paths.len(), s.sto_shown), theme.text_dim()),
+            Span::styled(
+                format!("  │  {} {}", paths.len(), s.sto_shown),
+                theme.text_dim(),
+            ),
         ])
     } else {
         Line::from(vec![
@@ -915,12 +948,15 @@ fn render_explorer(
             Span::styled(format!("{} {}", paths.len(), s.sto_shown), theme.text_dim()),
         ])
     };
-    frame.render_widget(Paragraph::new(filter_line), Rect {
-        x: inner.x,
-        y: inner.y,
-        width: inner.width,
-        height: 1,
-    });
+    frame.render_widget(
+        Paragraph::new(filter_line),
+        Rect {
+            x: inner.x,
+            y: inner.y,
+            width: inner.width,
+            height: 1,
+        },
+    );
 
     // Header
     let header_y = inner.y + 1;
@@ -930,12 +966,15 @@ fn render_explorer(
         Span::styled(format!("{:>10}  ", s.sto_col_size), theme.text_dim()),
         Span::styled(format!("{:<6}", s.sto_col_status), theme.text_dim()),
     ]);
-    frame.render_widget(Paragraph::new(header), Rect {
-        x: inner.x,
-        y: header_y,
-        width: inner.width,
-        height: 1,
-    });
+    frame.render_widget(
+        Paragraph::new(header),
+        Rect {
+            x: inner.x,
+            y: header_y,
+            width: inner.width,
+            height: 1,
+        },
+    );
 
     // Path list
     let list_area = Rect {
@@ -996,7 +1035,14 @@ fn render_explorer(
         };
 
         lines.push(Line::from(vec![
-            Span::styled(marker, if is_selected { Style::default().fg(theme.accent) } else { theme.text() }),
+            Span::styled(
+                marker,
+                if is_selected {
+                    Style::default().fg(theme.accent)
+                } else {
+                    theme.text()
+                },
+            ),
             Span::styled(format!("{:>4}  ", i + 1), Style::default().fg(theme.fg_dim)),
             Span::styled(format!("{}  ", name), row_style),
             Span::styled(format!("{}  ", size_str), Style::default().fg(theme.accent)),
@@ -1033,7 +1079,9 @@ fn render_clean(
 
     lines.push(Line::styled(
         format!("  ── {} ──", s.sto_actions_title),
-        Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+        Style::default()
+            .fg(theme.accent)
+            .add_modifier(Modifier::BOLD),
     ));
     lines.push(Line::raw(""));
 
@@ -1056,16 +1104,15 @@ fn render_clean(
                         format_bytes(info.dead_size)
                     )
                 } else if info.dead_paths > 0 {
-                    format!("      {} {} {}", s.sto_estimated, info.dead_paths, s.sto_paths)
+                    format!(
+                        "      {} {} {}",
+                        s.sto_estimated, info.dead_paths, s.sto_paths
+                    )
                 } else {
                     format!("      {}", s.sto_nothing_to_clean)
                 },
             ),
-            CleanAction::Optimise => (
-                s.sto_optimise_title,
-                s.sto_optimise_desc,
-                String::new(),
-            ),
+            CleanAction::Optimise => (s.sto_optimise_title, s.sto_optimise_desc, String::new()),
             CleanAction::FullClean => (
                 s.sto_full_title,
                 s.sto_full_desc,
@@ -1074,7 +1121,9 @@ fn render_clean(
         };
 
         let title_style = if is_selected {
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD)
         } else {
             theme.text()
         };
@@ -1088,10 +1137,7 @@ fn render_clean(
             Span::styled(format!(" {}", title), title_style),
             Span::styled(sudo_hint, Style::default().fg(theme.warning)),
         ]));
-        lines.push(Line::styled(
-            format!("      {}", desc),
-            theme.text_dim(),
-        ));
+        lines.push(Line::styled(format!("      {}", desc), theme.text_dim()));
         if !detail.is_empty() {
             let detail_color = if matches!(action, CleanAction::FullClean) {
                 Style::default().fg(theme.warning)
@@ -1109,10 +1155,7 @@ fn render_clean(
         theme.text_dim(),
     ));
 
-    frame.render_widget(
-        Paragraph::new(lines).wrap(Wrap { trim: false }),
-        inner,
-    );
+    frame.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 
 // ── History ──
@@ -1144,10 +1187,7 @@ fn render_history(
             Line::raw(""),
             Line::styled(s.sto_no_history_hint, theme.text_dim()),
         ];
-        frame.render_widget(
-            Paragraph::new(content).alignment(Alignment::Center),
-            inner,
-        );
+        frame.render_widget(Paragraph::new(content).alignment(Alignment::Center), inner);
         return;
     }
 
@@ -1157,7 +1197,9 @@ fn render_history(
     let (last_cleanup, total_freed) = storage::history_summary(&state.history);
     lines.push(Line::styled(
         format!("  ── {} ──", s.sto_summary),
-        Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+        Style::default()
+            .fg(theme.accent)
+            .add_modifier(Modifier::BOLD),
     ));
     lines.push(Line::raw(""));
 
@@ -1171,7 +1213,9 @@ fn render_history(
         Span::styled(format!("  {} ", s.sto_total_freed), theme.text_dim()),
         Span::styled(
             format_bytes(total_freed),
-            Style::default().fg(theme.success).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.success)
+                .add_modifier(Modifier::BOLD),
         ),
         Span::styled(
             format!("  ({} {})", state.history.len(), s.sto_cleanups),
@@ -1182,14 +1226,23 @@ fn render_history(
     lines.push(Line::raw(""));
     lines.push(Line::styled(
         format!("  ── {} ──", s.sto_history_log),
-        Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+        Style::default()
+            .fg(theme.accent)
+            .add_modifier(Modifier::BOLD),
     ));
     lines.push(Line::raw(""));
 
     let visible = inner.height as usize;
-    let scroll = state.history_scroll.min(state.history.len().saturating_sub(1));
+    let scroll = state
+        .history_scroll
+        .min(state.history.len().saturating_sub(1));
 
-    for entry in state.history.iter().skip(scroll).take(visible.saturating_sub(8)) {
+    for entry in state
+        .history
+        .iter()
+        .skip(scroll)
+        .take(visible.saturating_sub(8))
+    {
         let freed_str = if entry.freed_bytes > 0 {
             format!("  {} {}", s.sto_freed, format_bytes(entry.freed_bytes))
         } else {
@@ -1202,17 +1255,20 @@ fn render_history(
         };
 
         lines.push(Line::from(vec![
-            Span::styled(format!("  {}  ", entry.timestamp), Style::default().fg(theme.fg_dim)),
-            Span::styled(&entry.action, Style::default().fg(theme.fg).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                format!("  {}  ", entry.timestamp),
+                Style::default().fg(theme.fg_dim),
+            ),
+            Span::styled(
+                &entry.action,
+                Style::default().fg(theme.fg).add_modifier(Modifier::BOLD),
+            ),
             Span::styled(freed_str, Style::default().fg(theme.success)),
             Span::styled(paths_str, theme.text_dim()),
         ]));
     }
 
-    frame.render_widget(
-        Paragraph::new(lines).wrap(Wrap { trim: false }),
-        inner,
-    );
+    frame.render_widget(Paragraph::new(lines).wrap(Wrap { trim: false }), inner);
 }
 
 // ── Confirm Popup ──
@@ -1236,7 +1292,9 @@ fn render_confirm_popup(
         Line::raw(""),
         Line::styled(
             format!("{} {}", action.icon(), title),
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
         ),
         Line::styled(desc, theme.text_dim()),
         Line::raw(""),

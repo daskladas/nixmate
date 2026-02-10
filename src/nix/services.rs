@@ -235,7 +235,9 @@ pub fn load_dashboard() -> Result<(Vec<ServiceEntry>, Vec<PortEntry>, DashboardS
             .count(),
         containers_running: entries
             .iter()
-            .filter(|e| matches!(e.kind, EntryKind::Docker | EntryKind::Podman) && e.status.is_active())
+            .filter(|e| {
+                matches!(e.kind, EntryKind::Docker | EntryKind::Podman) && e.status.is_active()
+            })
             .count(),
         containers_stopped: entries
             .iter()
@@ -421,8 +423,10 @@ fn fill_systemd_pids(services: &mut [ServiceEntry]) {
     }
 
     for chunk in running.chunks(50) {
-        let mut args: Vec<&str> =
-            vec!["show", "--property=Id,MainPID,MemoryCurrent,ActiveEnterTimestamp"];
+        let mut args: Vec<&str> = vec![
+            "show",
+            "--property=Id,MainPID,MemoryCurrent,ActiveEnterTimestamp",
+        ];
         for name in chunk {
             args.push(name);
         }
@@ -495,8 +499,13 @@ fn fill_systemd_pids(services: &mut [ServiceEntry]) {
 fn list_docker_containers() -> Result<Vec<ServiceEntry>> {
     let output = match output_with_timeout(
         "docker",
-        &["ps", "-a", "--no-trunc", "--format",
-          "{{.ID}}\t{{.Names}}\t{{.State}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}"],
+        &[
+            "ps",
+            "-a",
+            "--no-trunc",
+            "--format",
+            "{{.ID}}\t{{.Names}}\t{{.State}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}",
+        ],
         5,
     ) {
         Some(o) => o,
@@ -564,8 +573,13 @@ fn list_docker_containers() -> Result<Vec<ServiceEntry>> {
 fn list_podman_containers() -> Result<Vec<ServiceEntry>> {
     let output = match output_with_timeout(
         "podman",
-        &["ps", "-a", "--no-trunc", "--format",
-          "{{.ID}}\t{{.Names}}\t{{.State}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}"],
+        &[
+            "ps",
+            "-a",
+            "--no-trunc",
+            "--format",
+            "{{.ID}}\t{{.Names}}\t{{.State}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}",
+        ],
         5,
     ) {
         Some(o) => o,
@@ -630,7 +644,11 @@ fn list_podman_containers() -> Result<Vec<ServiceEntry>> {
 fn get_container_pid(runtime: &str, name: &str) -> Option<u32> {
     let stdout = run_with_timeout(runtime, &["inspect", "--format", "{{.State.Pid}}", name], 3)?;
     let pid: u32 = stdout.trim().parse().ok()?;
-    if pid > 0 { Some(pid) } else { None }
+    if pid > 0 {
+        Some(pid)
+    } else {
+        None
+    }
 }
 
 /// Parse "0.0.0.0:8080->80/tcp, ..." into host port numbers
@@ -730,7 +748,11 @@ pub fn get_logs(entry: &ServiceEntry, count: u32) -> Result<Vec<String>> {
         EntryKind::Systemd => {
             let output = Command::new("journalctl")
                 .args([
-                    "-u", &entry.name, "--no-pager", "-n", &count_str,
+                    "-u",
+                    &entry.name,
+                    "--no-pager",
+                    "-n",
+                    &count_str,
                     "--output=short-iso",
                 ])
                 .output()
@@ -751,7 +773,13 @@ pub fn get_logs(entry: &ServiceEntry, count: u32) -> Result<Vec<String>> {
             };
             let output = match output_with_timeout(
                 runtime,
-                &["logs", "--tail", &count_str, "--timestamps", &entry.display_name],
+                &[
+                    "logs",
+                    "--tail",
+                    &count_str,
+                    "--timestamps",
+                    &entry.display_name,
+                ],
                 5,
             ) {
                 Some(o) => o,
@@ -794,20 +822,25 @@ pub fn execute_action(entry: &ServiceEntry, action: ServiceAction) -> Result<Str
         }
         EntryKind::Docker | EntryKind::Podman => {
             if matches!(action, ServiceAction::Enable | ServiceAction::Disable) {
-                return Err(anyhow::anyhow!("Enable/Disable not applicable for containers"));
+                return Err(anyhow::anyhow!(
+                    "Enable/Disable not applicable for containers"
+                ));
             }
             let runtime = if entry.kind == EntryKind::Docker {
                 "docker"
             } else {
                 "podman"
             };
-            let output = match output_with_timeout(
-                runtime,
-                &[cmd, &entry.display_name],
-                10,
-            ) {
+            let output = match output_with_timeout(runtime, &[cmd, &entry.display_name], 10) {
                 Some(o) => o,
-                None => return Err(anyhow::anyhow!("Timeout: {} {} {}", runtime, cmd, entry.display_name)),
+                None => {
+                    return Err(anyhow::anyhow!(
+                        "Timeout: {} {} {}",
+                        runtime,
+                        cmd,
+                        entry.display_name
+                    ))
+                }
             };
 
             if output.status.success() {
@@ -879,7 +912,11 @@ fn run_with_timeout(cmd: &str, args: &[&str], timeout_secs: u64) -> Option<Strin
 }
 
 /// Like Command::output() but with a timeout. Returns None if timeout or error.
-fn output_with_timeout(cmd: &str, args: &[&str], timeout_secs: u64) -> Option<std::process::Output> {
+fn output_with_timeout(
+    cmd: &str,
+    args: &[&str],
+    timeout_secs: u64,
+) -> Option<std::process::Output> {
     let mut child = Command::new(cmd)
         .args(args)
         .stdout(std::process::Stdio::piped())

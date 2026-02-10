@@ -7,6 +7,7 @@
 use crate::config::Language;
 use crate::i18n;
 use crate::nix::{self, CommandResult, GenerationSource};
+use crate::types::FlashMessage;
 use crate::types::{Generation, GenerationDiff, Package, ProfileType};
 use crate::ui::theme::Theme;
 use crate::ui::widgets;
@@ -20,7 +21,6 @@ use ratatui::{
     Frame,
 };
 use std::collections::HashSet;
-use crate::types::FlashMessage;
 use std::time::Instant;
 
 // ── Sub-tabs ──
@@ -173,26 +173,26 @@ impl GenerationsState {
         let mut init_errors = Vec::new();
 
         // Detect system
-        let (hostname, username, uses_flakes, system_profile, hm_info) =
-            match nix::detect_system() {
-                Ok(info) => (
-                    info.hostname,
-                    info.username,
-                    info.uses_flakes,
-                    info.system_profile,
-                    info.home_manager,
-                ),
-                Err(e) => {
-                    init_errors.push(format!("System detection failed: {}", e));
-                    (
-                        "unknown".into(),
-                        "unknown".into(),
-                        false,
-                        std::path::PathBuf::from("/nix/var/nix/profiles/system"),
-                        None,
-                    )
-                }
-            };
+        let (hostname, username, uses_flakes, system_profile, hm_info) = match nix::detect_system()
+        {
+            Ok(info) => (
+                info.hostname,
+                info.username,
+                info.uses_flakes,
+                info.system_profile,
+                info.home_manager,
+            ),
+            Err(e) => {
+                init_errors.push(format!("System detection failed: {}", e));
+                (
+                    "unknown".into(),
+                    "unknown".into(),
+                    false,
+                    std::path::PathBuf::from("/nix/var/nix/profiles/system"),
+                    None,
+                )
+            }
+        };
 
         // Load system generations
         let system_source = GenerationSource {
@@ -331,7 +331,8 @@ impl GenerationsState {
             if remaining == 0 {
                 self.pending_undo = None;
                 self.popup = GenPopupState::None;
-                let s = crate::i18n::get_strings(self.lang); self.show_flash(s.gen_action_confirmed, false);
+                let s = crate::i18n::get_strings(self.lang);
+                self.show_flash(s.gen_action_confirmed, false);
             } else if let GenPopupState::Undo { message, .. } = &self.popup {
                 self.popup = GenPopupState::Undo {
                     message: message.clone(),
@@ -377,8 +378,7 @@ impl GenerationsState {
             }
             KeyCode::Char('G') => {
                 if self.overview_focus == 0 {
-                    self.overview_system_selected =
-                        self.system_generations.len().saturating_sub(1);
+                    self.overview_system_selected = self.system_generations.len().saturating_sub(1);
                 } else {
                     self.overview_hm_selected =
                         self.home_manager_generations.len().saturating_sub(1);
@@ -615,7 +615,8 @@ impl GenerationsState {
             KeyCode::Char('u') | KeyCode::Char('U') | KeyCode::Esc => {
                 self.pending_undo = None;
                 self.popup = GenPopupState::None;
-                let s = crate::i18n::get_strings(self.lang); self.show_flash(s.gen_undo_closed, false);
+                let s = crate::i18n::get_strings(self.lang);
+                self.show_flash(s.gen_undo_closed, false);
             }
             _ => {}
         }
@@ -727,7 +728,8 @@ impl GenerationsState {
             gen.is_pinned = pinned.contains(&gen_id);
         }
 
-        let s = crate::i18n::get_strings(self.lang); self.show_flash(s.gen_pin_updated, false);
+        let s = crate::i18n::get_strings(self.lang);
+        self.show_flash(s.gen_pin_updated, false);
     }
 
     fn prompt_restore(&mut self) -> Result<()> {
@@ -735,7 +737,8 @@ impl GenerationsState {
         let gen = match generations.get(self.manage_cursor) {
             Some(g) if !g.is_current => g,
             _ => {
-                let s = crate::i18n::get_strings(self.lang); self.show_flash(s.gen_cannot_restore_current, true);
+                let s = crate::i18n::get_strings(self.lang);
+                self.show_flash(s.gen_cannot_restore_current, true);
                 return Ok(());
             }
         };
@@ -758,7 +761,8 @@ impl GenerationsState {
         let s = crate::i18n::get_strings(self.lang);
         self.popup = GenPopupState::Confirm {
             title: s.gen_confirm_restore.into(),
-            message: s.gen_restore_msg
+            message: s
+                .gen_restore_msg
                 .replacen("{}", self.manage_profile.as_str(), 1)
                 .replacen("{}", &gen.id.to_string(), 1)
                 .replacen("{}", &gen.formatted_date(), 1)
@@ -775,11 +779,13 @@ impl GenerationsState {
         let ids: Vec<u32> = if self.manage_selected.is_empty() {
             match generations.get(self.manage_cursor) {
                 Some(g) if g.is_current => {
-                    let s = crate::i18n::get_strings(self.lang); self.show_flash(s.gen_cannot_delete_current, true);
+                    let s = crate::i18n::get_strings(self.lang);
+                    self.show_flash(s.gen_cannot_delete_current, true);
                     return Ok(());
                 }
                 Some(g) if g.is_pinned => {
-                    let s = crate::i18n::get_strings(self.lang); self.show_flash(s.gen_cannot_delete_pinned, true);
+                    let s = crate::i18n::get_strings(self.lang);
+                    self.show_flash(s.gen_cannot_delete_pinned, true);
                     return Ok(());
                 }
                 Some(g) => vec![g.id],
@@ -811,7 +817,8 @@ impl GenerationsState {
         let s = crate::i18n::get_strings(self.lang);
         self.popup = GenPopupState::Confirm {
             title: s.gen_confirm_delete.into(),
-            message: s.gen_delete_msg
+            message: s
+                .gen_delete_msg
                 .replacen("{}", &ids.len().to_string(), 1)
                 .replacen("{}", &format!("{:?}", ids), 1),
             command,
@@ -872,7 +879,12 @@ impl GenerationsState {
                 .unwrap_or(&self.system_source)
         };
 
-        nix::restore_generation(&source.profile_path, gen.id, self.manage_profile, self.dry_run)
+        nix::restore_generation(
+            &source.profile_path,
+            gen.id,
+            self.manage_profile,
+            self.dry_run,
+        )
     }
 
     fn execute_delete(&mut self) -> Result<CommandResult> {
@@ -958,15 +970,12 @@ pub fn render(
     area: Rect,
 ) {
     // Full background
-    frame.render_widget(
-        Block::default().style(theme.block_style()),
-        area,
-    );
+    frame.render_widget(Block::default().style(theme.block_style()), area);
 
     // Layout: sub-tab bar + content
     let chunks = Layout::vertical([
         Constraint::Length(2), // Sub-tab bar
-        Constraint::Min(5),   // Content
+        Constraint::Min(5),    // Content
     ])
     .split(area);
 
@@ -1006,10 +1015,7 @@ fn render_sub_tab_bar(
             } else {
                 theme.tab_inactive()
             };
-            Line::styled(
-                format!("[F{}] {}", tab.index() + 1, tab.label(lang)),
-                style,
-            )
+            Line::styled(format!("[F{}] {}", tab.index() + 1, tab.label(lang)), style)
         })
         .collect();
 
@@ -1062,18 +1068,17 @@ fn render_overview(frame: &mut Frame, state: &GenerationsState, theme: &Theme, a
         ));
 
         frame.render_widget(
-            Paragraph::new(lines).style(theme.text()).wrap(Wrap { trim: false }),
+            Paragraph::new(lines)
+                .style(theme.text())
+                .wrap(Wrap { trim: false }),
             inner,
         );
         return;
     }
 
     if use_side_by_side {
-        let panels = Layout::horizontal([
-            Constraint::Percentage(50),
-            Constraint::Percentage(50),
-        ])
-        .split(area);
+        let panels = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+            .split(area);
 
         render_gen_list(
             frame,
@@ -1097,9 +1102,17 @@ fn render_overview(frame: &mut Frame, state: &GenerationsState, theme: &Theme, a
     } else if has_hm {
         // Stacked: show active panel only, with Tab hint
         let (title, gens, selected) = if state.overview_focus == 0 {
-            (s.gen_system_label, &state.system_generations, state.overview_system_selected)
+            (
+                s.gen_system_label,
+                &state.system_generations,
+                state.overview_system_selected,
+            )
         } else {
-            (s.gen_hm_label, &state.home_manager_generations, state.overview_hm_selected)
+            (
+                s.gen_hm_label,
+                &state.home_manager_generations,
+                state.overview_hm_selected,
+            )
         };
         render_gen_list(frame, title, gens, selected, true, theme, area);
     } else {
@@ -1412,18 +1425,12 @@ fn render_diff(frame: &mut Frame, state: &GenerationsState, theme: &Theme, area:
 
     // Split: top for selection lists, bottom for results
     let selector_height = (inner.height / 3).clamp(5, 12);
-    let chunks = Layout::vertical([
-        Constraint::Length(selector_height),
-        Constraint::Min(3),
-    ])
-    .split(inner);
+    let chunks =
+        Layout::vertical([Constraint::Length(selector_height), Constraint::Min(3)]).split(inner);
 
     // Two selection lists side by side
-    let lists = Layout::horizontal([
-        Constraint::Percentage(50),
-        Constraint::Percentage(50),
-    ])
-    .split(chunks[0]);
+    let lists = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+        .split(chunks[0]);
 
     render_diff_selector(
         frame,
@@ -1618,10 +1625,7 @@ fn render_diff_results(
     }
 
     if diff.added.is_empty() && diff.removed.is_empty() && diff.updated.is_empty() {
-        lines.push(Line::styled(
-            "  No differences found",
-            theme.text_dim(),
-        ));
+        lines.push(Line::styled("  No differences found", theme.text_dim()));
     }
 
     // Apply scroll
@@ -1791,12 +1795,7 @@ fn render_manage(frame: &mut Frame, state: &GenerationsState, theme: &Theme, are
 
 // ── Popups ──
 
-fn render_gen_popups(
-    frame: &mut Frame,
-    state: &GenerationsState,
-    theme: &Theme,
-    area: Rect,
-) {
+fn render_gen_popups(frame: &mut Frame, state: &GenerationsState, theme: &Theme, area: Rect) {
     let s = crate::i18n::get_strings(state.lang);
     match &state.popup {
         GenPopupState::None => {}

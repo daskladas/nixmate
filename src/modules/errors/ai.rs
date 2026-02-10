@@ -181,7 +181,9 @@ fn call_ollama(agent: &ureq::Agent, base_url: &str, model: &str, prompt: &str) -
                  2. sudo nixos-rebuild switch\n\
                  3. ollama pull {}\n\n\
                  Error: {}",
-                base_url, model, e
+                base_url,
+                model,
+                e
             )
         }
     }

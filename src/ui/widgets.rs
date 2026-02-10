@@ -67,7 +67,9 @@ pub fn render_popup(
                     Span::styled("[", theme.text_dim()),
                     Span::styled(
                         key.to_string(),
-                        Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+                        Style::default()
+                            .fg(theme.accent)
+                            .add_modifier(Modifier::BOLD),
                     ),
                     Span::styled("] ", theme.text_dim()),
                     Span::styled(*label, theme.text()),
@@ -79,8 +81,7 @@ pub fn render_popup(
             })
             .collect();
 
-        let buttons_widget = Paragraph::new(Line::from(button_spans))
-            .alignment(Alignment::Center);
+        let buttons_widget = Paragraph::new(Line::from(button_spans)).alignment(Alignment::Center);
         frame.render_widget(buttons_widget, button_area);
     }
 }
@@ -103,12 +104,7 @@ pub fn render_error_popup(
 }
 
 /// Render a loading indicator
-pub fn render_loading(
-    frame: &mut Frame,
-    message: &str,
-    theme: &Theme,
-    area: Rect,
-) {
+pub fn render_loading(frame: &mut Frame, message: &str, theme: &Theme, area: Rect) {
     let spinner_frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
     let frame_idx = (std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -157,7 +153,11 @@ pub fn render_flash_message(
     theme: &Theme,
     area: Rect,
 ) {
-    let style = if is_error { theme.error() } else { theme.success() };
+    let style = if is_error {
+        theme.error()
+    } else {
+        theme.success()
+    };
     let prefix = if is_error { "✗ " } else { "✓ " };
 
     let flash_area = Rect {
@@ -210,7 +210,10 @@ pub fn render_status_bar(
 pub fn centered_rect(width: u16, height: u16, area: Rect) -> Rect {
     let x = area.x + (area.width.saturating_sub(width)) / 2;
     let y = area.y + (area.height.saturating_sub(height)) / 2;
-    Rect { x, y, width, height }
+    Rect {
+        x,
+        y,
+        width,
+        height,
+    }
 }
-
-

@@ -12,6 +12,7 @@
 
 use crate::config::Language;
 use crate::i18n;
+use crate::types::FlashMessage;
 use crate::ui::theme::Theme;
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
@@ -23,7 +24,6 @@ use ratatui::{
     Frame,
 };
 use std::sync::mpsc;
-use crate::types::FlashMessage;
 
 // ── Sub-tabs ──
 
@@ -173,13 +173,15 @@ impl HealthState {
         if total_weight == 0 {
             return 100;
         }
-        let lost: u16 = self.checks.iter().map(|c| {
-            match c.severity {
+        let lost: u16 = self
+            .checks
+            .iter()
+            .map(|c| match c.severity {
                 Severity::Ok => 0,
                 Severity::Warning => (c.weight as u16) / 2,
                 Severity::Critical => c.weight as u16,
-            }
-        }).sum();
+            })
+            .sum();
         let score = 100u16.saturating_sub((lost * 100) / total_weight);
         score as u8
     }
@@ -193,7 +195,9 @@ impl HealthState {
             return;
         }
 
-        let Some(cmd) = check.fix_command.clone() else { return; };
+        let Some(cmd) = check.fix_command.clone() else {
+            return;
+        };
         let idx = self.selected;
         self.fix_running = true;
 
@@ -202,9 +206,7 @@ impl HealthState {
         let lang = self.lang;
 
         std::thread::spawn(move || {
-            let output = std::process::Command::new("sh")
-                .args(["-c", &cmd])
-                .output();
+            let output = std::process::Command::new("sh").args(["-c", &cmd]).output();
             let s = crate::i18n::get_strings(lang);
             match output {
                 Ok(o) if o.status.success() => {
@@ -215,7 +217,8 @@ impl HealthState {
                     let msg = if stderr.is_empty() {
                         s.health_fix_failed.to_string()
                     } else {
-                        s.health_fix_error_detail.replace("{}", stderr.lines().next().unwrap_or(""))
+                        s.health_fix_error_detail
+                            .replace("{}", stderr.lines().next().unwrap_or(""))
                     };
                     let _ = tx.send((idx, false, msg));
                 }
@@ -299,7 +302,10 @@ fn check_old_generations(lang: Language) -> HealthCheck {
     let s = crate::i18n::get_strings(lang);
 
     let output = Command::new("sh")
-        .args(["-c", "nixos-rebuild list-generations 2>/dev/null | head -50"])
+        .args([
+            "-c",
+            "nixos-rebuild list-generations 2>/dev/null | head -50",
+        ])
         .output();
 
     let mut old_count = 0u32;
@@ -350,11 +356,23 @@ fn check_old_generations(lang: Language) -> HealthCheck {
     }
 
     let (severity, detail) = if old_count == 0 {
-        (Severity::Ok, s.health_detail_gens_all_recent.replace("{}", &total_count.to_string()))
+        (
+            Severity::Ok,
+            s.health_detail_gens_all_recent
+                .replace("{}", &total_count.to_string()),
+        )
     } else if old_count > 10 {
-        (Severity::Critical, s.health_detail_gens_older.replace("{}", &old_count.to_string()))
+        (
+            Severity::Critical,
+            s.health_detail_gens_older
+                .replace("{}", &old_count.to_string()),
+        )
     } else {
-        (Severity::Warning, s.health_detail_gens_older.replace("{}", &old_count.to_string()))
+        (
+            Severity::Warning,
+            s.health_detail_gens_older
+                .replace("{}", &old_count.to_string()),
+        )
     };
 
     let fix_cmd = if old_count > 0 {
@@ -407,11 +425,22 @@ fn check_store_size(lang: Language) -> HealthCheck {
 
     let size_str = format!("{:.1}", size_gb);
     let (severity, detail) = if size_gb < 20.0 {
-        (Severity::Ok, s.health_detail_store_ok.replacen("{}", &size_str, 1).replacen("{}", &path_count.to_string(), 1))
+        (
+            Severity::Ok,
+            s.health_detail_store_ok
+                .replacen("{}", &size_str, 1)
+                .replacen("{}", &path_count.to_string(), 1),
+        )
     } else if size_gb < 50.0 {
-        (Severity::Warning, s.health_detail_store_warn.replace("{}", &size_str))
+        (
+            Severity::Warning,
+            s.health_detail_store_warn.replace("{}", &size_str),
+        )
     } else {
-        (Severity::Critical, s.health_detail_store_crit.replace("{}", &size_str))
+        (
+            Severity::Critical,
+            s.health_detail_store_crit.replace("{}", &size_str),
+        )
     };
 
     HealthCheck {
@@ -444,11 +473,20 @@ fn check_disk_usage(lang: Language) -> HealthCheck {
 
     let pct_str = usage_pct.to_string();
     let (severity, detail) = if usage_pct < 80 {
-        (Severity::Ok, s.health_detail_disk_ok.replace("{}", &pct_str))
+        (
+            Severity::Ok,
+            s.health_detail_disk_ok.replace("{}", &pct_str),
+        )
     } else if usage_pct < 90 {
-        (Severity::Warning, s.health_detail_disk_warn.replace("{}", &pct_str))
+        (
+            Severity::Warning,
+            s.health_detail_disk_warn.replace("{}", &pct_str),
+        )
     } else {
-        (Severity::Critical, s.health_detail_disk_crit.replace("{}", &pct_str))
+        (
+            Severity::Critical,
+            s.health_detail_disk_crit.replace("{}", &pct_str),
+        )
     };
 
     HealthCheck {
@@ -479,11 +517,20 @@ fn check_channel_freshness(lang: Language) -> HealthCheck {
 
     let days_str = days_old.to_string();
     let (severity, detail) = if days_old <= 14 {
-        (Severity::Ok, s.health_detail_fresh_ok.replace("{}", &days_str))
+        (
+            Severity::Ok,
+            s.health_detail_fresh_ok.replace("{}", &days_str),
+        )
     } else if days_old <= 30 {
-        (Severity::Warning, s.health_detail_fresh_warn.replace("{}", &days_str))
+        (
+            Severity::Warning,
+            s.health_detail_fresh_warn.replace("{}", &days_str),
+        )
     } else {
-        (Severity::Critical, s.health_detail_fresh_crit.replace("{}", &days_str))
+        (
+            Severity::Critical,
+            s.health_detail_fresh_crit.replace("{}", &days_str),
+        )
     };
 
     // Detect if flakes or channels for fix command
@@ -529,11 +576,22 @@ fn check_duplicate_packages(lang: Language) -> HealthCheck {
     }
 
     let (severity, detail) = if duplicates == 0 {
-        (Severity::Ok, s.health_detail_dupes_ok.replace("{}", &total.to_string()))
+        (
+            Severity::Ok,
+            s.health_detail_dupes_ok.replace("{}", &total.to_string()),
+        )
     } else if duplicates < 5 {
-        (Severity::Warning, s.health_detail_dupes_warn.replace("{}", &duplicates.to_string()))
+        (
+            Severity::Warning,
+            s.health_detail_dupes_warn
+                .replace("{}", &duplicates.to_string()),
+        )
     } else {
-        (Severity::Critical, s.health_detail_dupes_crit.replace("{}", &duplicates.to_string()))
+        (
+            Severity::Critical,
+            s.health_detail_dupes_crit
+                .replace("{}", &duplicates.to_string()),
+        )
     };
 
     HealthCheck {
@@ -560,7 +618,8 @@ fn chrono_now_days() -> u64 {
 fn extract_generation_age_days(line: &str, now_days: u64) -> Option<u64> {
     // Try to find a date pattern YYYY-MM-DD in the line
     for word in line.split_whitespace() {
-        if word.len() == 10 && word.chars().nth(4) == Some('-') && word.chars().nth(7) == Some('-') {
+        if word.len() == 10 && word.chars().nth(4) == Some('-') && word.chars().nth(7) == Some('-')
+        {
             let parts: Vec<&str> = word.split('-').collect();
             if parts.len() == 3 {
                 let y: u64 = parts[0].parse().ok()?;
@@ -577,13 +636,7 @@ fn extract_generation_age_days(line: &str, now_days: u64) -> Option<u64> {
 
 // ── Rendering ──
 
-pub fn render(
-    frame: &mut Frame,
-    state: &HealthState,
-    theme: &Theme,
-    lang: Language,
-    area: Rect,
-) {
+pub fn render(frame: &mut Frame, state: &HealthState, theme: &Theme, lang: Language, area: Rect) {
     let s = i18n::get_strings(lang);
 
     let block = Block::default()
@@ -603,7 +656,7 @@ pub fn render(
     // Sub-tab bar
     let chunks = Layout::vertical([
         Constraint::Length(2), // Tab bar
-        Constraint::Min(4),   // Content
+        Constraint::Min(4),    // Content
     ])
     .split(inner);
 
@@ -632,10 +685,7 @@ pub fn render(
                 Style::default().fg(theme.accent),
             ),
         ];
-        frame.render_widget(
-            Paragraph::new(lines).style(theme.block_style()),
-            chunks[1],
-        );
+        frame.render_widget(Paragraph::new(lines).style(theme.block_style()), chunks[1]);
         return;
     }
 
@@ -657,7 +707,7 @@ fn render_dashboard(
 
     let chunks = Layout::vertical([
         Constraint::Length(5), // Score display
-        Constraint::Min(3),   // Check list
+        Constraint::Min(3),    // Check list
     ])
     .split(area);
 
@@ -721,22 +771,17 @@ fn render_dashboard(
     render_check_list(frame, state, theme, chunks[1], false);
 }
 
-fn render_fix(
-    frame: &mut Frame,
-    state: &HealthState,
-    theme: &Theme,
-    lang: Language,
-    area: Rect,
-) {
+fn render_fix(frame: &mut Frame, state: &HealthState, theme: &Theme, lang: Language, area: Rect) {
     let s = i18n::get_strings(lang);
 
-    let has_fixable = state.checks.iter().any(|c| {
-        c.severity != Severity::Ok && c.fix_command.is_some()
-    });
+    let has_fixable = state
+        .checks
+        .iter()
+        .any(|c| c.severity != Severity::Ok && c.fix_command.is_some());
 
     let chunks = Layout::vertical([
         Constraint::Length(2), // Fix header
-        Constraint::Min(3),   // Check list with fix info
+        Constraint::Min(3),    // Check list with fix info
         Constraint::Length(2), // Fix message
     ])
     .split(area);
@@ -759,7 +804,11 @@ fn render_fix(
 
     // Fix message
     if let Some(msg) = &state.fix_message {
-        let color = if msg.is_error { theme.error } else { theme.success };
+        let color = if msg.is_error {
+            theme.error
+        } else {
+            theme.success
+        };
         frame.render_widget(
             Paragraph::new(Line::styled(
                 format!("  {}", msg.text),

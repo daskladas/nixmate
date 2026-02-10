@@ -99,8 +99,7 @@ impl Config {
         let content = fs::read_to_string(&path)
             .with_context(|| format!("Failed to read config from {:?}", path))?;
 
-        toml::from_str(&content)
-            .with_context(|| format!("Failed to parse config from {:?}", path))
+        toml::from_str(&content).with_context(|| format!("Failed to parse config from {:?}", path))
     }
 
     /// Save config to file
@@ -112,8 +111,7 @@ impl Config {
                 .with_context(|| format!("Failed to create config directory {:?}", parent))?;
         }
 
-        let content = toml::to_string_pretty(self)
-            .context("Failed to serialize config")?;
+        let content = toml::to_string_pretty(self).context("Failed to serialize config")?;
 
         fs::write(&path, content)
             .with_context(|| format!("Failed to write config to {:?}", path))?;

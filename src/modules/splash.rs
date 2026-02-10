@@ -59,7 +59,6 @@ impl ImageProtocol {
     pub fn is_supported(&self) -> bool {
         *self != Self::None
     }
-
 }
 
 // ─── Image Cache ────────────────────────────────────────────────────
@@ -153,8 +152,7 @@ pub fn clear_image(protocol: ImageProtocol) -> std::io::Result<()> {
 // ─── Base64 ─────────────────────────────────────────────────────────
 
 fn base64_encode(data: &[u8]) -> String {
-    const CHARS: &[u8] =
-        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut result = String::with_capacity(data.len().div_ceil(3) * 4);
     for chunk in data.chunks(3) {
         let b0 = chunk[0] as u32;
@@ -163,8 +161,16 @@ fn base64_encode(data: &[u8]) -> String {
         let triple = (b0 << 16) | (b1 << 8) | b2;
         result.push(CHARS[((triple >> 18) & 0x3F) as usize] as char);
         result.push(CHARS[((triple >> 12) & 0x3F) as usize] as char);
-        result.push(if chunk.len() > 1 { CHARS[((triple >> 6) & 0x3F) as usize] as char } else { '=' });
-        result.push(if chunk.len() > 2 { CHARS[(triple & 0x3F) as usize] as char } else { '=' });
+        result.push(if chunk.len() > 1 {
+            CHARS[((triple >> 6) & 0x3F) as usize] as char
+        } else {
+            '='
+        });
+        result.push(if chunk.len() > 2 {
+            CHARS[(triple & 0x3F) as usize] as char
+        } else {
+            '='
+        });
     }
     result
 }
@@ -258,18 +264,25 @@ pub fn render_welcome(
     lines.push(Line::raw(""));
 
     // Language selector
-    let lang_en = if state.selected_lang == Language::English { "● English" } else { "○ English" };
-    let lang_de = if state.selected_lang == Language::German { "● Deutsch" } else { "○ Deutsch" };
+    let lang_en = if state.selected_lang == Language::English {
+        "● English"
+    } else {
+        "○ English"
+    };
+    let lang_de = if state.selected_lang == Language::German {
+        "● Deutsch"
+    } else {
+        "○ Deutsch"
+    };
     lines.push(Line::from(vec![
-        Span::styled(
-            s.welcome_language,
-            Style::default().fg(theme.fg_dim),
-        ),
+        Span::styled(s.welcome_language, Style::default().fg(theme.fg_dim)),
         Span::styled("  ", Style::default()),
         Span::styled(
             lang_en.to_string(),
             if state.selected_lang == Language::English {
-                Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD)
             } else {
                 Style::default().fg(theme.fg_dim)
             },
@@ -278,7 +291,9 @@ pub fn render_welcome(
         Span::styled(
             lang_de.to_string(),
             if state.selected_lang == Language::German {
-                Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD)
             } else {
                 Style::default().fg(theme.fg_dim)
             },
@@ -335,7 +350,10 @@ pub fn render_welcome(
 
 // ─── Help Tab: Image Area ───────────────────────────────────────────
 
-pub fn help_image_area(inner: ratatui::layout::Rect, has_protocol: bool) -> Option<(u16, u16, u16, u16)> {
+pub fn help_image_area(
+    inner: ratatui::layout::Rect,
+    has_protocol: bool,
+) -> Option<(u16, u16, u16, u16)> {
     if !has_protocol {
         return None;
     }

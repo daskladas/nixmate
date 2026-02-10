@@ -72,7 +72,10 @@ fn read_piped_input() -> Option<String> {
     const MAX_PIPE_SIZE: usize = 1024 * 1024; // 1 MB — more than enough for any build log
 
     let mut input = String::new();
-    match io::stdin().take(MAX_PIPE_SIZE as u64).read_to_string(&mut input) {
+    match io::stdin()
+        .take(MAX_PIPE_SIZE as u64)
+        .read_to_string(&mut input)
+    {
         Ok(_) => {}
         Err(_) => return None, // Non-UTF8 or read error
     }
@@ -168,12 +171,10 @@ CONFIG:
 
 fn run_app(piped_input: Option<String>) -> Result<()> {
     // Load configuration
-    let config = config::Config::load()
-        .context("Failed to load configuration")?;
+    let config = config::Config::load().context("Failed to load configuration")?;
 
     // Create application state (with optional piped input)
-    let mut app = App::new(config, piped_input)
-        .context("Failed to initialize application")?;
+    let mut app = App::new(config, piped_input).context("Failed to initialize application")?;
 
     // Setup terminal
     enable_raw_mode().context("Failed to enable raw mode")?;
@@ -182,8 +183,7 @@ fn run_app(piped_input: Option<String>) -> Result<()> {
         .context("Failed to setup terminal")?;
 
     let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)
-        .context("Failed to create terminal")?;
+    let mut terminal = Terminal::new(backend).context("Failed to create terminal")?;
 
     // Install panic handler so terminal is restored on panic
     // (without this, a panic leaves the terminal in raw mode + alternate screen)

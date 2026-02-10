@@ -8,9 +8,9 @@
 use crate::config::Language;
 use crate::i18n;
 use crate::nix::services::{
-    self, DashboardStats, EnableState, EntryKind, PortEntry, RunState, ServiceAction,
-    ServiceEntry,
+    self, DashboardStats, EnableState, EntryKind, PortEntry, RunState, ServiceAction, ServiceEntry,
 };
+use crate::types::FlashMessage;
 use crate::ui::theme::Theme;
 use crate::ui::widgets;
 use anyhow::Result;
@@ -23,7 +23,6 @@ use ratatui::{
     Frame,
 };
 use std::sync::mpsc;
-use crate::types::FlashMessage;
 
 // ── Sub-tabs ──
 
@@ -84,9 +83,9 @@ pub enum SvcPopupState {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FilterKind {
     All,
-    Active,       // Running + Restarting
+    Active, // Running + Restarting
     Systemd,
-    Containers,   // Docker + Podman
+    Containers, // Docker + Podman
     Failed,
 }
 
@@ -218,7 +217,11 @@ impl ServicesState {
                     // Still loading — do nothing
                 }
                 Err(mpsc::TryRecvError::Disconnected) => {
-                    self.load_error = Some(crate::i18n::get_strings(self.lang).thread_crashed.to_string());
+                    self.load_error = Some(
+                        crate::i18n::get_strings(self.lang)
+                            .thread_crashed
+                            .to_string(),
+                    );
                     self.loaded = true;
                     self.loading = false;
                     self.load_rx = None;
@@ -251,16 +254,14 @@ impl ServicesState {
     pub fn filtered_entries(&self) -> Vec<&ServiceEntry> {
         self.entries
             .iter()
-            .filter(|e| {
-                match self.filter_kind {
-                    FilterKind::All => true,
-                    FilterKind::Active => e.status.is_active(),
-                    FilterKind::Systemd => e.kind == EntryKind::Systemd && e.status.is_active(),
-                    FilterKind::Containers => {
-                        matches!(e.kind, EntryKind::Docker | EntryKind::Podman)
-                    }
-                    FilterKind::Failed => e.status == RunState::Failed,
+            .filter(|e| match self.filter_kind {
+                FilterKind::All => true,
+                FilterKind::Active => e.status.is_active(),
+                FilterKind::Systemd => e.kind == EntryKind::Systemd && e.status.is_active(),
+                FilterKind::Containers => {
+                    matches!(e.kind, EntryKind::Docker | EntryKind::Podman)
                 }
+                FilterKind::Failed => e.status == RunState::Failed,
             })
             .filter(|e| {
                 if self.search_text.is_empty() {
@@ -445,7 +446,8 @@ impl ServicesState {
             KeyCode::Char('r') => {
                 self.refresh();
                 self.clamp_selection();
-                let s = crate::i18n::get_strings(self.lang); self.show_flash(s.svc_refreshed, false);
+                let s = crate::i18n::get_strings(self.lang);
+                self.show_flash(s.svc_refreshed, false);
             }
             KeyCode::Enter => {
                 // Jump to Logs for selected
@@ -490,7 +492,8 @@ impl ServicesState {
             }
             KeyCode::Char('r') => {
                 self.refresh();
-                let s = crate::i18n::get_strings(self.lang); self.show_flash(s.svc_refreshed, false);
+                let s = crate::i18n::get_strings(self.lang);
+                self.show_flash(s.svc_refreshed, false);
             }
             KeyCode::Char('g') => {
                 self.ports_selected = 0;
@@ -546,7 +549,8 @@ impl ServicesState {
             }
             KeyCode::Char('r') => {
                 self.load_logs();
-                let s = crate::i18n::get_strings(self.lang); self.show_flash(s.svc_logs_refreshed, false);
+                let s = crate::i18n::get_strings(self.lang);
+                self.show_flash(s.svc_logs_refreshed, false);
             }
             KeyCode::Char('g') => {
                 self.logs_scroll = 0;
@@ -601,16 +605,15 @@ pub fn render(
         let loading_text = vec![
             Line::raw(""),
             Line::raw(""),
-            Line::styled(format!("⏳  {} ...", s.svc_loading_title), Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+            Line::styled(
+                format!("⏳  {} ...", s.svc_loading_title),
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Line::raw(""),
-            Line::styled(
-                s.svc_scanning_desc,
-                theme.text_dim(),
-            ),
-            Line::styled(
-                s.svc_scanning_hint,
-                theme.text_dim(),
-            ),
+            Line::styled(s.svc_scanning_desc, theme.text_dim()),
+            Line::styled(s.svc_scanning_hint, theme.text_dim()),
         ];
         let loading = Paragraph::new(loading_text)
             .alignment(Alignment::Center)
@@ -622,7 +625,7 @@ pub fn render(
     // Layout: sub-tab bar + content
     let chunks = Layout::vertical([
         Constraint::Length(2), // Sub-tab bar
-        Constraint::Min(5),   // Content
+        Constraint::Min(5),    // Content
     ])
     .split(area);
 
@@ -666,10 +669,7 @@ fn render_sub_tab_bar(
             } else {
                 theme.tab_inactive()
             };
-            Line::styled(
-                format!("[F{}] {}", tab.index() + 1, tab.label(lang)),
-                style,
-            )
+            Line::styled(format!("[F{}] {}", tab.index() + 1, tab.label(lang)), style)
         })
         .collect();
 
@@ -687,13 +687,7 @@ fn render_sub_tab_bar(
     frame.render_widget(tabs, tabs_area);
 }
 
-fn render_load_error(
-    frame: &mut Frame,
-    err: &str,
-    theme: &Theme,
-    lang: Language,
-    area: Rect,
-) {
+fn render_load_error(frame: &mut Frame, err: &str, theme: &Theme, lang: Language, area: Rect) {
     let s = i18n::get_strings(lang);
 
     let block = Block::default()
@@ -708,10 +702,7 @@ fn render_load_error(
 
     let lines = vec![
         Line::raw(""),
-        Line::styled(
-            format!("⚠ {}", s.svc_load_error),
-            theme.warning(),
-        ),
+        Line::styled(format!("⚠ {}", s.svc_load_error), theme.warning()),
         Line::raw(""),
         Line::styled(err, theme.error()),
         Line::raw(""),
@@ -753,7 +744,7 @@ fn render_overview(
     let layout = Layout::vertical([
         Constraint::Length(3), // Stats dashboard
         Constraint::Length(1), // Filter + search
-        Constraint::Min(3),   // Entry list
+        Constraint::Min(3),    // Entry list
     ])
     .split(inner);
 
@@ -764,10 +755,7 @@ fn render_overview(
             format!("{}", st.services_running),
             Style::default().fg(theme.success),
         ),
-        Span::styled(
-            format!(" {} ", s.svc_running),
-            theme.text_dim(),
-        ),
+        Span::styled(format!(" {} ", s.svc_running), theme.text_dim()),
     ];
 
     if st.services_failed > 0 {
@@ -828,10 +816,7 @@ fn render_overview(
             format!("{}", st.ports_open),
             Style::default().fg(theme.accent),
         ),
-        Span::styled(
-            format!(" {}", s.svc_ports_open),
-            theme.text_dim(),
-        ),
+        Span::styled(format!(" {}", s.svc_ports_open), theme.text_dim()),
     ]);
 
     let stats_widget = Paragraph::new(vec![stats_line1, stats_line2, stats_line3]);
@@ -843,10 +828,7 @@ fn render_overview(
 
     let filter_line = if state.search_active {
         Line::from(vec![
-            Span::styled(
-                format!("  [f] {} ", filter_label),
-                theme.text_dim(),
-            ),
+            Span::styled(format!("  [f] {} ", filter_label), theme.text_dim()),
             Span::styled("│ ", theme.text_dim()),
             Span::styled(
                 format!("/{}█", state.search_text),
@@ -854,12 +836,10 @@ fn render_overview(
             ),
         ])
     } else {
-        let mut spans = vec![
-            Span::styled(
-                format!("  [f] {} ", filter_label),
-                Style::default().fg(theme.accent),
-            ),
-        ];
+        let mut spans = vec![Span::styled(
+            format!("  [f] {} ", filter_label),
+            Style::default().fg(theme.accent),
+        )];
         if !state.search_text.is_empty() {
             spans.push(Span::styled("│ ", theme.text_dim()));
             spans.push(Span::styled(
@@ -937,11 +917,8 @@ fn render_overview(
             };
 
             // Truncate description to fit
-            let desc_width = list_area.width as usize
-                - name_width
-                - 12
-                - port_str.len()
-                - enabled_str.len();
+            let desc_width =
+                list_area.width as usize - name_width - 12 - port_str.len() - enabled_str.len();
             let desc = truncate(&entry.description, desc_width);
 
             ListItem::new(Line::from(vec![
@@ -949,17 +926,11 @@ fn render_overview(
                     if is_sel { " ▸" } else { "  " },
                     Style::default().fg(theme.accent),
                 ),
-                Span::styled(
-                    format!("{} ", entry.status.symbol()),
-                    status_style,
-                ),
+                Span::styled(format!("{} ", entry.status.symbol()), status_style),
                 Span::styled(format!("{} ", kind_icon), theme.text_dim()),
                 Span::styled(padded_name, line_style),
                 Span::styled(enabled_str, theme.text_dim()),
-                Span::styled(
-                    port_str,
-                    Style::default().fg(theme.accent),
-                ),
+                Span::styled(port_str, Style::default().fg(theme.accent)),
                 Span::styled(format!("  {}", desc), theme.text_dim()),
             ]))
         })
@@ -1002,25 +973,19 @@ fn render_ports(
     // Header + list
     let layout = Layout::vertical([
         Constraint::Length(2), // Header row
-        Constraint::Min(3),   // Port list
+        Constraint::Min(3),    // Port list
     ])
     .split(inner);
 
-    let header = Line::from(vec![
-        Span::styled(
-            format!(
-                "  {:<7} {:<7} {:<20} {:<24} {}",
-                s.svc_col_proto,
-                s.svc_col_port,
-                s.svc_col_address,
-                s.svc_col_owner,
-                s.svc_col_process,
-            ),
-            Style::default()
-                .fg(theme.accent)
-                .add_modifier(Modifier::BOLD),
+    let header = Line::from(vec![Span::styled(
+        format!(
+            "  {:<7} {:<7} {:<20} {:<24} {}",
+            s.svc_col_proto, s.svc_col_port, s.svc_col_address, s.svc_col_owner, s.svc_col_process,
         ),
-    ]);
+        Style::default()
+            .fg(theme.accent)
+            .add_modifier(Modifier::BOLD),
+    )]);
     let sep = Line::styled(
         format!("  {}", "─".repeat(inner.width.saturating_sub(4) as usize)),
         theme.text_dim(),
@@ -1043,7 +1008,11 @@ fn render_ports(
         .take(visible)
         .map(|(i, port)| {
             let is_sel = i == state.ports_selected;
-            let style = if is_sel { theme.selected() } else { theme.text() };
+            let style = if is_sel {
+                theme.selected()
+            } else {
+                theme.text()
+            };
 
             let proto_style = if port.protocol == "tcp" {
                 Style::default().fg(theme.success)
@@ -1073,14 +1042,8 @@ fn render_ports(
                         .add_modifier(Modifier::BOLD),
                 ),
                 Span::styled(format!("{:<20}", port.address), style),
-                Span::styled(
-                    format!("{:<24}", truncate(&owner_display, 23)),
-                    style,
-                ),
-                Span::styled(
-                    format!("{:<12}", port.process_name),
-                    theme.text_dim(),
-                ),
+                Span::styled(format!("{:<24}", truncate(&owner_display, 23)), style),
+                Span::styled(format!("{:<12}", port.process_name), theme.text_dim()),
                 Span::styled(pid_str, theme.text_dim()),
             ]))
         })
@@ -1114,7 +1077,7 @@ fn render_manage(
     let layout = Layout::vertical([
         Constraint::Length(5), // Entry details
         Constraint::Length(1), // Separator
-        Constraint::Min(5),   // Actions
+        Constraint::Min(5),    // Actions
     ])
     .split(inner);
 
@@ -1148,10 +1111,7 @@ fn render_manage(
                         .fg(theme.accent)
                         .add_modifier(Modifier::BOLD),
                 ),
-                Span::styled(
-                    format!("  ({})", entry.kind.label()),
-                    theme.text_dim(),
-                ),
+                Span::styled(format!("  ({})", entry.kind.label()), theme.text_dim()),
             ]),
             Line::from(vec![
                 Span::styled(format!("  {} ", s.svc_status_label), theme.text_dim()),
@@ -1164,27 +1124,20 @@ fn render_manage(
                     theme.text_dim(),
                 ),
             ]),
-            Line::from(vec![
-                Span::styled(
-                    format!("  {} {}", s.svc_description_label, entry.description),
-                    theme.text_dim(),
-                ),
-            ]),
-            Line::from(vec![
-                Span::styled(
-                    format!("{}{}", port_str, mem_str),
-                    theme.text_dim(),
-                ),
-            ]),
+            Line::from(vec![Span::styled(
+                format!("  {} {}", s.svc_description_label, entry.description),
+                theme.text_dim(),
+            )]),
+            Line::from(vec![Span::styled(
+                format!("{}{}", port_str, mem_str),
+                theme.text_dim(),
+            )]),
         ]);
         frame.render_widget(detail, layout[0]);
     } else {
         let msg = Paragraph::new(vec![
             Line::raw(""),
-            Line::styled(
-                format!("  {}", s.svc_select_first),
-                theme.text_dim(),
-            ),
+            Line::styled(format!("  {}", s.svc_select_first), theme.text_dim()),
         ]);
         frame.render_widget(msg, layout[0]);
     }
@@ -1215,7 +1168,11 @@ fn render_manage(
         .enumerate()
         .map(|(i, action)| {
             let is_sel = i == state.manage_action_idx;
-            let style = if is_sel { theme.selected() } else { theme.text() };
+            let style = if is_sel {
+                theme.selected()
+            } else {
+                theme.text()
+            };
 
             let label = action_label(action, lang);
             let icon = action_icon(action);
@@ -1330,10 +1287,7 @@ fn render_popups(
             let content = vec![
                 Line::raw(""),
                 Line::from(vec![
-                    Span::styled(
-                        format!("{} ", entry_kind.icon()),
-                        theme.text_dim(),
-                    ),
+                    Span::styled(format!("{} ", entry_kind.icon()), theme.text_dim()),
                     Span::styled(
                         entry_display.as_str(),
                         Style::default()
@@ -1342,10 +1296,7 @@ fn render_popups(
                     ),
                 ]),
                 Line::raw(""),
-                Line::styled(
-                    format!("→ {}", label),
-                    theme.text(),
-                ),
+                Line::styled(format!("→ {}", label), theme.text()),
                 Line::raw(""),
                 Line::styled(s.svc_confirm_action, theme.text()),
                 Line::styled(sudo_note, theme.text_dim()),

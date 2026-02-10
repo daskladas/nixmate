@@ -114,7 +114,6 @@ impl GenerationDiff {
             updated,
         }
     }
-
 }
 
 /// Represents a package version update
@@ -184,17 +183,41 @@ mod tests {
     #[test]
     fn test_generation_diff_calculate() {
         let old = vec![
-            Package { name: "firefox".into(), version: "120".into(), size: 0 },
-            Package { name: "vim".into(), version: "9.0".into(), size: 0 },
-            Package { name: "git".into(), version: "2.42".into(), size: 0 },
+            Package {
+                name: "firefox".into(),
+                version: "120".into(),
+                size: 0,
+            },
+            Package {
+                name: "vim".into(),
+                version: "9.0".into(),
+                size: 0,
+            },
+            Package {
+                name: "git".into(),
+                version: "2.42".into(),
+                size: 0,
+            },
         ];
         let new = vec![
-            Package { name: "firefox".into(), version: "121".into(), size: 0 },
-            Package { name: "git".into(), version: "2.42".into(), size: 0 },
-            Package { name: "ripgrep".into(), version: "14".into(), size: 0 },
+            Package {
+                name: "firefox".into(),
+                version: "121".into(),
+                size: 0,
+            },
+            Package {
+                name: "git".into(),
+                version: "2.42".into(),
+                size: 0,
+            },
+            Package {
+                name: "ripgrep".into(),
+                version: "14".into(),
+                size: 0,
+            },
         ];
         let diff = GenerationDiff::calculate(&old, &new);
-        assert_eq!(diff.added.len(), 1);   // ripgrep
+        assert_eq!(diff.added.len(), 1); // ripgrep
         assert_eq!(diff.removed.len(), 1); // vim
         assert_eq!(diff.updated.len(), 1); // firefox
         assert_eq!(diff.updated[0].name, "firefox");

@@ -12,6 +12,7 @@
 
 use crate::config::Language;
 use crate::i18n;
+use crate::types::FlashMessage;
 use crate::ui::theme::Theme;
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
@@ -24,7 +25,6 @@ use ratatui::{
 };
 use std::collections::HashMap;
 use std::sync::mpsc;
-use crate::types::FlashMessage;
 
 // ── Sub-tabs ──
 
@@ -42,22 +42,22 @@ pub enum FlakeSubTab {
 #[derive(Debug, Clone)]
 pub struct FlakeInput {
     pub name: String,
-    pub input_type: String,      // github, git, path, indirect, etc.
-    pub url: String,             // display URL (e.g. "github:NixOS/nixpkgs")
+    pub input_type: String, // github, git, path, indirect, etc.
+    pub url: String,        // display URL (e.g. "github:NixOS/nixpkgs")
     #[allow(dead_code)] // Parsed from flake.lock, reserved for detail view
     pub owner: String,
     #[allow(dead_code)] // Parsed from flake.lock, reserved for detail view
     pub repo: String,
-    pub branch: String,          // ref/branch if set
-    pub revision: String,        // full rev hash
-    pub rev_short: String,       // first 7 chars
+    pub branch: String,    // ref/branch if set
+    pub revision: String,  // full rev hash
+    pub rev_short: String, // first 7 chars
     pub nar_hash: String,
-    pub last_modified: i64,      // unix timestamp
-    pub age_text: String,        // "3 days ago", "2 months ago"
+    pub last_modified: i64, // unix timestamp
+    pub age_text: String,   // "3 days ago", "2 months ago"
     pub age_days: u64,
-    pub follows: Vec<String>,    // what this input's sub-inputs follow
+    pub follows: Vec<String>, // what this input's sub-inputs follow
     #[allow(dead_code)] // Parsed from flake.lock, reserved for detail view
-    pub is_indirect: bool,       // flake registry reference
+    pub is_indirect: bool, // flake registry reference
 }
 
 // ── Update result ──
@@ -207,7 +207,11 @@ impl FlakeInputsState {
                     self.loaded = true;
                     self.load_rx = None;
                     if self.inputs.is_empty() && self.error_message.is_none() {
-                        self.error_message = Some(crate::i18n::get_strings(self.lang).fi_error_load_failed.to_string());
+                        self.error_message = Some(
+                            crate::i18n::get_strings(self.lang)
+                                .fi_error_load_failed
+                                .to_string(),
+                        );
                     }
                 }
             }
@@ -280,9 +284,7 @@ impl FlakeInputsState {
             .inputs
             .iter()
             .enumerate()
-            .filter(|(i, _)| {
-                self.update_checked.get(*i).copied().unwrap_or(false)
-            })
+            .filter(|(i, _)| self.update_checked.get(*i).copied().unwrap_or(false))
             .map(|(_, input)| (input.name.clone(), input.rev_short.clone()))
             .collect();
 
@@ -400,8 +402,7 @@ impl FlakeInputsState {
         match key.code {
             KeyCode::Char('j') | KeyCode::Down => {
                 if !self.inputs.is_empty() {
-                    self.update_selected =
-                        (self.update_selected + 1).min(self.inputs.len() - 1);
+                    self.update_selected = (self.update_selected + 1).min(self.inputs.len() - 1);
                 }
             }
             KeyCode::Char('k') | KeyCode::Up => {
@@ -449,8 +450,7 @@ impl FlakeInputsState {
         match key.code {
             KeyCode::Char('j') | KeyCode::Down => {
                 if !self.history.is_empty() {
-                    self.history_selected =
-                        (self.history_selected + 1).min(self.history.len() - 1);
+                    self.history_selected = (self.history_selected + 1).min(self.history.len() - 1);
                 }
             }
             KeyCode::Char('k') | KeyCode::Up => {
@@ -504,9 +504,7 @@ fn find_flake_dir() -> Option<String> {
     for dir in &candidates {
         let flake_nix = format!("{}/flake.nix", dir);
         let flake_lock = format!("{}/flake.lock", dir);
-        if std::path::Path::new(&flake_nix).exists()
-            && std::path::Path::new(&flake_lock).exists()
-        {
+        if std::path::Path::new(&flake_nix).exists() && std::path::Path::new(&flake_lock).exists() {
             return Some(dir.clone());
         }
     }
@@ -527,9 +525,7 @@ fn load_flake_inputs(lang: Language) -> LoadResult {
     let flake_dir = match find_flake_dir() {
         Some(d) => d,
         None => {
-            return LoadResult::Error(
-                s.flk_no_flake.to_string(),
-            );
+            return LoadResult::Error(s.flk_no_flake.to_string());
         }
     };
 
@@ -537,11 +533,7 @@ fn load_flake_inputs(lang: Language) -> LoadResult {
     let lock_content = match std::fs::read_to_string(&lock_path) {
         Ok(c) => c,
         Err(_) => {
-            return LoadResult::Error(format!(
-                "{} ({})",
-                s.flk_no_lock,
-                lock_path
-            ));
+            return LoadResult::Error(format!("{} ({})", s.flk_no_lock, lock_path));
         }
     };
 
@@ -571,10 +563,7 @@ fn parse_flake_lock(lock: &serde_json::Value) -> Vec<FlakeInput> {
     };
 
     // Find the root node to get direct input names
-    let root_name = lock
-        .get("root")
-        .and_then(|r| r.as_str())
-        .unwrap_or("root");
+    let root_name = lock.get("root").and_then(|r| r.as_str()).unwrap_or("root");
 
     let root_inputs = nodes
         .get(root_name)
@@ -779,7 +768,9 @@ fn run_selective_update(
     let _old_lock = std::fs::read_to_string(&lock_path).ok();
 
     for (name, old_rev) in inputs {
-        let _ = tx.send(UpdateStatus::Progress(s.fi_updating_input.replace("{}", name)));
+        let _ = tx.send(UpdateStatus::Progress(
+            s.fi_updating_input.replace("{}", name),
+        ));
 
         let result = Command::new("nix")
             .args(["flake", "lock", "--update-input", name])
@@ -799,7 +790,9 @@ fn run_selective_update(
 
                 let changed = new_rev_short != *old_rev;
                 let message = if changed {
-                    s.fi_updated_input.replacen("{}", old_rev, 1).replacen("{}", &new_rev_short, 1)
+                    s.fi_updated_input
+                        .replacen("{}", old_rev, 1)
+                        .replacen("{}", &new_rev_short, 1)
                 } else {
                     s.fi_already_up_to_date.to_string()
                 };
@@ -814,7 +807,11 @@ fn run_selective_update(
             }
             Ok(output) => {
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                let msg = stderr.lines().next().unwrap_or(s.fi_update_failed).to_string();
+                let msg = stderr
+                    .lines()
+                    .next()
+                    .unwrap_or(s.fi_update_failed)
+                    .to_string();
                 let _ = tx.send(UpdateStatus::InputDone(UpdateResult {
                     input_name: name.clone(),
                     old_rev: old_rev.clone(),
@@ -911,10 +908,7 @@ pub fn render(
         let lines = vec![
             Line::raw(""),
             Line::raw(""),
-            Line::styled(
-                format!("  ✗ {}", err),
-                Style::default().fg(theme.error),
-            ),
+            Line::styled(format!("  ✗ {}", err), Style::default().fg(theme.error)),
             Line::raw(""),
             Line::styled(
                 format!("  {}", s.fi_no_flake_hint),
@@ -946,7 +940,7 @@ pub fn render(
     let chunks = Layout::vertical([
         Constraint::Length(1), // Flake path
         Constraint::Length(2), // Tab bar
-        Constraint::Min(3),   // Content
+        Constraint::Min(3),    // Content
     ])
     .split(inner);
 
@@ -1066,15 +1060,19 @@ fn render_overview(
                         Style::default().fg(theme.accent)
                     },
                 ),
-                Span::styled(format!(" {} ", url_display), if is_selected { style } else { Style::default().fg(theme.fg_dim) }),
+                Span::styled(
+                    format!(" {} ", url_display),
+                    if is_selected {
+                        style
+                    } else {
+                        Style::default().fg(theme.fg_dim)
+                    },
+                ),
                 Span::styled(
                     format!("{:<width$}", input.rev_short, width = rev_w),
                     if is_selected { style } else { theme.text() },
                 ),
-                Span::styled(
-                    format!(" {}", input.age_text),
-                    Style::default().fg(age_c),
-                ),
+                Span::styled(format!(" {}", input.age_text), Style::default().fg(age_c)),
             ]))
         })
         .collect();
@@ -1108,7 +1106,7 @@ fn render_update(
     // Hint line
     let chunks = Layout::vertical([
         Constraint::Length(1), // Hint
-        Constraint::Min(3),   // List
+        Constraint::Min(3),    // List
     ])
     .split(area);
 
@@ -1273,10 +1271,7 @@ fn render_history(
                     format!(" {} → {} ", result.old_rev, result.new_rev),
                     if is_selected { style } else { theme.text() },
                 ),
-                Span::styled(
-                    result.message.clone(),
-                    Style::default().fg(theme.fg_dim),
-                ),
+                Span::styled(result.message.clone(), Style::default().fg(theme.fg_dim)),
             ]))
         })
         .collect();
@@ -1317,15 +1312,30 @@ fn render_details(
     let fields: Vec<(&str, String, ratatui::style::Color)> = vec![
         (s.fi_detail_type, input.input_type.clone(), theme.fg),
         (s.fi_detail_url, input.url.clone(), theme.accent),
-        (s.fi_detail_branch, if input.branch.is_empty() { "(default)".to_string() } else { input.branch.clone() }, theme.fg),
+        (
+            s.fi_detail_branch,
+            if input.branch.is_empty() {
+                "(default)".to_string()
+            } else {
+                input.branch.clone()
+            },
+            theme.fg,
+        ),
         (s.fi_detail_rev, input.revision.clone(), theme.fg),
         (s.fi_detail_narhash, input.nar_hash.clone(), theme.fg_dim),
-        (s.fi_detail_age, input.age_text.clone(), age_color(input.age_days, theme)),
+        (
+            s.fi_detail_age,
+            input.age_text.clone(),
+            age_color(input.age_days, theme),
+        ),
     ];
 
     for (label, value, color) in &fields {
         lines.push(Line::from(vec![
-            Span::styled(format!("  {:<14}", label), Style::default().fg(theme.fg_dim)),
+            Span::styled(
+                format!("  {:<14}", label),
+                Style::default().fg(theme.fg_dim),
+            ),
             Span::styled(value.clone(), Style::default().fg(*color)),
         ]));
     }
@@ -1336,7 +1346,10 @@ fn render_details(
         if let Some(dt) = dt {
             let local: chrono::DateTime<chrono::Local> = dt.into();
             lines.push(Line::from(vec![
-                Span::styled(format!("  {:<14}", s.fi_detail_locked), Style::default().fg(theme.fg_dim)),
+                Span::styled(
+                    format!("  {:<14}", s.fi_detail_locked),
+                    Style::default().fg(theme.fg_dim),
+                ),
                 Span::styled(
                     local.format("%Y-%m-%d %H:%M:%S").to_string(),
                     Style::default().fg(theme.fg),
@@ -1414,10 +1427,7 @@ fn render_popup(
             ];
 
             for name in &selected_names {
-                lines.push(Line::styled(
-                    format!("    • {}", name),
-                    theme.text(),
-                ));
+                lines.push(Line::styled(format!("    • {}", name), theme.text()));
             }
 
             lines.push(Line::raw(""));
@@ -1433,10 +1443,7 @@ fn render_popup(
                 .border_style(theme.border_focused())
                 .style(theme.block_style());
 
-            frame.render_widget(
-                Paragraph::new(lines).block(block),
-                popup_area,
-            );
+            frame.render_widget(Paragraph::new(lines).block(block), popup_area);
         }
         FlakePopup::Updating => {
             let mut lines = vec![
@@ -1465,10 +1472,7 @@ fn render_popup(
                 .border_style(theme.border_focused())
                 .style(theme.block_style());
 
-            frame.render_widget(
-                Paragraph::new(lines).block(block),
-                popup_area,
-            );
+            frame.render_widget(Paragraph::new(lines).block(block), popup_area);
         }
         FlakePopup::None => {}
     }

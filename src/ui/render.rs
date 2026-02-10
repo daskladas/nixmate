@@ -106,10 +106,7 @@ const SIDEBAR_MODULES: &[ModuleTab] = &[
 ];
 
 /// Bottom items (below separator)
-const SIDEBAR_BOTTOM: &[ModuleTab] = &[
-    ModuleTab::Settings,
-    ModuleTab::HelpAbout,
-];
+const SIDEBAR_BOTTOM: &[ModuleTab] = &[ModuleTab::Settings, ModuleTab::HelpAbout];
 
 const SIDEBAR_WIDTH: u16 = 24;
 
@@ -173,7 +170,9 @@ fn render_sidebar(frame: &mut Frame, app: &App, area: Rect) {
     lines.push(Line::from(vec![
         Span::styled(
             " nixmate",
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
         ),
         Span::styled(
             format!(" v{}", env!("CARGO_PKG_VERSION")),
@@ -200,27 +199,23 @@ fn render_sidebar(frame: &mut Frame, app: &App, area: Rect) {
         render_sidebar_item(&mut lines, app, module, theme);
     }
 
-    frame.render_widget(
-        Paragraph::new(lines).style(theme.block_style()),
-        area,
-    );
+    frame.render_widget(Paragraph::new(lines).style(theme.block_style()), area);
 }
 
 /// Render a single sidebar item
-fn render_sidebar_item<'a>(lines: &mut Vec<Line<'a>>, app: &App, module: ModuleTab, theme: &crate::ui::Theme) {
+fn render_sidebar_item<'a>(
+    lines: &mut Vec<Line<'a>>,
+    app: &App,
+    module: ModuleTab,
+    theme: &crate::ui::Theme,
+) {
     let is_active = app.active_tab == module;
     let hint = module.key_hint();
 
     if is_active {
         lines.push(Line::from(vec![
-            Span::styled(
-                " ▸ ",
-                Style::default().fg(theme.accent),
-            ),
-            Span::styled(
-                hint.to_string(),
-                Style::default().fg(theme.accent),
-            ),
+            Span::styled(" ▸ ", Style::default().fg(theme.accent)),
+            Span::styled(hint.to_string(), Style::default().fg(theme.accent)),
             Span::styled(
                 format!(" {}", module.label(app)),
                 Style::default()
@@ -231,10 +226,7 @@ fn render_sidebar_item<'a>(lines: &mut Vec<Line<'a>>, app: &App, module: ModuleT
     } else {
         lines.push(Line::from(vec![
             Span::styled("   ", Style::default()),
-            Span::styled(
-                hint.to_string(),
-                Style::default().fg(theme.fg_dim),
-            ),
+            Span::styled(hint.to_string(), Style::default().fg(theme.fg_dim)),
             Span::styled(
                 format!(" {}", module.label(app)),
                 Style::default().fg(theme.fg),
@@ -848,10 +840,8 @@ fn render_help_about(frame: &mut Frame, app: &mut App, area: Rect) {
     let mut content: Vec<Line> = Vec::new();
 
     // Mascot image via terminal protocol (same approach as welcome screen)
-    let img_area = crate::modules::splash::help_image_area(
-        inner,
-        app.image_protocol.is_supported(),
-    );
+    let img_area =
+        crate::modules::splash::help_image_area(inner, app.image_protocol.is_supported());
     if let Some((_col, _row, _cols, rows)) = img_area {
         for _ in 0..rows {
             content.push(Line::raw(""));
@@ -864,7 +854,9 @@ fn render_help_about(frame: &mut Frame, app: &mut App, area: Rect) {
     content.push(Line::from(vec![
         Span::styled(
             "nixmate",
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
         ),
         Span::styled(
             format!("  v{}", env!("CARGO_PKG_VERSION")),
@@ -887,34 +879,28 @@ fn render_help_about(frame: &mut Frame, app: &mut App, area: Rect) {
     // Module rows: clean aligned format  [key]  Name ··· Description
     let modules: Vec<(&str, &str, &str)> = vec![
         ("1", s.tab_generations, s.help_mod_gen),
-        ("2", s.tab_errors,      s.help_mod_err),
-        ("3", s.tab_services,    s.help_mod_svc),
-        ("4", s.tab_storage,     s.help_mod_gc),
-        ("5", s.tab_config,      s.help_mod_cfg),
-        ("6", s.tab_options,     s.help_mod_opt),
-        ("7", s.tab_rebuild,     s.help_mod_rebuild),
+        ("2", s.tab_errors, s.help_mod_err),
+        ("3", s.tab_services, s.help_mod_svc),
+        ("4", s.tab_storage, s.help_mod_gc),
+        ("5", s.tab_config, s.help_mod_cfg),
+        ("6", s.tab_options, s.help_mod_opt),
+        ("7", s.tab_rebuild, s.help_mod_rebuild),
         ("8", s.tab_flake_inputs, s.help_mod_flake),
-        ("9", s.tab_packages,    s.help_mod_pkg),
-        ("0", s.tab_health,      s.help_mod_health),
-        (",", s.tab_settings,    s.help_mod_set),
+        ("9", s.tab_packages, s.help_mod_pkg),
+        ("0", s.tab_health, s.help_mod_health),
+        (",", s.tab_settings, s.help_mod_set),
     ];
 
     for (key, name, desc) in modules {
         // Pad name to 20 chars for alignment
         let padded_name = format!("{:<18}", name);
         content.push(Line::from(vec![
-            Span::styled(
-                format!("  [{}]  ", key),
-                Style::default().fg(theme.accent),
-            ),
+            Span::styled(format!("  [{}]  ", key), Style::default().fg(theme.accent)),
             Span::styled(
                 padded_name,
                 Style::default().fg(theme.fg).add_modifier(Modifier::BOLD),
             ),
-            Span::styled(
-                desc.to_string(),
-                Style::default().fg(theme.fg_dim),
-            ),
+            Span::styled(desc.to_string(), Style::default().fg(theme.fg_dim)),
         ]));
     }
     content.push(Line::raw(""));
@@ -933,7 +919,9 @@ fn render_help_about(frame: &mut Frame, app: &mut App, area: Rect) {
         Span::styled("  ", Style::default()),
         Span::styled(
             "github.com/daskladas/nixmate",
-            Style::default().fg(theme.accent).add_modifier(Modifier::UNDERLINED),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::UNDERLINED),
         ),
     ]));
     content.push(Line::raw(""));
@@ -942,11 +930,7 @@ fn render_help_about(frame: &mut Frame, app: &mut App, area: Rect) {
         Style::default().fg(theme.success),
     ));
 
-    frame.render_widget(
-        Paragraph::new(content)
-            .alignment(Alignment::Center),
-        inner,
-    );
+    frame.render_widget(Paragraph::new(content).alignment(Alignment::Center), inner);
 }
 
 /// Render the global Settings tab
@@ -967,7 +951,10 @@ fn render_settings(frame: &mut Frame, app: &App, area: Rect) {
     // Global settings
     let global_settings: Vec<(&str, String)> = vec![
         (s.settings_theme, app.config.theme.as_str().to_string()),
-        (s.settings_language, app.config.language.as_str().to_string()),
+        (
+            s.settings_language,
+            app.config.language.as_str().to_string(),
+        ),
         (
             s.settings_layout,
             app.config.layout.as_str(app.config.language).to_string(),
@@ -994,7 +981,11 @@ fn render_settings(frame: &mut Frame, app: &App, area: Rect) {
             .to_string(),
             false,
         ),
-        (s.settings_ai_provider, app.config.ai_provider.clone(), false),
+        (
+            s.settings_ai_provider,
+            app.config.ai_provider.clone(),
+            false,
+        ),
         (
             s.settings_ai_key,
             if app.settings_editing && app.settings_selected == 6 {
@@ -1011,7 +1002,10 @@ fn render_settings(frame: &mut Frame, app: &App, area: Rect) {
             if app.settings_editing && app.settings_selected == 7 {
                 format!("{}_", app.settings_edit_buffer)
             } else {
-                app.config.ollama_url.clone().unwrap_or_else(|| s.settings_not_set.to_string())
+                app.config
+                    .ollama_url
+                    .clone()
+                    .unwrap_or_else(|| s.settings_not_set.to_string())
             },
             app.settings_editing && app.settings_selected == 7,
         ),
@@ -1020,7 +1014,10 @@ fn render_settings(frame: &mut Frame, app: &App, area: Rect) {
             if app.settings_editing && app.settings_selected == 8 {
                 format!("{}_", app.settings_edit_buffer)
             } else {
-                app.config.ollama_model.clone().unwrap_or_else(|| s.settings_not_set.to_string())
+                app.config
+                    .ollama_model
+                    .clone()
+                    .unwrap_or_else(|| s.settings_not_set.to_string())
             },
             app.settings_editing && app.settings_selected == 8,
         ),
@@ -1070,7 +1067,9 @@ fn render_settings(frame: &mut Frame, app: &App, area: Rect) {
         };
 
         let value_style = if *editing {
-            Style::default().fg(theme.success).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(theme.success)
+                .add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(theme.accent)
         };
@@ -1146,10 +1145,7 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
         }
         ModuleTab::Settings => {
             if app.settings_editing {
-                format!(
-                    "{}  {}",
-                    s.settings_editing_hint, s.status_quit
-                )
+                format!("{}  {}", s.settings_editing_hint, s.status_quit)
             } else {
                 format!(
                     "{}  {}  {}",
@@ -1206,39 +1202,36 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
             if svc_state.loading && !svc_state.loaded {
                 format!("Loading services...  {}", s.status_quit)
             } else {
-            match svc_state.active_sub_tab {
-                crate::modules::services::SvcSubTab::Overview => {
-                    if svc_state.search_active {
-                        format!(
-                            "[Enter] {}  [Esc] {}  {}",
-                            s.confirm, s.back, s.status_quit
-                        )
-                    } else {
-                        format!(
+                match svc_state.active_sub_tab {
+                    crate::modules::services::SvcSubTab::Overview => {
+                        if svc_state.search_active {
+                            format!("[Enter] {}  [Esc] {}  {}", s.confirm, s.back, s.status_quit)
+                        } else {
+                            format!(
                             "[j/k] {}  [/] Search  [f] Filter  [r] Refresh  [Enter] Logs  [m] Manage  [F1-F4] Sub  {}",
                             s.navigate, s.status_quit
                         )
+                        }
+                    }
+                    crate::modules::services::SvcSubTab::Ports => {
+                        format!(
+                            "[j/k] {}  [r] Refresh  [F1-F4] Sub  {}",
+                            s.navigate, s.status_quit
+                        )
+                    }
+                    crate::modules::services::SvcSubTab::Manage => {
+                        format!(
+                            "[j/k] {}  [Enter] Execute  [F1-F4] Sub  {}",
+                            s.navigate, s.status_quit
+                        )
+                    }
+                    crate::modules::services::SvcSubTab::Logs => {
+                        format!(
+                            "[j/k] Scroll  [r] Refresh  [g/G] Top/End  [F1-F4] Sub  {}",
+                            s.status_quit
+                        )
                     }
                 }
-                crate::modules::services::SvcSubTab::Ports => {
-                    format!(
-                        "[j/k] {}  [r] Refresh  [F1-F4] Sub  {}",
-                        s.navigate, s.status_quit
-                    )
-                }
-                crate::modules::services::SvcSubTab::Manage => {
-                    format!(
-                        "[j/k] {}  [Enter] Execute  [F1-F4] Sub  {}",
-                        s.navigate, s.status_quit
-                    )
-                }
-                crate::modules::services::SvcSubTab::Logs => {
-                    format!(
-                        "[j/k] Scroll  [r] Refresh  [g/G] Top/End  [F1-F4] Sub  {}",
-                        s.status_quit
-                    )
-                }
-            }
             }
         }
         ModuleTab::Storage => {
@@ -1246,45 +1239,40 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
             if sto_state.loading && !sto_state.loaded {
                 format!("Loading store data...  {}", s.status_quit)
             } else {
-            match sto_state.active_sub_tab {
-                crate::modules::storage::StoSubTab::Dashboard => {
-                    format!(
-                        "[r] Refresh  [F1-F4] Sub  {}",
-                        s.status_quit
-                    )
-                }
-                crate::modules::storage::StoSubTab::Explorer => {
-                    if sto_state.explorer_search_active {
+                match sto_state.active_sub_tab {
+                    crate::modules::storage::StoSubTab::Dashboard => {
+                        format!("[r] Refresh  [F1-F4] Sub  {}", s.status_quit)
+                    }
+                    crate::modules::storage::StoSubTab::Explorer => {
+                        if sto_state.explorer_search_active {
+                            format!("[Enter] {}  [Esc] {}  {}", s.confirm, s.back, s.status_quit)
+                        } else {
+                            format!(
+                                "[j/k] {}  [/] Search  [f] Filter  [r] Refresh  [F1-F4] Sub  {}",
+                                s.navigate, s.status_quit
+                            )
+                        }
+                    }
+                    crate::modules::storage::StoSubTab::Clean => {
                         format!(
-                            "[Enter] {}  [Esc] {}  {}",
-                            s.confirm, s.back, s.status_quit
-                        )
-                    } else {
-                        format!(
-                            "[j/k] {}  [/] Search  [f] Filter  [r] Refresh  [F1-F4] Sub  {}",
+                            "[j/k] {}  [Enter] Execute  [F1-F4] Sub  {}",
                             s.navigate, s.status_quit
                         )
                     }
+                    crate::modules::storage::StoSubTab::History => {
+                        format!("[j/k] Scroll  [r] Refresh  [F1-F4] Sub  {}", s.status_quit)
+                    }
                 }
-                crate::modules::storage::StoSubTab::Clean => {
-                    format!(
-                        "[j/k] {}  [Enter] Execute  [F1-F4] Sub  {}",
-                        s.navigate, s.status_quit
-                    )
-                }
-                crate::modules::storage::StoSubTab::History => {
-                    format!(
-                        "[j/k] Scroll  [r] Refresh  [F1-F4] Sub  {}",
-                        s.status_quit
-                    )
-                }
-            }
             }
         }
         ModuleTab::Config => {
             let is_scanning = match app.config_showcase.active_sub_tab {
-                crate::modules::config_showcase::CfgSubTab::Overview => app.config_showcase.scanning,
-                crate::modules::config_showcase::CfgSubTab::Diagram => app.config_showcase.diagram_scanning,
+                crate::modules::config_showcase::CfgSubTab::Overview => {
+                    app.config_showcase.scanning
+                }
+                crate::modules::config_showcase::CfgSubTab::Diagram => {
+                    app.config_showcase.diagram_scanning
+                }
             };
             let generate_label = match app.config_showcase.active_sub_tab {
                 crate::modules::config_showcase::CfgSubTab::Overview => s.cfg_generate,
@@ -1306,25 +1294,16 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
         ModuleTab::Packages => {
             let pkg = &app.packages;
             if pkg.search_active {
-                format!(
-                    "[Enter] {}  [Esc] {}  {}",
-                    s.confirm, s.back, s.status_quit
-                )
+                format!("[Enter] {}  [Esc] {}  {}", s.confirm, s.back, s.status_quit)
             } else if pkg.detail_open {
-                format!(
-                    "[Esc/Enter] {}  {}",
-                    s.back, s.status_quit
-                )
+                format!("[Esc/Enter] {}  {}", s.back, s.status_quit)
             } else if !pkg.results.is_empty() {
                 format!(
                     "[j/k] {}  [/] Search  [Enter] Details  [n] New  {}",
                     s.navigate, s.status_quit
                 )
             } else {
-                format!(
-                    "[/] Search  [n] New  {}",
-                    s.status_quit
-                )
+                format!("[/] Search  [n] New  {}", s.status_quit)
             }
         }
         ModuleTab::Health => {
@@ -1346,22 +1325,16 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
             let rb = &app.rebuild;
             if rb.is_running() {
                 match rb.sub_tab {
-                    crate::modules::rebuild::RebuildSubTab::Dashboard |
-                    crate::modules::rebuild::RebuildSubTab::Log => {
-                        format!(
-                            "[j/k] Scroll  [G] Live  [F1-F4] Tab  {}",
-                            s.status_quit
-                        )
+                    crate::modules::rebuild::RebuildSubTab::Dashboard
+                    | crate::modules::rebuild::RebuildSubTab::Log => {
+                        format!("[j/k] Scroll  [G] Live  [F1-F4] Tab  {}", s.status_quit)
                     }
                     _ => {
                         format!("[j/k] Scroll  [F1-F4] Tab  {}", s.status_quit)
                     }
                 }
             } else if rb.log_search_active {
-                format!(
-                    "[Enter] {}  [Esc] {}  {}",
-                    s.confirm, s.back, s.status_quit
-                )
+                format!("[Enter] {}  [Esc] {}  {}", s.confirm, s.back, s.status_quit)
             } else {
                 match rb.sub_tab {
                     crate::modules::rebuild::RebuildSubTab::Dashboard => {
@@ -1386,10 +1359,7 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
             }
         }
         _ => {
-            format!(
-                "{}  {}",
-                s.status_switch_tab, s.status_quit
-            )
+            format!("{}  {}", s.status_switch_tab, s.status_quit)
         }
     };
 

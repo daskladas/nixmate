@@ -52,7 +52,8 @@ fn build_result(pattern: &Pattern, captures: &regex::Captures) -> MatchResult {
     if pattern.id == "linker-missing-lib" {
         if let Some(lib_name) = groups.first() {
             if let Some(pkg_name) = library_to_package(lib_name) {
-                solution = solution.replace(&format!("[ {} ]", lib_name), &format!("[ {} ]", pkg_name));
+                solution =
+                    solution.replace(&format!("[ {} ]", lib_name), &format!("[ {} ]", pkg_name));
             }
         }
     }
@@ -88,7 +89,7 @@ mod tests {
 /nix/store/abc-binutils/bin/ld: cannot find -lssl
 collect2: error: ld returned 1 exit status
         "#;
-        
+
         let result = analyze(error).expect("Should match");
         assert_eq!(result.pattern_id, "linker-missing-lib");
         assert!(result.title.contains("ssl"));
@@ -98,7 +99,7 @@ collect2: error: ld returned 1 exit status
     #[test]
     fn test_analyze_missing_header() {
         let error = "fatal error: openssl/ssl.h: No such file or directory";
-        
+
         let result = analyze(error).expect("Should match");
         assert_eq!(result.pattern_id, "missing-header");
         assert!(result.title.contains("openssl/ssl.h"));
@@ -107,7 +108,7 @@ collect2: error: ld returned 1 exit status
     #[test]
     fn test_analyze_infinite_recursion() {
         let error = "error: infinite recursion encountered\n   at /nix/store/...";
-        
+
         let result = analyze(error).expect("Should match");
         assert_eq!(result.pattern_id, "infinite-recursion");
     }
@@ -122,7 +123,10 @@ collect2: error: ld returned 1 exit status
     fn test_substitute_captures() {
         let template = "Error: $1 and $2";
         let captures = vec!["foo", "bar"];
-        assert_eq!(substitute_captures(template, &captures), "Error: foo and bar");
+        assert_eq!(
+            substitute_captures(template, &captures),
+            "Error: foo and bar"
+        );
     }
 
     #[test]

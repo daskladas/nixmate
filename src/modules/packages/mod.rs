@@ -7,6 +7,7 @@
 
 use crate::config::Language;
 use crate::i18n;
+use crate::types::FlashMessage;
 use crate::ui::theme::Theme;
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
@@ -18,7 +19,6 @@ use ratatui::{
     Frame,
 };
 use std::sync::mpsc;
-use crate::types::FlashMessage;
 use std::time::Instant;
 
 // ── Package search result ──
@@ -196,7 +196,8 @@ impl PackagesState {
                     }
                     Ok(SearchStatus::Done(results)) => {
                         if results.is_empty() && !self.last_query.is_empty() {
-                            self.error_message = Some(crate::i18n::get_strings(self.lang).pkg_no_found.to_string());
+                            self.error_message =
+                                Some(crate::i18n::get_strings(self.lang).pkg_no_found.to_string());
                         }
                         self.results = results;
                         self.selected = 0;
@@ -216,7 +217,11 @@ impl PackagesState {
                         self.loading = false;
                         self.search_rx = None;
                         if self.results.is_empty() {
-                            self.error_message = Some(crate::i18n::get_strings(self.lang).pkg_search_failed.to_string());
+                            self.error_message = Some(
+                                crate::i18n::get_strings(self.lang)
+                                    .pkg_search_failed
+                                    .to_string(),
+                            );
                         }
                         return;
                     }
@@ -342,9 +347,9 @@ fn detect_flake_nixpkgs() -> Option<String> {
         &format!("{}/.nixos", home),
     ];
 
-    let flake_dir = flake_dirs.iter().find(|d| {
-        std::path::Path::new(d).join("flake.nix").exists()
-    })?;
+    let flake_dir = flake_dirs
+        .iter()
+        .find(|d| std::path::Path::new(d).join("flake.nix").exists())?;
 
     let output = Command::new("nix")
         .args(["flake", "metadata", "--json"])
@@ -421,9 +426,10 @@ fn run_search_with_status(
     let is_flakes = source.map(|s| s.is_flakes).unwrap_or(true);
     let channel = source.map(|s| s.channel.as_str()).unwrap_or("nixpkgs");
 
-    let _ = tx.send(SearchStatus::Phase(
-        s.pkg_source_label.replace("{}", source.map(|s| s.display_name.as_str()).unwrap_or("nixpkgs"))
-    ));
+    let _ = tx.send(SearchStatus::Phase(s.pkg_source_label.replace(
+        "{}",
+        source.map(|s| s.display_name.as_str()).unwrap_or("nixpkgs"),
+    )));
 
     std::thread::sleep(std::time::Duration::from_millis(200));
 
@@ -437,17 +443,13 @@ fn run_search_with_status(
                 let _ = tx.send(SearchStatus::Done(results));
             }
             None => {
-                let _ = tx.send(SearchStatus::Phase(
-                    s.pkg_trying_alt.to_string(),
-                ));
+                let _ = tx.send(SearchStatus::Phase(s.pkg_trying_alt.to_string()));
                 match try_nix_env_search(query, installed) {
                     Some(results) => {
                         let _ = tx.send(SearchStatus::Done(results));
                     }
                     None => {
-                        let _ = tx.send(SearchStatus::Error(
-                            s.pkg_search_fail_nix.to_string(),
-                        ));
+                        let _ = tx.send(SearchStatus::Error(s.pkg_search_fail_nix.to_string()));
                     }
                 }
             }
@@ -458,17 +460,13 @@ fn run_search_with_status(
                 let _ = tx.send(SearchStatus::Done(results));
             }
             None => {
-                let _ = tx.send(SearchStatus::Phase(
-                    s.pkg_trying_alt.to_string(),
-                ));
+                let _ = tx.send(SearchStatus::Phase(s.pkg_trying_alt.to_string()));
                 match try_nix_search_flakes(query, installed, "nixpkgs") {
                     Some(results) => {
                         let _ = tx.send(SearchStatus::Done(results));
                     }
                     None => {
-                        let _ = tx.send(SearchStatus::Error(
-                            s.pkg_search_fail_nix.to_string(),
-                        ));
+                        let _ = tx.send(SearchStatus::Error(s.pkg_search_fail_nix.to_string()));
                     }
                 }
             }
@@ -504,19 +502,42 @@ fn try_nix_search_flakes(
     let mut results: Vec<SearchResult> = obj
         .iter()
         .map(|(attr_path, info)| {
-            let pname = info.get("pname").and_then(|v| v.as_str()).unwrap_or("").to_string();
-            let version = info.get("version").and_then(|v| v.as_str()).unwrap_or("").to_string();
-            let description = info.get("description").and_then(|v| v.as_str()).unwrap_or("").to_string();
+            let pname = info
+                .get("pname")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+            let version = info
+                .get("version")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+            let description = info
+                .get("description")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
 
-            let attr = attr_path.rsplit('.').next().unwrap_or(attr_path).to_string();
+            let attr = attr_path
+                .rsplit('.')
+                .next()
+                .unwrap_or(attr_path)
+                .to_string();
             let is_installed = installed.iter().any(|p| p == &pname || p == &attr);
 
-            SearchResult { attr, pname, version, description, installed: is_installed }
+            SearchResult {
+                attr,
+                pname,
+                version,
+                description,
+                installed: is_installed,
+            }
         })
         .collect();
 
     results.sort_by(|a, b| {
-        b.installed.cmp(&a.installed)
+        b.installed
+            .cmp(&a.installed)
             .then_with(|| a.pname.to_lowercase().cmp(&b.pname.to_lowercase()))
     });
     results.truncate(200);
@@ -542,31 +563,53 @@ fn try_nix_env_search(query: &str, installed: &[String]) -> Option<Vec<SearchRes
         .lines()
         .filter_map(|line| {
             let parts: Vec<&str> = line.splitn(3, char::is_whitespace).collect();
-            if parts.len() < 2 { return None; }
+            if parts.len() < 2 {
+                return None;
+            }
 
             let attr_full = parts[0];
             let name_version = parts[1].trim();
-            let description = if parts.len() > 2 { parts[2].trim().to_string() } else { String::new() };
+            let description = if parts.len() > 2 {
+                parts[2].trim().to_string()
+            } else {
+                String::new()
+            };
 
             let matches = attr_full.to_lowercase().contains(&query_lower)
                 || name_version.to_lowercase().contains(&query_lower)
                 || description.to_lowercase().contains(&query_lower);
-            if !matches { return None; }
+            if !matches {
+                return None;
+            }
 
-            let attr = attr_full.rsplit('.').next().unwrap_or(attr_full).to_string();
+            let attr = attr_full
+                .rsplit('.')
+                .next()
+                .unwrap_or(attr_full)
+                .to_string();
             let (pname, version) = if let Some(pos) = name_version.rfind('-') {
-                (name_version[..pos].to_string(), name_version[pos + 1..].to_string())
+                (
+                    name_version[..pos].to_string(),
+                    name_version[pos + 1..].to_string(),
+                )
             } else {
                 (name_version.to_string(), String::new())
             };
 
             let is_installed = installed.iter().any(|p| p == &pname || p == &attr);
-            Some(SearchResult { attr, pname, version, description, installed: is_installed })
+            Some(SearchResult {
+                attr,
+                pname,
+                version,
+                description,
+                installed: is_installed,
+            })
         })
         .collect();
 
     results.sort_by(|a, b| {
-        b.installed.cmp(&a.installed)
+        b.installed
+            .cmp(&a.installed)
             .then_with(|| a.pname.to_lowercase().cmp(&b.pname.to_lowercase()))
     });
     results.truncate(200);
@@ -589,7 +632,11 @@ fn load_installed_packages() -> Vec<String> {
                 .lines()
                 .map(|l| {
                     if let Some(pos) = l.rfind('-') {
-                        if l[pos + 1..].chars().next().is_some_and(|c| c.is_ascii_digit()) {
+                        if l[pos + 1..]
+                            .chars()
+                            .next()
+                            .is_some_and(|c| c.is_ascii_digit())
+                        {
                             return l[..pos].to_string();
                         }
                     }
@@ -616,13 +663,16 @@ pub fn render(frame: &mut Frame, state: &PackagesState, theme: &Theme, lang: Lan
     let inner = block.inner(area);
     frame.render_widget(block, area);
 
-    if inner.height < 4 || inner.width < 20 { return; }
+    if inner.height < 4 || inner.width < 20 {
+        return;
+    }
 
     let chunks = Layout::vertical([
         Constraint::Length(1), // Source
         Constraint::Length(2), // Search bar
-        Constraint::Min(4),   // Results or loading
-    ]).split(inner);
+        Constraint::Min(4),    // Results or loading
+    ])
+    .split(inner);
 
     render_source_line(frame, state, theme, chunks[0]);
     render_search_bar(frame, state, theme, lang, chunks[1]);
@@ -650,7 +700,13 @@ fn render_source_line(frame: &mut Frame, state: &PackagesState, theme: &Theme, a
     );
 }
 
-fn render_search_bar(frame: &mut Frame, state: &PackagesState, theme: &Theme, lang: Language, area: Rect) {
+fn render_search_bar(
+    frame: &mut Frame,
+    state: &PackagesState,
+    theme: &Theme,
+    lang: Language,
+    area: Rect,
+) {
     let s = i18n::get_strings(lang);
 
     let cursor_char = if state.search_active { "│" } else { "" };
@@ -671,7 +727,9 @@ fn render_search_bar(frame: &mut Frame, state: &PackagesState, theme: &Theme, la
     let line = Line::from(vec![
         Span::styled(
             format!("  {} ", s.pkg_search_label),
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
         ),
         Span::styled(query_display, search_style),
     ]);
@@ -698,8 +756,17 @@ fn render_search_bar(frame: &mut Frame, state: &PackagesState, theme: &Theme, la
 
 fn render_loading(frame: &mut Frame, state: &PackagesState, theme: &Theme, area: Rect) {
     let s = crate::i18n::get_strings(state.lang);
-    let elapsed = state.loading_start.map(|s| s.elapsed().as_secs()).unwrap_or(0);
-    let hints = [s.pkg_hint_1, s.pkg_hint_2, s.pkg_hint_3, s.pkg_hint_4, s.pkg_hint_5];
+    let elapsed = state
+        .loading_start
+        .map(|s| s.elapsed().as_secs())
+        .unwrap_or(0);
+    let hints = [
+        s.pkg_hint_1,
+        s.pkg_hint_2,
+        s.pkg_hint_3,
+        s.pkg_hint_4,
+        s.pkg_hint_5,
+    ];
     let hint = hints[state.loading_joke_idx % hints.len()];
 
     let spinner_frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
@@ -713,7 +780,9 @@ fn render_loading(frame: &mut Frame, state: &PackagesState, theme: &Theme, area:
     // Spinner + searching + elapsed on same line
     lines.push(Line::styled(
         format!("  {}  {} ({}s)", spinner, s.loading, elapsed),
-        Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+        Style::default()
+            .fg(theme.accent)
+            .add_modifier(Modifier::BOLD),
     ));
     lines.push(Line::raw(""));
 
@@ -734,12 +803,20 @@ fn render_loading(frame: &mut Frame, state: &PackagesState, theme: &Theme, area:
     ));
 
     frame.render_widget(
-        Paragraph::new(lines).alignment(Alignment::Left).style(theme.block_style()),
+        Paragraph::new(lines)
+            .alignment(Alignment::Left)
+            .style(theme.block_style()),
         area,
     );
 }
 
-fn render_results(frame: &mut Frame, state: &PackagesState, theme: &Theme, lang: Language, area: Rect) {
+fn render_results(
+    frame: &mut Frame,
+    state: &PackagesState,
+    theme: &Theme,
+    lang: Language,
+    area: Rect,
+) {
     let s = i18n::get_strings(lang);
 
     if state.results.is_empty() {
@@ -752,8 +829,13 @@ fn render_results(frame: &mut Frame, state: &PackagesState, theme: &Theme, lang:
         };
 
         frame.render_widget(
-            Paragraph::new(vec![Line::raw(""), Line::raw(""), Line::styled(msg, Style::default().fg(theme.fg_dim))])
-                .alignment(Alignment::Center).style(theme.block_style()),
+            Paragraph::new(vec![
+                Line::raw(""),
+                Line::raw(""),
+                Line::styled(msg, Style::default().fg(theme.fg_dim)),
+            ])
+            .alignment(Alignment::Center)
+            .style(theme.block_style()),
             area,
         );
         return;
@@ -761,14 +843,22 @@ fn render_results(frame: &mut Frame, state: &PackagesState, theme: &Theme, lang:
 
     let visible_height = area.height as usize;
     let mut scroll = state.scroll_offset;
-    if state.selected >= scroll + visible_height { scroll = state.selected + 1 - visible_height; }
-    if state.selected < scroll { scroll = state.selected; }
+    if state.selected >= scroll + visible_height {
+        scroll = state.selected + 1 - visible_height;
+    }
+    if state.selected < scroll {
+        scroll = state.selected;
+    }
 
     let name_width = 28usize.min(area.width as usize / 3);
     let version_width = 14usize.min(area.width as usize / 5);
 
-    let items: Vec<ListItem> = state.results.iter().enumerate()
-        .skip(scroll).take(visible_height)
+    let items: Vec<ListItem> = state
+        .results
+        .iter()
+        .enumerate()
+        .skip(scroll)
+        .take(visible_height)
         .map(|(i, pkg)| {
             let is_selected = i == state.selected;
             let installed_marker = if pkg.installed { "✓ " } else { "  " };
@@ -786,7 +876,11 @@ fn render_results(frame: &mut Frame, state: &PackagesState, theme: &Theme, lang:
                 pkg.description.clone()
             };
 
-            let style = if is_selected { theme.selected() } else { theme.text() };
+            let style = if is_selected {
+                theme.selected()
+            } else {
+                theme.text()
+            };
             let installed_style = if pkg.installed {
                 Style::default().fg(theme.success)
             } else {
@@ -795,9 +889,23 @@ fn render_results(frame: &mut Frame, state: &PackagesState, theme: &Theme, lang:
 
             ListItem::new(Line::from(vec![
                 Span::styled(installed_marker.to_string(), installed_style),
-                Span::styled(name, if is_selected { style.add_modifier(Modifier::BOLD) } else { Style::default().fg(theme.accent) }),
+                Span::styled(
+                    name,
+                    if is_selected {
+                        style.add_modifier(Modifier::BOLD)
+                    } else {
+                        Style::default().fg(theme.accent)
+                    },
+                ),
                 Span::styled(format!(" {} ", version), style),
-                Span::styled(description, if is_selected { style } else { Style::default().fg(theme.fg_dim) }),
+                Span::styled(
+                    description,
+                    if is_selected {
+                        style
+                    } else {
+                        Style::default().fg(theme.fg_dim)
+                    },
+                ),
             ]))
         })
         .collect();
@@ -805,7 +913,13 @@ fn render_results(frame: &mut Frame, state: &PackagesState, theme: &Theme, lang:
     frame.render_widget(List::new(items).style(theme.block_style()), area);
 }
 
-fn render_detail(frame: &mut Frame, state: &PackagesState, theme: &Theme, lang: Language, area: Rect) {
+fn render_detail(
+    frame: &mut Frame,
+    state: &PackagesState,
+    theme: &Theme,
+    lang: Language,
+    area: Rect,
+) {
     let s = i18n::get_strings(lang);
     let pkg = &state.results[state.selected];
 
@@ -820,7 +934,9 @@ fn render_detail(frame: &mut Frame, state: &PackagesState, theme: &Theme, lang: 
 
     for (label, value, bold) in fields {
         let val_style = if bold {
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD)
         } else {
             theme.text()
         };
@@ -831,15 +947,26 @@ fn render_detail(frame: &mut Frame, state: &PackagesState, theme: &Theme, lang: 
     }
 
     lines.push(Line::from(vec![
-        Span::styled(format!("  {} ", s.pkg_detail_status), Style::default().fg(theme.fg_dim)),
+        Span::styled(
+            format!("  {} ", s.pkg_detail_status),
+            Style::default().fg(theme.fg_dim),
+        ),
         if pkg.installed {
-            Span::styled(s.pkg_installed, Style::default().fg(theme.success).add_modifier(Modifier::BOLD))
+            Span::styled(
+                s.pkg_installed,
+                Style::default()
+                    .fg(theme.success)
+                    .add_modifier(Modifier::BOLD),
+            )
         } else {
             Span::styled(s.pkg_not_installed, Style::default().fg(theme.fg_dim))
         },
     ]));
     lines.push(Line::raw(""));
-    lines.push(Line::styled(format!("  {} ", s.pkg_detail_desc), Style::default().fg(theme.fg_dim)));
+    lines.push(Line::styled(
+        format!("  {} ", s.pkg_detail_desc),
+        Style::default().fg(theme.fg_dim),
+    ));
     lines.push(Line::raw(""));
 
     let wrap_width = (area.width as usize).saturating_sub(6);
@@ -851,10 +978,19 @@ fn render_detail(frame: &mut Frame, state: &PackagesState, theme: &Theme, lang: 
 
     lines.push(Line::raw(""));
     lines.push(Line::raw(""));
-    lines.push(Line::styled(format!("  {}", s.pkg_install_hint), Style::default().fg(theme.fg_dim)));
-    lines.push(Line::styled(format!("  nix-env -iA nixpkgs.{}", pkg.attr), Style::default().fg(theme.accent)));
+    lines.push(Line::styled(
+        format!("  {}", s.pkg_install_hint),
+        Style::default().fg(theme.fg_dim),
+    ));
+    lines.push(Line::styled(
+        format!("  nix-env -iA nixpkgs.{}", pkg.attr),
+        Style::default().fg(theme.accent),
+    ));
     lines.push(Line::raw(""));
-    lines.push(Line::styled(format!("  [Esc/Enter] {}", s.back), Style::default().fg(theme.fg_dim)));
+    lines.push(Line::styled(
+        format!("  [Esc/Enter] {}", s.back),
+        Style::default().fg(theme.fg_dim),
+    ));
 
     frame.render_widget(Paragraph::new(lines).style(theme.block_style()), area);
 }

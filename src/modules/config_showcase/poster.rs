@@ -55,15 +55,17 @@ pub fn generate_svg(info: &PosterInfo) -> String {
     let mut s = String::with_capacity(16384);
 
     // SVG header + embedded font import
-    let _ = write!(s,
-r#"<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">
+    let _ = write!(
+        s,
+        r#"<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">
 <defs>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&amp;display=swap');
 text {{ font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace; }}
 </style>
 </defs>
-"#);
+"#
+    );
 
     background(&mut s);
     header(&mut s, info);
@@ -93,14 +95,14 @@ pub fn save_svg(info: &PosterInfo) -> std::io::Result<PathBuf> {
     Ok(path)
 }
 
-
 // ═══════════════════════════════════════
 //  Background + Header
 // ═══════════════════════════════════════
 
 fn background(s: &mut String) {
-    let _ = write!(s,
-r#"<rect width="{W}" height="{H}" rx="16" fill="{BG}"/>
+    let _ = write!(
+        s,
+        r#"<rect width="{W}" height="{H}" rx="16" fill="{BG}"/>
 <defs>
 <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
 <circle cx="15" cy="15" r="0.5" fill="{DIM}" opacity="0.2"/>
@@ -113,24 +115,35 @@ r#"<rect width="{W}" height="{H}" rx="16" fill="{BG}"/>
 </defs>
 <rect width="{W}" height="{H}" rx="16" fill="url(#grid)"/>
 <rect width="{W}" height="4" rx="2" fill="url(#topbar)"/>
-"#);
+"#
+    );
 }
 
 fn header(s: &mut String, info: &PosterInfo) {
     // Small label
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<text x="{PAD}" y="40" font-size="11" fill="{DIM}" letter-spacing="3" font-weight="600">NIXMATE  ·  SYSTEM OVERVIEW</text>
-"#);
+"#
+    );
 
     // Hostname (big)
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<text x="{PAD}" y="90" font-size="42" fill="{FG}" font-weight="700">{}</text>
-"#, esc(&info.hostname));
+"#,
+        esc(&info.hostname)
+    );
 
     // Subtitle: version + kernel
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<text x="{PAD}" y="120" font-size="15" fill="{FG2}">NixOS {}  ·  Linux {}  ·  up {}</text>
-"#, esc(&info.nixos_version), esc(&info.kernel), esc(&info.uptime));
+"#,
+        esc(&info.nixos_version),
+        esc(&info.kernel),
+        esc(&info.uptime)
+    );
 }
 
 // ═══════════════════════════════════════
@@ -162,14 +175,21 @@ fn badges(s: &mut String, info: &PosterInfo) {
 
 fn badge(s: &mut String, x: f64, y: f64, text: &str, color: &str) {
     let w = badge_w(text);
-    let _ = write!(s,
-r#"<rect x="{x}" y="{y}" rx="6" width="{w}" height="24" fill="{color}" opacity="0.12"/>
+    let _ = write!(
+        s,
+        r#"<rect x="{x}" y="{y}" rx="6" width="{w}" height="24" fill="{color}" opacity="0.12"/>
 <rect x="{x}" y="{y}" rx="6" width="{w}" height="24" fill="none" stroke="{color}" stroke-width="1" opacity="0.35"/>
 <text x="{tx}" y="{ty}" font-size="11" fill="{color}" text-anchor="middle" font-weight="600">{text}</text>
-"#, tx = x + w / 2.0, ty = y + 16.0, text = esc(text));
+"#,
+        tx = x + w / 2.0,
+        ty = y + 16.0,
+        text = esc(text)
+    );
 }
 
-fn badge_w(text: &str) -> f64 { text.len() as f64 * 7.0 + 22.0 }
+fn badge_w(text: &str) -> f64 {
+    text.len() as f64 * 7.0 + 22.0
+}
 
 // ═══════════════════════════════════════
 //  Quick Info Pills
@@ -190,15 +210,21 @@ fn pills(s: &mut String, info: &PosterInfo) {
 }
 
 fn pill(s: &mut String, x: f64, y: f64, label: &str, value: &str, color: &str) {
-    let _ = write!(s,
-r#"<rect x="{x}" y="{y}" rx="8" width="{PILL_W}" height="{PILL_H}" fill="{CARD_BG}" stroke="{CARD_BORDER}" stroke-width="1"/>
+    let _ = write!(
+        s,
+        r#"<rect x="{x}" y="{y}" rx="8" width="{PILL_W}" height="{PILL_H}" fill="{CARD_BG}" stroke="{CARD_BORDER}" stroke-width="1"/>
 <rect x="{x}" y="{ay}" rx="2" width="3" height="{ah}" fill="{color}"/>
 <text x="{lx}" y="{ly}" font-size="10" fill="{DIM}" font-weight="600" letter-spacing="1">{label}</text>
 <text x="{lx}" y="{vy}" font-size="15" fill="{FG}" font-weight="600">{value}</text>
 "#,
-        ay = y + 8.0, ah = PILL_H - 16.0,
-        lx = x + 16.0, ly = y + 18.0, vy = y + 36.0,
-        label = esc(&label.to_uppercase()), value = esc(value));
+        ay = y + 8.0,
+        ah = PILL_H - 16.0,
+        lx = x + 16.0,
+        ly = y + 18.0,
+        vy = y + 36.0,
+        label = esc(&label.to_uppercase()),
+        value = esc(value)
+    );
 }
 
 // ═══════════════════════════════════════
@@ -206,18 +232,29 @@ r#"<rect x="{x}" y="{y}" rx="8" width="{PILL_W}" height="{PILL_H}" fill="{CARD_B
 // ═══════════════════════════════════════
 
 fn card_bg(s: &mut String, x: f64, y: f64, accent: &str) {
-    let _ = write!(s,
-r#"<rect x="{x}" y="{y}" rx="{CARD_R}" width="{CARD_W}" height="{CARD_H}" fill="{CARD_BG}" stroke="{CARD_BORDER}" stroke-width="1"/>
+    let _ = write!(
+        s,
+        r#"<rect x="{x}" y="{y}" rx="{CARD_R}" width="{CARD_W}" height="{CARD_H}" fill="{CARD_BG}" stroke="{CARD_BORDER}" stroke-width="1"/>
 <rect x="{x}" y="{ay}" rx="{CARD_R}" width="3" height="{ah}" fill="{accent}"/>
-"#, ay = y + 10.0, ah = CARD_H - 20.0);
+"#,
+        ay = y + 10.0,
+        ah = CARD_H - 20.0
+    );
 }
 
 fn card_hdr(s: &mut String, x: f64, y: f64, title: &str, accent: &str) {
-    let _ = write!(s,
-r#"<text x="{tx}" y="{ty}" font-size="13" fill="{accent}" font-weight="700" letter-spacing="1">{title}</text>
+    let _ = write!(
+        s,
+        r#"<text x="{tx}" y="{ty}" font-size="13" fill="{accent}" font-weight="700" letter-spacing="1">{title}</text>
 <line x1="{lx}" y1="{ly}" x2="{lx2}" y2="{ly}" stroke="{CARD_BORDER}" stroke-width="1"/>
-"#, tx = x + 18.0, ty = y + 28.0, title = esc(&title.to_uppercase()),
-     lx = x + 14.0, lx2 = x + CARD_W - 14.0, ly = y + 38.0);
+"#,
+        tx = x + 18.0,
+        ty = y + 28.0,
+        title = esc(&title.to_uppercase()),
+        lx = x + 14.0,
+        lx2 = x + CARD_W - 14.0,
+        ly = y + 38.0
+    );
 }
 
 fn row(s: &mut String, x: f64, y: f64, idx: usize, text: &str, color: &str) {
@@ -227,9 +264,14 @@ fn row(s: &mut String, x: f64, y: f64, idx: usize, text: &str, color: &str) {
     } else {
         text.to_string()
     };
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<text x="{tx}" y="{ty}" font-size="12" fill="{color}">{text}</text>
-"#, tx = x + 20.0, ty = y + 57.0 + idx as f64 * 20.0, text = esc(&truncated));
+"#,
+        tx = x + 20.0,
+        ty = y + 57.0 + idx as f64 * 20.0,
+        text = esc(&truncated)
+    );
 }
 
 fn kv(s: &mut String, x: f64, y: f64, idx: usize, key: &str, val: &str) {
@@ -240,17 +282,28 @@ fn kv(s: &mut String, x: f64, y: f64, idx: usize, key: &str, val: &str) {
     } else {
         val.to_string()
     };
-    let _ = write!(s,
-r#"<text x="{kx}" y="{ty}" font-size="12" fill="{FG2}">{key}</text>
+    let _ = write!(
+        s,
+        r#"<text x="{kx}" y="{ty}" font-size="12" fill="{FG2}">{key}</text>
 <text x="{vx}" y="{ty}" font-size="12" fill="{FG}">{val}</text>
-"#, kx = x + 20.0, vx = x + 150.0, ty = y + 57.0 + idx as f64 * 20.0,
-     key = esc(key), val = esc(&truncated));
+"#,
+        kx = x + 20.0,
+        vx = x + 150.0,
+        ty = y + 57.0 + idx as f64 * 20.0,
+        key = esc(key),
+        val = esc(&truncated)
+    );
 }
 
 fn card_footer_text(s: &mut String, x: f64, y: f64, text: &str) {
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<text x="{tx}" y="{ty}" font-size="10" fill="{DIM}">{text}</text>
-"#, tx = x + 20.0, ty = y + CARD_H - 12.0, text = esc(text));
+"#,
+        tx = x + 20.0,
+        ty = y + CARD_H - 12.0,
+        text = esc(text)
+    );
 }
 
 // ═══════════════════════════════════════
@@ -285,8 +338,15 @@ fn card_services(s: &mut String, info: &PosterInfo) {
         }
     }
 
-    card_footer_text(s, x, y, &format!(
-        "{} services · {} containers", info.service_count, info.container_count));
+    card_footer_text(
+        s,
+        x,
+        y,
+        &format!(
+            "{} services · {} containers",
+            info.service_count, info.container_count
+        ),
+    );
 }
 
 fn card_network(s: &mut String, info: &PosterInfo) {
@@ -313,14 +373,28 @@ fn card_packages(s: &mut String, info: &PosterInfo) {
     card_hdr(s, x, y, "Packages", BLUE);
 
     // Big centered number
-    let _ = write!(s,
-r#"<text x="{cx}" y="{cy}" font-size="52" fill="{BLUE}" font-weight="700" text-anchor="middle">{count}</text>
+    let _ = write!(
+        s,
+        r#"<text x="{cx}" y="{cy}" font-size="52" fill="{BLUE}" font-weight="700" text-anchor="middle">{count}</text>
 <text x="{cx}" y="{cy2}" font-size="12" fill="{FG2}" text-anchor="middle">in system closure</text>
-"#, cx = x + CARD_W / 2.0, cy = y + 105.0, cy2 = y + 125.0,
-     count = fmt_num(info.package_count));
+"#,
+        cx = x + CARD_W / 2.0,
+        cy = y + 105.0,
+        cy2 = y + 125.0,
+        count = fmt_num(info.package_count)
+    );
 
-    card_footer_text(s, x, y, &format!(
-        "{} store paths · {}/{}", fmt_num(info.store_paths), info.disk_used, info.disk_total));
+    card_footer_text(
+        s,
+        x,
+        y,
+        &format!(
+            "{} store paths · {}/{}",
+            fmt_num(info.store_paths),
+            info.disk_used,
+            info.disk_total
+        ),
+    );
 }
 
 fn card_storage(s: &mut String, info: &PosterInfo) {
@@ -332,7 +406,14 @@ fn card_storage(s: &mut String, info: &PosterInfo) {
     kv(s, x, y, 1, "Total", &info.disk_total);
     kv(s, x, y, 2, "Used", &info.disk_used);
     kv(s, x, y, 3, "Free", &info.disk_free);
-    kv(s, x, y, 4, "Nix Store", &format!("{} paths", fmt_num(info.store_paths)));
+    kv(
+        s,
+        x,
+        y,
+        4,
+        "Nix Store",
+        &format!("{} paths", fmt_num(info.store_paths)),
+    );
 }
 
 fn card_system(s: &mut String, info: &PosterInfo) {
@@ -341,7 +422,14 @@ fn card_system(s: &mut String, info: &PosterInfo) {
     card_hdr(s, x, y, "System", CYAN);
 
     kv(s, x, y, 0, "Bootloader", &info.bootloader);
-    kv(s, x, y, 1, "Generations", &info.generation_count.to_string());
+    kv(
+        s,
+        x,
+        y,
+        1,
+        "Generations",
+        &info.generation_count.to_string(),
+    );
     let users_display = if info.users.len() > 3 {
         let first3: Vec<&str> = info.users.iter().take(3).map(|s| s.as_str()).collect();
         format!("{} +{}", first3.join(", "), info.users.len() - 3)
@@ -353,7 +441,14 @@ fn card_system(s: &mut String, info: &PosterInfo) {
         kv(s, x, y, 3, "Home-Manager", "active");
     }
     if info.is_flake {
-        kv(s, x, y, if info.has_home_manager { 4 } else { 3 }, "Config", "Flakes");
+        kv(
+            s,
+            x,
+            y,
+            if info.has_home_manager { 4 } else { 3 },
+            "Config",
+            "Flakes",
+        );
     }
 }
 
@@ -365,9 +460,12 @@ fn footer(s: &mut String, info: &PosterInfo) {
     let fy = H - 80.0;
 
     // Divider
-    let _ = write!(s,
-r#"<line x1="{PAD}" y1="{fy}" x2="{x2}" y2="{fy}" stroke="{CARD_BORDER}" stroke-width="1"/>
-"#, x2 = W - PAD);
+    let _ = write!(
+        s,
+        r#"<line x1="{PAD}" y1="{fy}" x2="{x2}" y2="{fy}" stroke="{CARD_BORDER}" stroke-width="1"/>
+"#,
+        x2 = W - PAD
+    );
 
     // Summary — only include non-zero items
     let mut parts = Vec::new();
@@ -379,14 +477,23 @@ r#"<line x1="{PAD}" y1="{fy}" x2="{x2}" y2="{fy}" stroke="{CARD_BORDER}" stroke-
     parts.push(format!("{} generations", info.generation_count));
     parts.push(info.channel.clone());
     let summary = parts.join("  ·  ");
-    let _ = write!(s,
-r#"<text x="{cx}" y="{sy}" font-size="12" fill="{FG2}" text-anchor="middle">{summary}</text>
-"#, cx = W / 2.0, sy = fy + 25.0, summary = esc(&summary));
+    let _ = write!(
+        s,
+        r#"<text x="{cx}" y="{sy}" font-size="12" fill="{FG2}" text-anchor="middle">{summary}</text>
+"#,
+        cx = W / 2.0,
+        sy = fy + 25.0,
+        summary = esc(&summary)
+    );
 
     // Branding
-    let _ = write!(s,
-r#"<text x="{cx}" y="{by}" font-size="10" fill="{DIM}" text-anchor="middle">generated with nixmate  ·  github.com/daskladas/nixmate</text>
-"#, cx = W / 2.0, by = fy + 50.0);
+    let _ = write!(
+        s,
+        r#"<text x="{cx}" y="{by}" font-size="10" fill="{DIM}" text-anchor="middle">generated with nixmate  ·  github.com/daskladas/nixmate</text>
+"#,
+        cx = W / 2.0,
+        by = fy + 50.0
+    );
 }
 
 // ═══════════════════════════════════════
@@ -394,15 +501,21 @@ r#"<text x="{cx}" y="{by}" font-size="10" fill="{DIM}" text-anchor="middle">gene
 // ═══════════════════════════════════════
 
 fn esc(s: &str) -> String {
-    s.replace('&', "&amp;").replace('<', "&lt;")
-     .replace('>', "&gt;").replace('"', "&quot;")
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
 }
 
 fn fmt_num(n: usize) -> String {
     if n >= 1000 {
         let t = n / 1000;
         let r = (n % 1000) / 100;
-        if r > 0 { format!("{}.{}K", t, r) } else { format!("{}K", t) }
+        if r > 0 {
+            format!("{}.{}K", t, r)
+        } else {
+            format!("{}K", t)
+        }
     } else {
         n.to_string()
     }

@@ -525,10 +525,7 @@ fn parse_flake_inputs(content: &str) -> Vec<FlakeInput> {
                     .trim()
                     .trim_matches(|c: char| c == '"' || c == ';' || c == ' ')
                     .to_string();
-                if !name.is_empty()
-                    && !url.is_empty()
-                    && !inputs.iter().any(|i| i.name == name)
-                {
+                if !name.is_empty() && !url.is_empty() && !inputs.iter().any(|i| i.name == name) {
                     inputs.push(FlakeInput { name, url });
                 }
             }
@@ -605,7 +602,9 @@ fn extract_input_name(line: &str) -> Option<String> {
         let name = line.split('=').next()?.trim().to_string();
         if !name.is_empty()
             && !name.contains('.')
-            && name.chars().all(|c| c.is_alphanumeric() || c == '-' || c == '_')
+            && name
+                .chars()
+                .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
         {
             return Some(name);
         }
@@ -693,8 +692,8 @@ fn auto_link_standard_imports(
 
 /// A rendered card — either a single file or an expanded directory group.
 struct GNode {
-    name: String,          // full relative path key, e.g. "modules/core"
-    display_name: String,  // short display name, e.g. "core"
+    name: String,         // full relative path key, e.g. "modules/core"
+    display_name: String, // short display name, e.g. "core"
     node_type: NodeType,
     children: Vec<String>, // child file names (short) for expanded groups
     is_group: bool,
@@ -713,13 +712,21 @@ impl GNode {
         let line_h = 18.0;
         let max_lines = 24;
         let n = self.children.len().min(max_lines);
-        let extra = if self.children.len() > max_lines { 18.0 } else { 0.0 };
+        let extra = if self.children.len() > max_lines {
+            18.0
+        } else {
+            0.0
+        };
         header + n as f64 * line_h + extra + 14.0
     }
 
     /// Width: groups are wider to fit content.
     fn width(&self) -> f64 {
-        if self.is_group { 300.0 } else { 260.0 }
+        if self.is_group {
+            300.0
+        } else {
+            260.0
+        }
     }
 }
 
@@ -768,14 +775,19 @@ fn type_sort_order(nt: &NodeType) -> u8 {
 
 /// Collapse raw file nodes into directory groups with expanded children.
 fn collapse_to_groups(info: &DiagramInfo) -> GroupedDiagram {
-    let file_nodes: usize = info.nodes.iter()
+    let file_nodes: usize = info
+        .nodes
+        .iter()
         .filter(|n| n.node_type != NodeType::FlakeInput)
         .count();
 
     // Very small configs: don't group at all
     if file_nodes <= 8 {
-        let groups: Vec<GNode> = info.nodes.iter().enumerate().map(|(i, n)| {
-            GNode {
+        let groups: Vec<GNode> = info
+            .nodes
+            .iter()
+            .enumerate()
+            .map(|(i, n)| GNode {
                 name: n.name.clone(),
                 display_name: n.name.clone(),
                 node_type: n.node_type.clone(),
@@ -783,8 +795,8 @@ fn collapse_to_groups(info: &DiagramInfo) -> GroupedDiagram {
                 is_group: false,
                 subtitle: n.subtitle.clone(),
                 members: vec![i],
-            }
-        }).collect();
+            })
+            .collect();
         return GroupedDiagram {
             groups,
             edges: info.edges.clone(),
@@ -843,7 +855,8 @@ fn collapse_to_groups(info: &DiagramInfo) -> GroupedDiagram {
         let mut children: Vec<String> = Vec::new();
         for &m in members {
             let name = &info.nodes[m].name;
-            let child_name = name.strip_prefix(key)
+            let child_name = name
+                .strip_prefix(key)
                 .unwrap_or(name)
                 .trim_start_matches('/');
             if !child_name.is_empty() {
@@ -884,7 +897,9 @@ fn collapse_to_groups(info: &DiagramInfo) -> GroupedDiagram {
         name_to_gidx.insert(g.name.clone(), i);
     }
 
-    let flake_idx = groups.iter().position(|g| g.node_type == NodeType::FlakeRoot);
+    let flake_idx = groups
+        .iter()
+        .position(|g| g.node_type == NodeType::FlakeRoot);
 
     // 1) flake.nix → nixosConfigurations (the primary output)
     if let Some(fi) = flake_idx {
@@ -893,8 +908,12 @@ fn collapse_to_groups(info: &DiagramInfo) -> GroupedDiagram {
         }
         // flake.nix → root-level individual files (default.nix, etc.)
         for (i, g) in groups.iter().enumerate() {
-            if i == fi { continue; }
-            if g.node_type == NodeType::FlakeInput { continue; }
+            if i == fi {
+                continue;
+            }
+            if g.node_type == NodeType::FlakeInput {
+                continue;
+            }
             if !g.is_group && !g.name.contains('/') {
                 new_edges.push((fi, i));
             }
@@ -920,7 +939,9 @@ fn collapse_to_groups(info: &DiagramInfo) -> GroupedDiagram {
     //    e.g., modules → modules/core (if "modules" group exists)
     for i in 0..groups.len() {
         for j in 0..groups.len() {
-            if i == j { continue; }
+            if i == j {
+                continue;
+            }
             let parent = &groups[i].name;
             let child = &groups[j].name;
             if child.starts_with(parent)
@@ -950,7 +971,10 @@ fn collapse_to_groups(info: &DiagramInfo) -> GroupedDiagram {
     new_edges.sort();
     new_edges.dedup();
 
-    GroupedDiagram { groups, edges: new_edges }
+    GroupedDiagram {
+        groups,
+        edges: new_edges,
+    }
 }
 
 // ═══════════════════════════════════════
@@ -1029,7 +1053,9 @@ pub fn generate_diagram_svg(info: &DiagramInfo) -> String {
         let mut layer_nodes: Vec<usize> = (0..num)
             .filter(|&i| depth[i] == Some(d) && gd.groups[i].node_type != NodeType::FlakeInput)
             .collect();
-        if layer_nodes.is_empty() { continue; }
+        if layer_nodes.is_empty() {
+            continue;
+        }
 
         // Sort by type then name
         layer_nodes.sort_by(|a, b| {
@@ -1056,7 +1082,9 @@ pub fn generate_diagram_svg(info: &DiagramInfo) -> String {
         for chunk in &chunks {
             let row_w: f64 = chunk.iter().map(|&i| gd.groups[i].width()).sum::<f64>()
                 + (chunk.len() as f64 - 1.0).max(0.0) * gap_x;
-            if row_w > max_row_w { max_row_w = row_w; }
+            if row_w > max_row_w {
+                max_row_w = row_w;
+            }
         }
     }
     let svg_w = (max_row_w + 2.0 * pad + 60.0).max(1200.0);
@@ -1073,22 +1101,29 @@ pub fn generate_diagram_svg(info: &DiagramInfo) -> String {
             label: label.clone(),
         });
 
-        let chunks: Vec<Vec<usize>> = indices.chunks(max_per_row)
-            .map(|c| c.to_vec())
-            .collect();
+        let chunks: Vec<Vec<usize>> = indices.chunks(max_per_row).map(|c| c.to_vec()).collect();
 
         for chunk in &chunks {
             // Calculate row width and max height in this row
             let row_w: f64 = chunk.iter().map(|&i| gd.groups[i].width()).sum::<f64>()
                 + (chunk.len() as f64 - 1.0).max(0.0) * gap_x;
             let start_x = ((svg_w - row_w) / 2.0).max(pad);
-            let row_max_h: f64 = chunk.iter().map(|&i| gd.groups[i].height()).fold(0.0_f64, f64::max);
+            let row_max_h: f64 = chunk
+                .iter()
+                .map(|&i| gd.groups[i].height())
+                .fold(0.0_f64, f64::max);
 
             let mut cx = start_x;
             for &idx in chunk {
                 let w = gd.groups[idx].width();
                 let h = gd.groups[idx].height();
-                positioned.push(LayoutNode { idx, x: cx, y: current_y, w, h });
+                positioned.push(LayoutNode {
+                    idx,
+                    x: cx,
+                    y: current_y,
+                    w,
+                    h,
+                });
                 cx += w + gap_x;
             }
             current_y += row_max_h + row_gap;
@@ -1101,30 +1136,39 @@ pub fn generate_diagram_svg(info: &DiagramInfo) -> String {
     // ── Build SVG ──
     let mut svg = String::with_capacity(131072);
 
-    let _ = write!(svg,
+    let _ = write!(
+        svg,
         r#"<svg xmlns="http://www.w3.org/2000/svg" width="{svg_w}" height="{svg_h}" viewBox="0 0 {svg_w} {svg_h}">
 <defs>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&amp;display=swap');
 text {{ font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace; }}
 </style>
-"#);
+"#
+    );
 
     // Arrow markers
     // Glow filters
     for (id, color) in &[
-        ("glow-cyan", CYAN), ("glow-blue", BLUE), ("glow-green", GREEN),
-        ("glow-pink", PINK), ("glow-purple", PURPLE), ("glow-orange", ORANGE),
+        ("glow-cyan", CYAN),
+        ("glow-blue", BLUE),
+        ("glow-green", GREEN),
+        ("glow-pink", PINK),
+        ("glow-purple", PURPLE),
+        ("glow-orange", ORANGE),
     ] {
-        let _ = write!(svg,
+        let _ = write!(
+            svg,
             r#"<filter id="{id}" x="-20%" y="-20%" width="140%" height="140%">
 <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="{color}" flood-opacity="0.15"/>
 </filter>
-"#);
+"#
+        );
     }
 
     // Gradient + grid
-    let _ = write!(svg,
+    let _ = write!(
+        svg,
         r#"<linearGradient id="topbar" x1="0" y1="0" x2="1" y2="0">
 <stop offset="0%" stop-color="{BLUE}"/><stop offset="25%" stop-color="{PURPLE}"/>
 <stop offset="50%" stop-color="{PINK}"/><stop offset="75%" stop-color="{ORANGE}"/>
@@ -1137,7 +1181,8 @@ text {{ font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, m
 <rect width="{svg_w}" height="{svg_h}" rx="16" fill="{BG}"/>
 <rect width="{svg_w}" height="{svg_h}" rx="16" fill="url(#grid)"/>
 <rect width="{svg_w}" height="4" rx="2" fill="url(#topbar)"/>
-"#);
+"#
+    );
 
     render_header(&mut svg, info);
     render_layer_labels(&mut svg, &layers_info);
@@ -1157,19 +1202,41 @@ text {{ font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, m
 fn smart_orphan_depth(name: &str, is_flake: bool) -> usize {
     let lower = name.to_lowercase();
     let base = if is_flake { 1 } else { 0 };
-    if lower.starts_with("nixosconfig") { return base + 1; }
-    if lower.starts_with("hosts") { return base + 1; }
-    if lower.starts_with("modules/") { return base + 2; }
-    if lower.starts_with("modules") && !lower.contains('/') { return base + 2; }
-    if lower.starts_with("profiles") || lower.starts_with("users") || lower.starts_with("scripts") { return base + 2; }
+    if lower.starts_with("nixosconfig") {
+        return base + 1;
+    }
+    if lower.starts_with("hosts") {
+        return base + 1;
+    }
+    if lower.starts_with("modules/") {
+        return base + 2;
+    }
+    if lower.starts_with("modules") && !lower.contains('/') {
+        return base + 2;
+    }
+    if lower.starts_with("profiles") || lower.starts_with("users") || lower.starts_with("scripts") {
+        return base + 2;
+    }
     let parts: Vec<&str> = name.split('/').filter(|s| !s.is_empty()).collect();
-    if parts.len() <= 1 { return base; }
+    if parts.len() <= 1 {
+        return base;
+    }
     base + 2
 }
 
-fn layer_label(depth: usize, is_flake: bool, indices: &[usize], groups: &[GNode], used: &mut Vec<String>) -> String {
+fn layer_label(
+    depth: usize,
+    is_flake: bool,
+    indices: &[usize],
+    groups: &[GNode],
+    used: &mut Vec<String>,
+) -> String {
     if depth == 0 {
-        let l: String = if is_flake { "ROOT".into() } else { "ENTRY".into() };
+        let l: String = if is_flake {
+            "ROOT".into()
+        } else {
+            "ENTRY".into()
+        };
         used.push(l.clone());
         return l;
     }
@@ -1179,7 +1246,9 @@ fn layer_label(depth: usize, is_flake: bool, indices: &[usize], groups: &[GNode]
         let n = groups[i].name.to_lowercase();
         n.starts_with("hosts") || n.starts_with("nixosconfig")
     });
-    let has_modules = indices.iter().any(|&i| groups[i].name.to_lowercase().starts_with("modules"));
+    let has_modules = indices
+        .iter()
+        .any(|&i| groups[i].name.to_lowercase().starts_with("modules"));
     let has_profiles = indices.iter().any(|&i| {
         let n = groups[i].name.to_lowercase();
         n.starts_with("profiles") || n.starts_with("users") || n.starts_with("scripts")
@@ -1208,13 +1277,19 @@ fn layer_label(depth: usize, is_flake: bool, indices: &[usize], groups: &[GNode]
 
 fn find_grouped_root(groups: &[GNode]) -> usize {
     for (i, g) in groups.iter().enumerate() {
-        if g.node_type == NodeType::FlakeRoot { return i; }
+        if g.node_type == NodeType::FlakeRoot {
+            return i;
+        }
     }
     for (i, g) in groups.iter().enumerate() {
-        if g.node_type == NodeType::SystemConfig { return i; }
+        if g.node_type == NodeType::SystemConfig {
+            return i;
+        }
     }
     for (i, g) in groups.iter().enumerate() {
-        if g.node_type != NodeType::FlakeInput { return i; }
+        if g.node_type != NodeType::FlakeInput {
+            return i;
+        }
     }
     0
 }
@@ -1235,7 +1310,8 @@ fn render_header(s: &mut String, info: &DiagramInfo) {
         String::new()
     };
 
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<text x="{PAD}" y="40" font-size="11" fill="{DIM}" letter-spacing="3" font-weight="600">NIXMATE  ·  CONFIG DIAGRAM</text>
 <text x="{PAD}" y="85" font-size="36" fill="{FG}" font-weight="700">{hostname}</text>
 {flake_badge}
@@ -1247,7 +1323,9 @@ fn render_header(s: &mut String, info: &DiagramInfo) {
         nf = info.total_files,
         fi = if info.is_flake {
             format!("  ·  {} flake inputs", info.flake_inputs.len())
-        } else { String::new() }
+        } else {
+            String::new()
+        }
     );
 }
 
@@ -1257,10 +1335,12 @@ fn hostname_approx_width(hostname: &str) -> f64 {
 
 fn render_layer_labels(s: &mut String, layers: &[LayerInfo]) {
     for layer in layers {
-        let _ = write!(s,
+        let _ = write!(
+            s,
             r#"<text x="18" y="{y}" font-size="9" fill="{DIM}" letter-spacing="2" font-weight="600" transform="rotate(-90, 18, {y})">{label}</text>
 "#,
-            y = layer.y, label = esc(&layer.label),
+            y = layer.y,
+            label = esc(&layer.label),
         );
     }
 }
@@ -1282,23 +1362,31 @@ fn render_node(s: &mut String, ln: &LayoutNode, gnode: &GNode) {
     };
 
     // Card background
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<rect x="{x}" y="{y}" rx="{NODE_R}" width="{w}" height="{h}" fill="{CARD_BG}" stroke="{color}" stroke-width="1.5" filter="url(#{glow_id})"/>
-"#);
+"#
+    );
 
     // Left accent bar
     let bar_h = (h - 20.0).max(10.0);
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<rect x="{ax}" y="{ay}" rx="3" width="4" height="{bar_h}" fill="{color}"/>
-"#, ax = x + 3.0, ay = y + 10.0);
+"#,
+        ax = x + 3.0,
+        ay = y + 10.0
+    );
 
     // Clean colored indicator dot (no emoji!)
     let dot_cx = x + 22.0;
     let dot_cy = y + 22.0;
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<circle cx="{dot_cx}" cy="{dot_cy}" r="7" fill="{color}" opacity="0.2"/>
 <circle cx="{dot_cx}" cy="{dot_cy}" r="4" fill="{color}"/>
-"#);
+"#
+    );
 
     // Name (bold, white)
     let display_name = if gnode.display_name.chars().count() > 26 {
@@ -1306,30 +1394,48 @@ fn render_node(s: &mut String, ln: &LayoutNode, gnode: &GNode) {
     } else {
         gnode.display_name.clone()
     };
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<text x="{nx}" y="{ny}" font-size="13" fill="{FG}" font-weight="700">{name}</text>
-"#, nx = x + 38.0, ny = y + 26.0, name = esc(&display_name));
+"#,
+        nx = x + 38.0,
+        ny = y + 26.0,
+        name = esc(&display_name)
+    );
 
     if gnode.is_group && !gnode.children.is_empty() {
         // Group: show file count badge + child listing
         let count = gnode.members.len();
         let badge_x = x + w - 52.0;
         let badge_y = y + 6.0;
-        let _ = write!(s,
+        let _ = write!(
+            s,
             r#"<rect x="{badge_x}" y="{badge_y}" rx="8" width="44" height="18" fill="{color}" opacity="0.18"/>
 <text x="{btx}" y="{bty}" font-size="10" fill="{color}" font-weight="600" text-anchor="middle">{count} files</text>
-"#, btx = badge_x + 22.0, bty = badge_y + 13.0);
+"#,
+            btx = badge_x + 22.0,
+            bty = badge_y + 13.0
+        );
 
         // Group path as subtitle
-        let _ = write!(s,
+        let _ = write!(
+            s,
             r#"<text x="{sx}" y="{sy}" font-size="10" fill="{color}" opacity="0.6">{path}</text>
-"#, sx = x + 42.0, sy = y + 41.0, path = esc(&gnode.name));
+"#,
+            sx = x + 42.0,
+            sy = y + 41.0,
+            path = esc(&gnode.name)
+        );
 
         // Separator line
         let sep_y = y + 46.0;
-        let _ = write!(s,
+        let _ = write!(
+            s,
             r#"<line x1="{lx1}" y1="{sep_y}" x2="{lx2}" y2="{sep_y}" stroke="{color}" stroke-width="0.5" opacity="0.2"/>
-"#, lx1 = x + 12.0, lx2 = x + w - 12.0);
+"#,
+            lx1 = x + 12.0,
+            lx2 = x + w - 12.0
+        );
 
         // Child file listing
         let max_show = 24;
@@ -1341,32 +1447,52 @@ fn render_node(s: &mut String, ln: &LayoutNode, gnode: &GNode) {
                 child.clone()
             };
             // Dim bullet
-            let _ = write!(s,
+            let _ = write!(
+                s,
                 r#"<text x="{bx}" y="{cy}" font-size="8" fill="{color}" opacity="0.4">●</text>
 <text x="{tx}" y="{cy}" font-size="10" fill="{FG2}">{child}</text>
-"#, bx = x + 16.0, tx = x + 28.0, child = esc(&child_display));
+"#,
+                bx = x + 16.0,
+                tx = x + 28.0,
+                child = esc(&child_display)
+            );
         }
         if gnode.children.len() > max_show {
             let more = gnode.children.len() - max_show;
             let cy = y + 60.0 + max_show as f64 * 18.0;
-            let _ = write!(s,
+            let _ = write!(
+                s,
                 r#"<text x="{tx}" y="{cy}" font-size="9" fill="{DIM}">+{more} more…</text>
-"#, tx = x + 28.0);
+"#,
+                tx = x + 28.0
+            );
         }
     } else {
         // Single file node: type label + optional subtitle
         let type_label = gnode.node_type.label();
-        let _ = write!(s,
+        let _ = write!(
+            s,
             r#"<text x="{tx}" y="{ty}" font-size="10" fill="{color}" opacity="0.7">{label}</text>
-"#, tx = x + 42.0, ty = y + 42.0, label = esc(type_label));
+"#,
+            tx = x + 42.0,
+            ty = y + 42.0,
+            label = esc(type_label)
+        );
 
         if let Some(ref sub) = gnode.subtitle {
             let display_sub = if sub.chars().count() > 28 {
                 truncate(sub, 27)
-            } else { sub.clone() };
-            let _ = write!(s,
+            } else {
+                sub.clone()
+            };
+            let _ = write!(
+                s,
                 r#"<text x="{sx}" y="{sy}" font-size="8" fill="{FG2}" opacity="0.5">{sub}</text>
-"#, sx = x + 42.0, sy = y + 53.0, sub = esc(&display_sub));
+"#,
+                sx = x + 42.0,
+                sy = y + 53.0,
+                sub = esc(&display_sub)
+            );
         }
     }
 }
@@ -1380,14 +1506,22 @@ fn render_arrows(s: &mut String, gd: &GroupedDiagram, layout: &[LayoutNode], svg
 
     // Count arrivals per target for spread
     let mut edge_count_per_target: HashMap<usize, usize> = HashMap::new();
-    for &(_, to) in &gd.edges { *edge_count_per_target.entry(to).or_insert(0) += 1; }
+    for &(_, to) in &gd.edges {
+        *edge_count_per_target.entry(to).or_insert(0) += 1;
+    }
     let mut edge_arrival_idx: HashMap<usize, usize> = HashMap::new();
     let mut labeled_count = 0;
 
     for &(from_idx, to_idx) in &gd.edges {
-        if from_idx == to_idx { continue; }
-        let Some(&(from_cx, _fl, _fr, _ftop, fbot)) = pos_map.get(&from_idx) else { continue; };
-        let Some(&(_to_cx, tl, tr, ttop, _tbot)) = pos_map.get(&to_idx) else { continue; };
+        if from_idx == to_idx {
+            continue;
+        }
+        let Some(&(from_cx, _fl, _fr, _ftop, fbot)) = pos_map.get(&from_idx) else {
+            continue;
+        };
+        let Some(&(_to_cx, tl, tr, ttop, _tbot)) = pos_map.get(&to_idx) else {
+            continue;
+        };
 
         let source = &gd.groups[from_idx];
         let color = source.node_type.color();
@@ -1410,9 +1544,11 @@ fn render_arrows(s: &mut String, gd: &GroupedDiagram, layout: &[LayoutNode], svg
             let dy = ey - sy;
             let cy1 = sy + dy * 0.3;
             let cy2 = sy + dy * 0.7;
-            let _ = write!(s,
+            let _ = write!(
+                s,
                 r#"<path d="M {from_cx},{sy} C {from_cx},{cy1} {to_x},{cy2} {to_x},{ey}" stroke="{color}" stroke-width="1.8" fill="none" opacity="0.45"/>
-"#);
+"#
+            );
             // Label only key structural arrows (max 6)
             let target = &gd.groups[to_idx];
             let label = arrow_label(source, target);
@@ -1423,10 +1559,18 @@ fn render_arrows(s: &mut String, gd: &GroupedDiagram, layout: &[LayoutNode], svg
             if is_key && labeled_count < 6 {
                 let mx = (from_cx + to_x) / 2.0;
                 let my = (sy + ey) / 2.0;
-                let off = if (from_cx - to_x).abs() < 20.0 { 16.0 } else { 0.0 };
-                let _ = write!(s,
+                let off = if (from_cx - to_x).abs() < 20.0 {
+                    16.0
+                } else {
+                    0.0
+                };
+                let _ = write!(
+                    s,
                     r#"<text x="{mx}" y="{my}" font-size="8" fill="{color}" opacity="0.35" text-anchor="middle">{label}</text>
-"#, mx = mx + off, my = my - 5.0);
+"#,
+                    mx = mx + off,
+                    my = my - 5.0
+                );
                 labeled_count += 1;
             }
         } else {
@@ -1436,10 +1580,12 @@ fn render_arrows(s: &mut String, gd: &GroupedDiagram, layout: &[LayoutNode], svg
             } else {
                 (from_cx.max(to_x) + 45.0).min(svg_w - 12.0)
             };
-            let _ = write!(s,
+            let _ = write!(
+                s,
                 r#"<path d="M {from_cx},{fbot} C {side},{fby} {side},{tty} {to_x},{ttop}" stroke="{color}" stroke-width="1.2" fill="none" opacity="0.25" stroke-dasharray="5,3"/>
 "#,
-                fby = fbot + 20.0, tty = ttop - 20.0,
+                fby = fbot + 20.0,
+                tty = ttop - 20.0,
             );
         }
     }
@@ -1479,14 +1625,21 @@ fn arrow_label(source: &GNode, target: &GNode) -> &'static str {
 
 fn render_legend(s: &mut String, total_h: f64, svg_w: f64, gd: &GroupedDiagram) {
     let ly = total_h - LEGEND_H - FOOTER_H;
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<line x1="{PAD}" y1="{ly}" x2="{x2}" y2="{ly}" stroke="{CARD_BORDER}" stroke-width="1"/>
-"#, x2 = svg_w - PAD);
+"#,
+        x2 = svg_w - PAD
+    );
 
     let mut used_types: Vec<&NodeType> = Vec::new();
     let all_types = [
-        NodeType::FlakeRoot, NodeType::FlakeInput, NodeType::SystemConfig,
-        NodeType::HardwareConfig, NodeType::HomeManager, NodeType::CustomModule,
+        NodeType::FlakeRoot,
+        NodeType::FlakeInput,
+        NodeType::SystemConfig,
+        NodeType::HardwareConfig,
+        NodeType::HomeManager,
+        NodeType::CustomModule,
     ];
     for nt in &all_types {
         if gd.groups.iter().any(|g| &g.node_type == nt) {
@@ -1501,44 +1654,66 @@ fn render_legend(s: &mut String, total_h: f64, svg_w: f64, gd: &GroupedDiagram) 
 
     for (i, nt) in used_types.iter().enumerate() {
         let x = start_x + i as f64 * item_w;
-        let _ = write!(s,
+        let _ = write!(
+            s,
             r#"<circle cx="{cx}" cy="{dot_y}" r="5" fill="{c}"/>
 <text x="{tx}" y="{ty}" font-size="11" fill="{FG2}">{label}</text>
-"#, cx = x + 6.0, tx = x + 18.0, ty = dot_y + 4.0, c = nt.color(), label = esc(nt.label()));
+"#,
+            cx = x + 6.0,
+            tx = x + 18.0,
+            ty = dot_y + 4.0,
+            c = nt.color(),
+            label = esc(nt.label())
+        );
     }
 
     let arrow_y = dot_y + 24.0;
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<line x1="{ax1}" y1="{arrow_y}" x2="{ax2}" y2="{arrow_y}" stroke="{FG2}" stroke-width="1.5" opacity="0.5"/>
 <text x="{atx}" y="{aty}" font-size="10" fill="{DIM}">= imports / depends on</text>
 "#,
-        ax1 = svg_w / 2.0 - 80.0, ax2 = svg_w / 2.0 - 40.0,
-        atx = svg_w / 2.0 - 30.0, aty = arrow_y + 4.0,
+        ax1 = svg_w / 2.0 - 80.0,
+        ax2 = svg_w / 2.0 - 40.0,
+        atx = svg_w / 2.0 - 30.0,
+        aty = arrow_y + 4.0,
     );
 }
 
 fn render_footer(s: &mut String, total_h: f64, svg_w: f64, info: &DiagramInfo) {
     let fy = total_h - FOOTER_H + 10.0;
-    let fc = info.nodes.iter().filter(|n| n.node_type != NodeType::FlakeInput).count();
+    let fc = info
+        .nodes
+        .iter()
+        .filter(|n| n.node_type != NodeType::FlakeInput)
+        .count();
     let ic = info.flake_inputs.len();
     let ec = info.edges.len();
 
     let mut parts = vec![format!("{} files", fc)];
-    if ic > 0 { parts.push(format!("{} flake inputs", ic)); }
+    if ic > 0 {
+        parts.push(format!("{} flake inputs", ic));
+    }
     parts.push(format!("{} connections", ec));
     let summary = parts.join("  ·  ");
 
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<text x="{cx}" y="{fy}" font-size="12" fill="{FG2}" text-anchor="middle">{summary}</text>
 <text x="{cx}" y="{by}" font-size="10" fill="{DIM}" text-anchor="middle">generated with nixmate  ·  github.com/daskladas/nixmate</text>
-"#, cx = svg_w / 2.0, summary = esc(&summary), by = fy + 22.0);
+"#,
+        cx = svg_w / 2.0,
+        summary = esc(&summary),
+        by = fy + 22.0
+    );
 }
 
 fn generate_empty_diagram(hostname: &str) -> String {
     let w = 1200.0;
     let h = 400.0;
     let mut s = String::with_capacity(2048);
-    let _ = write!(s,
+    let _ = write!(
+        s,
         r#"<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">
 <defs>
 <style>@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&amp;display=swap');
@@ -1561,7 +1736,9 @@ text {{ font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, m
 <text x="{cx}" y="250" font-size="13" fill="{DIM}" text-anchor="middle">Make sure your NixOS config files are accessible</text>
 <text x="{cx}" y="{by}" font-size="10" fill="{DIM}" text-anchor="middle">generated with nixmate  ·  github.com/daskladas/nixmate</text>
 </svg>"#,
-        cx = w / 2.0, hostname = esc(hostname), by = h - 20.0
+        cx = w / 2.0,
+        hostname = esc(hostname),
+        by = h - 20.0
     );
     s
 }

@@ -11,6 +11,7 @@
 
 use crate::config::Language;
 use crate::i18n;
+use crate::types::FlashMessage;
 use crate::ui::theme::Theme;
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
@@ -23,7 +24,6 @@ use ratatui::{
 };
 use std::collections::HashMap;
 use std::sync::mpsc;
-use crate::types::FlashMessage;
 use std::time::Instant;
 
 // ── Sub-tabs ──
@@ -214,8 +214,11 @@ impl OptionsState {
                         self.loaded = true;
                         self.load_rx = None;
                         if self.options.is_empty() {
-                            self.error_message =
-                                Some(crate::i18n::get_strings(self.lang).opt_load_failed.to_string());
+                            self.error_message = Some(
+                                crate::i18n::get_strings(self.lang)
+                                    .opt_load_failed
+                                    .to_string(),
+                            );
                         }
                         return;
                     }
@@ -629,8 +632,7 @@ impl OptionsState {
         match key.code {
             KeyCode::Char('j') | KeyCode::Down => {
                 if !self.tree_rows.is_empty() {
-                    self.tree_selected =
-                        (self.tree_selected + 1).min(self.tree_rows.len() - 1);
+                    self.tree_selected = (self.tree_selected + 1).min(self.tree_rows.len() - 1);
                 }
             }
             KeyCode::Char('k') | KeyCode::Up => {
@@ -765,9 +767,7 @@ fn load_options_background(tx: mpsc::Sender<LoadStatus>, lang: Language) {
     }
 
     // Phase 2: Try building options.json
-    let _ = tx.send(LoadStatus::Phase(
-        s.opt_building_db.to_string(),
-    ));
+    let _ = tx.send(LoadStatus::Phase(s.opt_building_db.to_string()));
 
     // Try nix-build for channels
     let result = Command::new("nix-build")
@@ -791,9 +791,7 @@ fn load_options_background(tx: mpsc::Sender<LoadStatus>, lang: Language) {
     }
 
     // Phase 3: Try flakes-based build
-    let _ = tx.send(LoadStatus::Phase(
-        s.opt_trying_flakes.to_string(),
-    ));
+    let _ = tx.send(LoadStatus::Phase(s.opt_trying_flakes.to_string()));
 
     let home = std::env::var("HOME").unwrap_or_default();
     let flake_dirs = [
@@ -812,9 +810,11 @@ fn load_options_background(tx: mpsc::Sender<LoadStatus>, lang: Language) {
         let result = Command::new("nix")
             .args([
                 "build",
-                &format!("{}#nixosConfigurations.{}.config.system.build.manual.optionsJSON",
+                &format!(
+                    "{}#nixosConfigurations.{}.config.system.build.manual.optionsJSON",
                     flake_dir,
-                    get_hostname()),
+                    get_hostname()
+                ),
                 "--no-link",
                 "--print-out-paths",
             ])
@@ -836,9 +836,7 @@ fn load_options_background(tx: mpsc::Sender<LoadStatus>, lang: Language) {
     }
 
     // Phase 4: Last resort — try nixos-option -r (slow but universal)
-    let _ = tx.send(LoadStatus::Phase(
-        s.opt_phase_fallback.to_string(),
-    ));
+    let _ = tx.send(LoadStatus::Phase(s.opt_phase_fallback.to_string()));
 
     if let Some(options) = try_nixos_option_fallback() {
         if !options.is_empty() {
@@ -847,9 +845,7 @@ fn load_options_background(tx: mpsc::Sender<LoadStatus>, lang: Language) {
         }
     }
 
-    let _ = tx.send(LoadStatus::Error(
-        s.opt_load_error.to_string(),
-    ));
+    let _ = tx.send(LoadStatus::Error(s.opt_load_error.to_string()));
 }
 
 fn try_load_options_json(path: &str) -> Option<Vec<NixOption>> {
@@ -978,10 +974,7 @@ fn try_nixos_option_fallback() -> Option<Vec<NixOption>> {
     use std::process::Command;
 
     // Get list of all option paths
-    let output = Command::new("nixos-option")
-        .args(["-r"])
-        .output()
-        .ok()?;
+    let output = Command::new("nixos-option").args(["-r"]).output().ok()?;
 
     if !output.status.success() {
         return None;
@@ -1009,9 +1002,7 @@ fn load_current_value(path: &str, lang: crate::config::Language) -> CurrentValue
     use std::process::Command;
     let s = crate::i18n::get_strings(lang);
 
-    let output = Command::new("nixos-option")
-        .arg(path)
-        .output();
+    let output = Command::new("nixos-option").arg(path).output();
 
     match output {
         Ok(o) if o.status.success() => {
@@ -1100,13 +1091,7 @@ fn type_color(type_str: &str, theme: &Theme) -> ratatui::style::Color {
 
 // ── Rendering ──
 
-pub fn render(
-    frame: &mut Frame,
-    state: &OptionsState,
-    theme: &Theme,
-    lang: Language,
-    area: Rect,
-) {
+pub fn render(frame: &mut Frame, state: &OptionsState, theme: &Theme, lang: Language, area: Rect) {
     let s = i18n::get_strings(lang);
 
     let block = Block::default()
@@ -1144,7 +1129,7 @@ pub fn render(
     // Sub-tab bar + content
     let chunks = Layout::vertical([
         Constraint::Length(2), // Tab bar
-        Constraint::Min(4),   // Content
+        Constraint::Min(4),    // Content
     ])
     .split(inner);
 
@@ -1206,10 +1191,7 @@ fn render_tab_bar(
             height: 1,
         };
         frame.render_widget(
-            Paragraph::new(Line::styled(
-                count_text,
-                Style::default().fg(theme.fg_dim),
-            )),
+            Paragraph::new(Line::styled(count_text, Style::default().fg(theme.fg_dim))),
             count_area,
         );
     }
@@ -1223,7 +1205,10 @@ fn render_loading(
     area: Rect,
 ) {
     let s = i18n::get_strings(lang);
-    let elapsed = state.loading_start.map(|s| s.elapsed().as_secs()).unwrap_or(0);
+    let elapsed = state
+        .loading_start
+        .map(|s| s.elapsed().as_secs())
+        .unwrap_or(0);
 
     let spinner_frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
     let spinner_idx = (elapsed as usize * 3) % spinner_frames.len();
@@ -1286,7 +1271,12 @@ fn render_error(frame: &mut Frame, error: &str, theme: &Theme, area: Rect) {
         Line::raw(""),
         Line::styled(format!("  {}", error), theme.text()),
     ];
-    frame.render_widget(Paragraph::new(lines).style(theme.block_style()).wrap(Wrap { trim: false }), area);
+    frame.render_widget(
+        Paragraph::new(lines)
+            .style(theme.block_style())
+            .wrap(Wrap { trim: false }),
+        area,
+    );
 }
 
 fn render_empty(frame: &mut Frame, theme: &Theme, lang: Language, area: Rect) {
@@ -1313,7 +1303,7 @@ fn render_search(
 
     let chunks = Layout::vertical([
         Constraint::Length(2), // Search bar
-        Constraint::Min(3),   // Results
+        Constraint::Min(3),    // Results
     ])
     .split(area);
 
@@ -1355,10 +1345,7 @@ fn render_search(
                 height: 1,
             };
             frame.render_widget(
-                Paragraph::new(Line::styled(
-                    count_text,
-                    Style::default().fg(theme.fg_dim),
-                )),
+                Paragraph::new(Line::styled(count_text, Style::default().fg(theme.fg_dim))),
                 count_area,
             );
         }
@@ -1422,7 +1409,7 @@ fn render_browse(
     // Hint line at top
     let chunks = Layout::vertical([
         Constraint::Length(1), // Hint
-        Constraint::Min(3),   // Tree
+        Constraint::Min(3),    // Tree
     ])
     .split(area);
 
@@ -1456,14 +1443,21 @@ fn render_browse(
 
             let (icon, name_style) = if row.is_leaf {
                 let tc = type_color(
-                    state.options.get(row.option_idx.unwrap_or(0))
+                    state
+                        .options
+                        .get(row.option_idx.unwrap_or(0))
                         .map(|o| o.type_str.as_str())
                         .unwrap_or(""),
                     theme,
                 );
                 ("• ", Style::default().fg(tc))
             } else if row.is_expanded {
-                ("▼ ", Style::default().fg(theme.accent).add_modifier(Modifier::BOLD))
+                (
+                    "▼ ",
+                    Style::default()
+                        .fg(theme.accent)
+                        .add_modifier(Modifier::BOLD),
+                )
             } else {
                 ("▶ ", Style::default().fg(theme.accent))
             };
@@ -1529,7 +1523,7 @@ fn render_related(
     // Header showing parent path
     let chunks = Layout::vertical([
         Constraint::Length(2), // Header
-        Constraint::Min(3),   // List
+        Constraint::Min(3),    // List
     ])
     .split(area);
 
@@ -1603,7 +1597,9 @@ fn render_option_list(
             // Truncate path for display (option paths are ASCII but be safe)
             let path_display = if opt.path.len() > path_width {
                 let start = opt.path.len() - path_width + 1;
-                let safe_start = (start..).find(|&i| opt.path.is_char_boundary(i)).unwrap_or(opt.path.len());
+                let safe_start = (start..)
+                    .find(|&i| opt.path.is_char_boundary(i))
+                    .unwrap_or(opt.path.len());
                 format!("…{}", &opt.path[safe_start..])
             } else {
                 format!("{:<width$}", opt.path, width = path_width)
@@ -1680,10 +1676,7 @@ fn render_detail(
 
     // Option path (title)
     lines.push(Line::from(vec![
-        Span::styled(
-            "  ",
-            Style::default(),
-        ),
+        Span::styled("  ", Style::default()),
         Span::styled(
             opt.path.clone(),
             Style::default()
@@ -1696,14 +1689,23 @@ fn render_detail(
     // Type
     let tc = type_color(&opt.type_str, theme);
     lines.push(Line::from(vec![
-        Span::styled(format!("  {} ", s.opt_detail_type), Style::default().fg(theme.fg_dim)),
-        Span::styled(opt.type_str.clone(), Style::default().fg(tc).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            format!("  {} ", s.opt_detail_type),
+            Style::default().fg(theme.fg_dim),
+        ),
+        Span::styled(
+            opt.type_str.clone(),
+            Style::default().fg(tc).add_modifier(Modifier::BOLD),
+        ),
     ]));
 
     // Default
     if let Some(ref def) = opt.default_str {
         lines.push(Line::from(vec![
-            Span::styled(format!("  {} ", s.opt_detail_default), Style::default().fg(theme.fg_dim)),
+            Span::styled(
+                format!("  {} ", s.opt_detail_default),
+                Style::default().fg(theme.fg_dim),
+            ),
             Span::styled(truncate_value(def, area.width as usize - 20), theme.text()),
         ]));
     }
@@ -1711,8 +1713,14 @@ fn render_detail(
     // Example
     if let Some(ref ex) = opt.example_str {
         lines.push(Line::from(vec![
-            Span::styled(format!("  {} ", s.opt_detail_example), Style::default().fg(theme.fg_dim)),
-            Span::styled(truncate_value(ex, area.width as usize - 20), Style::default().fg(theme.warning)),
+            Span::styled(
+                format!("  {} ", s.opt_detail_example),
+                Style::default().fg(theme.fg_dim),
+            ),
+            Span::styled(
+                truncate_value(ex, area.width as usize - 20),
+                Style::default().fg(theme.warning),
+            ),
         ]));
     }
 
@@ -1720,7 +1728,10 @@ fn render_detail(
     lines.push(Line::raw(""));
     if state.current_value_loading {
         lines.push(Line::from(vec![
-            Span::styled(format!("  {} ", s.opt_detail_current), Style::default().fg(theme.fg_dim)),
+            Span::styled(
+                format!("  {} ", s.opt_detail_current),
+                Style::default().fg(theme.fg_dim),
+            ),
             Span::styled(s.opt_current_loading, Style::default().fg(theme.fg_dim)),
         ]));
     } else if let Some(ref val) = state.current_value {
@@ -1730,8 +1741,14 @@ fn render_detail(
             theme.success // Different from default, highlight
         };
         lines.push(Line::from(vec![
-            Span::styled(format!("  {} ", s.opt_detail_current), Style::default().fg(theme.fg_dim)),
-            Span::styled(truncate_value(val, area.width as usize - 20), Style::default().fg(val_color).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                format!("  {} ", s.opt_detail_current),
+                Style::default().fg(theme.fg_dim),
+            ),
+            Span::styled(
+                truncate_value(val, area.width as usize - 20),
+                Style::default().fg(val_color).add_modifier(Modifier::BOLD),
+            ),
         ]));
     }
 
@@ -1782,7 +1799,10 @@ fn render_detail(
     lines.push(Line::raw(""));
     lines.push(Line::raw(""));
     lines.push(Line::styled(
-        format!("  [Esc] {}  [r] {}  [j/k] {}", s.back, s.opt_related_label, s.navigate),
+        format!(
+            "  [Esc] {}  [r] {}  [j/k] {}",
+            s.back, s.opt_related_label, s.navigate
+        ),
         Style::default().fg(theme.fg_dim),
     ));
 

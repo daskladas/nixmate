@@ -5022,7 +5022,10 @@ mod tests {
 
     #[test]
     fn test_python_module_pattern() {
-        let pattern = PATTERNS.iter().find(|p| p.id == "python-module-not-found").unwrap();
+        let pattern = PATTERNS
+            .iter()
+            .find(|p| p.id == "python-module-not-found")
+            .unwrap();
         let re = pattern.regex();
         assert!(re.is_match("ModuleNotFoundError: No module named 'numpy'"));
         assert!(re.is_match("ModuleNotFoundError: No module named \"requests\""));
@@ -5030,7 +5033,10 @@ mod tests {
 
     #[test]
     fn test_experimental_features_pattern() {
-        let pattern = PATTERNS.iter().find(|p| p.id == "experimental-features").unwrap();
+        let pattern = PATTERNS
+            .iter()
+            .find(|p| p.id == "experimental-features")
+            .unwrap();
         let re = pattern.regex();
         assert!(re.is_match("error: experimental Nix feature 'flakes' is disabled"));
         assert!(re.is_match("experimental Nix feature 'nix-command' is disabled"));
@@ -5038,7 +5044,10 @@ mod tests {
 
     #[test]
     fn test_home_manager_pattern() {
-        let pattern = PATTERNS.iter().find(|p| p.id == "home-manager-not-found").unwrap();
+        let pattern = PATTERNS
+            .iter()
+            .find(|p| p.id == "home-manager-not-found")
+            .unwrap();
         let re = pattern.regex();
         assert!(re.is_match("error: attribute 'home-manager' missing"));
         assert!(re.is_match("undefined variable 'home-manager'"));
@@ -5046,7 +5055,10 @@ mod tests {
 
     #[test]
     fn test_unfree_pattern() {
-        let pattern = PATTERNS.iter().find(|p| p.id == "unfree-not-allowed").unwrap();
+        let pattern = PATTERNS
+            .iter()
+            .find(|p| p.id == "unfree-not-allowed")
+            .unwrap();
         let re = pattern.regex();
         assert!(re.is_match("Package 'steam' is not free and refusing to evaluate"));
         assert!(re.is_match("has an unfree license"));

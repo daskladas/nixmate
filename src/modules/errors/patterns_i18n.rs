@@ -3,10 +3,10 @@
 //! Provides German translations for pattern explanations, solutions, and deep_dive texts.
 //! English is the default language stored in patterns.rs.
 
-use std::collections::HashMap;
-use once_cell::sync::Lazy;
 use super::matcher::MatchResult;
 use super::patterns::library_to_package;
+use once_cell::sync::Lazy;
+use std::collections::HashMap;
 
 /// Translation templates for a pattern (with $1, $2 placeholders)
 struct PatternTranslation {
@@ -21,13 +21,15 @@ struct PatternTranslation {
 static TRANSLATIONS_DE: Lazy<HashMap<&'static str, PatternTranslation>> = Lazy::new(|| {
     let mut m = HashMap::new();
 
-    m.insert("linker-missing-lib", PatternTranslation {
-        title: "Linker kann Bibliothek nicht finden: $1",
-        explanation: "Der Linker braucht die '$1'-Bibliothek, aber sie ist nicht verfügbar.",
-        solution: "\
+    m.insert(
+        "linker-missing-lib",
+        PatternTranslation {
+            title: "Linker kann Bibliothek nicht finden: $1",
+            explanation: "Der Linker braucht die '$1'-Bibliothek, aber sie ist nicht verfügbar.",
+            solution: "\
 buildInputs = [ $1 ];
 nativeBuildInputs = [ pkg-config ];",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nix-Builds laufen in isolierten Umgebungen (Sandboxes). Anders als bei 
 traditionellem Linux, wo Bibliotheken in /usr/lib global verfügbar sind, 
@@ -50,19 +52,22 @@ Bibliotheksnamen entsprechen nicht immer Paketnamen:
   -lcrypto  -> openssl
 
 Nutze: nix search nixpkgs <n>",
-        tip: Some("Häufig: ssl->openssl, z->zlib, ffi->libffi"),
-    });
+            tip: Some("Häufig: ssl->openssl, z->zlib, ffi->libffi"),
+        },
+    );
 
-    m.insert("missing-header", PatternTranslation {
-        title: "Fehlender Header: $1",
-        explanation: "Der Compiler kann die Header-Datei '$1' nicht finden.",
-        solution: "\
+    m.insert(
+        "missing-header",
+        PatternTranslation {
+            title: "Fehlender Header: $1",
+            explanation: "Der Compiler kann die Header-Datei '$1' nicht finden.",
+            solution: "\
 # Finde das Paket:
 nix-locate -w '*/$1'
 
 # Füge es hinzu:
 buildInputs = [ <paket> ];",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Header-Dateien (.h) enthalten Deklarationen die dem Compiler sagen, welche 
 Funktionen existieren. Sie werden zur COMPILE-Zeit benötigt.
@@ -82,14 +87,17 @@ HÄUFIGE HEADER -> PAKET:
   curl/*.h     -> curl
   zlib.h       -> zlib
   python*.h    -> python3",
-        tip: Some("Installiere nix-index für nix-locate"),
-    });
+            tip: Some("Installiere nix-index für nix-locate"),
+        },
+    );
 
-    m.insert("undefined-reference", PatternTranslation {
-        title: "Undefinierte Referenz: $1",
-        explanation: "Der Linker fand eine Deklaration aber keine Implementierung für '$1'.",
-        solution: "buildInputs = [ <bibliothek-mit-$1> ];",
-        deep_dive: "\
+    m.insert(
+        "undefined-reference",
+        PatternTranslation {
+            title: "Undefinierte Referenz: $1",
+            explanation: "Der Linker fand eine Deklaration aber keine Implementierung für '$1'.",
+            solution: "buildInputs = [ <bibliothek-mit-$1> ];",
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Dies ist ein LINKER-Fehler, kein Compiler-Fehler. Der Unterschied:
 - Compiler-Fehler: 'unbekannte Funktion' -> fehlender Header
@@ -107,19 +115,22 @@ REIHENFOLGE WICHTIG:
 Wenn libA libB braucht:
   FALSCH:  buildInputs = [ libB libA ];
   RICHTIG: buildInputs = [ libA libB ];",
-        tip: None,
-    });
+            tip: None,
+        },
+    );
 
-    m.insert("builder-failed", PatternTranslation {
-        title: "Build fehlgeschlagen",
-        explanation: "Die Derivation konnte nicht gebaut werden. Der Fehler steht oben.",
-        solution: "\
+    m.insert(
+        "builder-failed",
+        PatternTranslation {
+            title: "Build fehlgeschlagen",
+            explanation: "Die Derivation konnte nicht gebaut werden. Der Fehler steht oben.",
+            solution: "\
 # Vollständiges Log anzeigen:
 nix log $1
 
 # Mit ausführlicher Ausgabe bauen:
 nix build -L",
-        deep_dive: "\
+            deep_dive: "\
 DIESEN FEHLER VERSTEHEN:
 Diese Meldung erscheint am ENDE eines fehlgeschlagenen Builds. Der 
 echte Fehler steht ÜBER dieser Zeile.
@@ -140,19 +151,22 @@ HÄUFIGE URSACHEN:
 - Hardcodierte Pfade (/usr/bin/...)
 - Netzwerkzugriff in Sandbox
 - Fehlendes Build-Tool (nativeBuildInputs)",
-        tip: Some("Der echte Fehler steht meist ÜBER dieser Zeile"),
-    });
+            tip: Some("Der echte Fehler steht meist ÜBER dieser Zeile"),
+        },
+    );
 
-    m.insert("attribute-missing", PatternTranslation {
-        title: "Attribut '$1' nicht gefunden",
-        explanation: "Das Attribut '$1' existiert nicht in diesem Set.",
-        solution: "\
+    m.insert(
+        "attribute-missing",
+        PatternTranslation {
+            title: "Attribut '$1' nicht gefunden",
+            explanation: "Das Attribut '$1' existiert nicht in diesem Set.",
+            solution: "\
 # Im nix repl erkunden:
 nix repl -f '<nixpkgs>'
 nix-repl> pkgs.<TAB>
 
 # Suchen: https://search.nixos.org/packages",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nix Attribute-Sets sind wie Dictionaries. Wenn du pkgs.foo schreibst, 
 greifst du auf 'foo' zu. Existiert es nicht -> dieser Fehler.
@@ -177,13 +191,16 @@ ATTRIBUTE-SETS ERKUNDEN:
 PRÜFEN OB ATTRIBUT EXISTIERT:
   pkgs.foo or null     # null wenn fehlend
   pkgs ? foo           # true/false",
-        tip: Some("python3Packages nicht pythonPackages"),
-    });
+            tip: Some("python3Packages nicht pythonPackages"),
+        },
+    );
 
-    m.insert("infinite-recursion", PatternTranslation {
-        title: "Unendliche Rekursion",
-        explanation: "Nix hat eine zirkuläre Abhängigkeit entdeckt.",
-        solution: "\
+    m.insert(
+        "infinite-recursion",
+        PatternTranslation {
+            title: "Unendliche Rekursion",
+            explanation: "Nix hat eine zirkuläre Abhängigkeit entdeckt.",
+            solution: "\
 # In Overlays - nutze 'prev' nicht 'final':
 (final: prev: {
   pkg = prev.pkg.override { };  # prev!
@@ -191,7 +208,7 @@ PRÜFEN OB ATTRIBUT EXISTIERT:
 
 # In Modulen - config nicht in options:
 options.x = mkOption { default = 42; };",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nix ist lazy, erkennt aber Zyklen. Wenn A B braucht und B A braucht 
 -> dieser Fehler.
@@ -220,19 +237,22 @@ HÄUFIGE URSACHEN:
 
 DEBUGGING:
   nix build --show-trace",
-        tip: Some("Nutze --show-trace um die Quelle zu finden"),
-    });
+            tip: Some("Nutze --show-trace um die Quelle zu finden"),
+        },
+    );
 
-    m.insert("undefined-variable", PatternTranslation {
-        title: "Undefinierte Variable: $1",
-        explanation: "'$1' ist in diesem Scope nicht definiert.",
-        solution: "\
+    m.insert(
+        "undefined-variable",
+        PatternTranslation {
+            title: "Undefinierte Variable: $1",
+            explanation: "'$1' ist in diesem Scope nicht definiert.",
+            solution: "\
 # Zu Funktionsargumenten hinzufügen:
 { pkgs, lib, $1, ... }:
 
 # Oder importieren:
 let $1 = import ./file.nix; in ...",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nix hat lexikalisches Scoping - Variablen müssen vor Verwendung 
 definiert werden. Funktionen müssen Inputs explizit deklarieren.
@@ -265,18 +285,21 @@ SPEZIELLE VARIABLEN:
 - lib: von pkgs.lib
 - config: NixOS Modul-Argument
 - builtins: immer global verfügbar",
-        tip: Some("pkgs, lib, config müssen in Funktionsargs sein"),
-    });
+            tip: Some("pkgs, lib, config müssen in Funktionsargs sein"),
+        },
+    );
 
-    m.insert("type-error", PatternTranslation {
-        title: "Typfehler: erwartet $1, bekommen $2",
-        explanation: "Nix erwartete '$1' aber erhielt '$2'.",
-        solution: "\
+    m.insert(
+        "type-error",
+        PatternTranslation {
+            title: "Typfehler: erwartet $1, bekommen $2",
+            explanation: "Nix erwartete '$1' aber erhielt '$2'.",
+            solution: "\
 # Häufige Fixes:
 packages = [ pkgs.git ];  # Liste, nicht einzeln
 enable = true;            # bool, nicht \"true\"
 port = 8080;              # int, nicht \"8080\"",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nix ist dynamisch typisiert aber erzwingt Typen zur Laufzeit.
 
@@ -304,19 +327,22 @@ TYP-PRÜFUNG:
   builtins.typeOf x
   builtins.isList x
   builtins.isString x",
-        tip: None,
-    });
+            tip: None,
+        },
+    );
 
-    m.insert("cannot-coerce", PatternTranslation {
-        title: "Kann nicht zu String konvertieren",
-        explanation: "Nix kann diesen Wert nicht automatisch zu String konvertieren.",
-        solution: "\
+    m.insert(
+        "cannot-coerce",
+        PatternTranslation {
+            title: "Kann nicht zu String konvertieren",
+            explanation: "Nix kann diesen Wert nicht automatisch zu String konvertieren.",
+            solution: "\
 # Für Derivations:
 \"${pkgs.hello}/bin/hello\"
 
 # Für Sets - greife auf Attribut zu:
 mySet.name  # nicht mySet",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 String-Interpolation versucht Werte zu Strings zu konvertieren.
 Nix kann manche Typen automatisch konvertieren, aber nicht Sets.
@@ -336,17 +362,20 @@ LÖSUNGEN:
 
 3. toJSON nutzen:
    \"${builtins.toJSON mySet}\"",
-        tip: None,
-    });
+            tip: None,
+        },
+    );
 
-    m.insert("syntax-error", PatternTranslation {
-        title: "Syntaxfehler bei: $1",
-        explanation: "Der Nix-Parser fand unerwartete Eingabe.",
-        solution: "\
+    m.insert(
+        "syntax-error",
+        PatternTranslation {
+            title: "Syntaxfehler bei: $1",
+            explanation: "Der Nix-Parser fand unerwartete Eingabe.",
+            solution: "\
 { a = 1; b = 2; }  # Semikolons nach Attributen
 [ a b c ]          # Keine Kommas in Listen  
 { a, b }: ...      # Kommas in Funktionsargs",
-        deep_dive: "\
+            deep_dive: "\
 NIX SYNTAX-FALLEN:
 
 1. SEMIKOLONS nach jedem Attribut:
@@ -366,20 +395,23 @@ NIX SYNTAX-FALLEN:
 
 FEHLERPOSITION KANN FALSCH SEIN:
 Prüfe auch Zeilen VOR der gemeldeten Position.",
-        tip: Some("Fehlerposition kann ungenau sein"),
-    });
+            tip: Some("Fehlerposition kann ungenau sein"),
+        },
+    );
 
-    m.insert("flake-no-output", PatternTranslation {
-        title: "Flake hat keinen Output '$2'",
-        explanation: "Das Flake '$1' hat nicht den angeforderten Output.",
-        solution: "\
+    m.insert(
+        "flake-no-output",
+        PatternTranslation {
+            title: "Flake hat keinen Output '$2'",
+            explanation: "Das Flake '$1' hat nicht den angeforderten Output.",
+            solution: "\
 # Verfügbare Outputs auflisten:
 nix flake show $1
 
 # Häufige Pfade:
 packages.x86_64-linux.default
 devShells.x86_64-linux.default",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Flakes haben ein strukturiertes Output-Schema. Du musst den exakten 
 Pfad inkl. System-Architektur verwenden.
@@ -397,17 +429,20 @@ SYSTEM ist meist:
 
 OUTPUTS AUFLISTEN:
   nix flake show",
-        tip: Some("Vergiss nicht das System: x86_64-linux"),
-    });
+            tip: Some("Vergiss nicht das System: x86_64-linux"),
+        },
+    );
 
-    m.insert("flake-input-missing", PatternTranslation {
-        title: "Input '$1' nicht deklariert",
-        explanation: "Der Input '$1' wird genutzt aber nicht in flake.nix deklariert.",
-        solution: "\
+    m.insert(
+        "flake-input-missing",
+        PatternTranslation {
+            title: "Input '$1' nicht deklariert",
+            explanation: "Der Input '$1' wird genutzt aber nicht in flake.nix deklariert.",
+            solution: "\
 # In flake.nix hinzufügen:
 inputs.$1.url = \"github:owner/repo\";
 outputs = { $1, ... }: { };",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Flake-Inputs müssen in 'inputs' deklariert UND an 'outputs' übergeben werden.
 
@@ -422,16 +457,19 @@ FLAKE-STRUKTUR:
 INPUTS UPDATEN:
   nix flake update
   nix flake lock --update-input nixpkgs",
-        tip: None,
-    });
+            tip: None,
+        },
+    );
 
-    m.insert("hash-mismatch", PatternTranslation {
-        title: "Hash-Mismatch",
-        explanation: "Download entspricht nicht dem erwarteten Hash.",
-        solution: "\
+    m.insert(
+        "hash-mismatch",
+        PatternTranslation {
+            title: "Hash-Mismatch",
+            explanation: "Download entspricht nicht dem erwarteten Hash.",
+            solution: "\
 # Nutze den korrekten Hash:
 hash = \"$1\";",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nix erfordert dass Downloads ihren Hash vorab deklarieren.
 
@@ -443,18 +481,21 @@ DEN RICHTIGEN HASH BEKOMMEN:
 HASH-FORMATE:
   Alt: sha256 = \"0abc123...\";
   Neu: hash = \"sha256-ABC...\";  # bevorzugt",
-        tip: Some("Nutze lib.fakeHash während Entwicklung"),
-    });
+            tip: Some("Nutze lib.fakeHash während Entwicklung"),
+        },
+    );
 
-    m.insert("download-failed", PatternTranslation {
-        title: "Download fehlgeschlagen",
-        explanation: "Konnte nicht von '$1' herunterladen.",
-        solution: "\
+    m.insert(
+        "download-failed",
+        PatternTranslation {
+            title: "Download fehlgeschlagen",
+            explanation: "Konnte nicht von '$1' herunterladen.",
+            solution: "\
 # Prüfe ob URL funktioniert:
 curl -I \"$1\"
 
 # Versuche neuere Version oder Mirror",
-        deep_dive: "\
+            deep_dive: "\
 HÄUFIGE URSACHEN:
 1. URL existiert nicht mehr
 2. Netzwerk/Firewall-Problem
@@ -464,18 +505,21 @@ LÖSUNGEN:
 - Neue URL oder andere Version finden
 - Mirror nutzen
 - Warten bei Rate Limiting",
-        tip: None,
-    });
+            tip: None,
+        },
+    );
 
-    m.insert("option-not-exist", PatternTranslation {
-        title: "Option '$1' existiert nicht",
-        explanation: "Diese NixOS-Option existiert nicht.",
-        solution: "\
+    m.insert(
+        "option-not-exist",
+        PatternTranslation {
+            title: "Option '$1' existiert nicht",
+            explanation: "Diese NixOS-Option existiert nicht.",
+            solution: "\
 # Suchen: https://search.nixos.org/options
 
 # Wenn aus Modul:
 imports = [ module.nixosModules.default ];",
-        deep_dive: "\
+            deep_dive: "\
 HÄUFIGE URSACHEN:
 1. Tippfehler (enabel statt enable)
 2. Falscher Pfad
@@ -485,17 +529,20 @@ HÄUFIGE URSACHEN:
 OPTIONEN FINDEN:
   https://search.nixos.org/options
   nixos-option services.nginx",
-        tip: Some("Optionen sind case-sensitive"),
-    });
+            tip: Some("Optionen sind case-sensitive"),
+        },
+    );
 
-    m.insert("assertion-failed", PatternTranslation {
-        title: "Assertion fehlgeschlagen",
-        explanation: "Eine NixOS-Modul-Prüfung ist fehlgeschlagen.",
-        solution: "\
+    m.insert(
+        "assertion-failed",
+        PatternTranslation {
+            title: "Assertion fehlgeschlagen",
+            explanation: "Eine NixOS-Modul-Prüfung ist fehlgeschlagen.",
+            solution: "\
 # Häufige Fixes:
 hardware.enableRedistributableFirmware = true;
 users.groups.mygroup = {};",
-        deep_dive: "\
+            deep_dive: "\
 Module nutzen Assertions um Anforderungen durchzusetzen.
 Die Nachricht nach 'Failed assertions:' erklärt was fehlt.
 
@@ -504,19 +551,22 @@ HÄUFIGE FIXES:
 - Anderen Dienst aktivieren
 - allowUnfree aktivieren
 - Firmware aktivieren",
-        tip: Some("Lies die Assertion-Nachricht genau"),
-    });
+            tip: Some("Lies die Assertion-Nachricht genau"),
+        },
+    );
 
-    m.insert("collision", PatternTranslation {
-        title: "Datei-Kollision",
-        explanation: "Pakete '$1' und '$2' stellen dieselbe Datei bereit.",
-        solution: "\
+    m.insert(
+        "collision",
+        PatternTranslation {
+            title: "Datei-Kollision",
+            explanation: "Pakete '$1' und '$2' stellen dieselbe Datei bereit.",
+            solution: "\
 # Priorität setzen:
 environment.systemPackages = [
   (lib.hiPrio pkgs.package1)  # gewinnt
   pkgs.package2
 ];",
-        deep_dive: "\
+            deep_dive: "\
 Zwei Pakete installieren dieselbe Datei.
 
 LÖSUNGEN:
@@ -525,19 +575,22 @@ LÖSUNGEN:
 3. Ein Paket entfernen
 
 Niedrigere Prioritätszahl = gewinnt",
-        tip: None,
-    });
+            tip: None,
+        },
+    );
 
-    m.insert("python-module-not-found", PatternTranslation {
-        title: "Python-Modul nicht gefunden: $1",
-        explanation: "Das Python-Modul '$1' ist nicht installiert.",
-        solution: "\
+    m.insert(
+        "python-module-not-found",
+        PatternTranslation {
+            title: "Python-Modul nicht gefunden: $1",
+            explanation: "Das Python-Modul '$1' ist nicht installiert.",
+            solution: "\
 # In shell.nix oder flake.nix:
 python3.withPackages (ps: [ ps.$1 ])
 
 # Oder:
 propagatedBuildInputs = [ python3Packages.$1 ];",
-        deep_dive: "\
+            deep_dive: "\
 In Nix müssen Python-Pakete explizit aufgelistet werden.
 
 BEISPIEL:
@@ -549,69 +602,81 @@ BEISPIEL:
 
 PAKETE FINDEN:
   nix search nixpkgs python3Packages.<n>",
-        tip: Some("nix search nixpkgs python3Packages"),
-    });
+            tip: Some("nix search nixpkgs python3Packages"),
+        },
+    );
 
-    m.insert("python-import-error", PatternTranslation {
-        title: "Python Import-Fehler: $1 aus $2",
-        explanation: "Kann '$1' nicht aus '$2' importieren. Versionskonflikt?",
-        solution: "\
+    m.insert(
+        "python-import-error",
+        PatternTranslation {
+            title: "Python Import-Fehler: $1 aus $2",
+            explanation: "Kann '$1' nicht aus '$2' importieren. Versionskonflikt?",
+            solution: "\
 # Paketversion prüfen:
 nix eval nixpkgs#python3Packages.$2.version",
-        deep_dive: "\
+            deep_dive: "\
 Das Symbol '$1' existiert nicht im Modul '$2'.
 
 URSACHEN:
 1. Versionskonflikt
 2. API geändert
 3. Falscher Import-Pfad",
-        tip: None,
-    });
+            tip: None,
+        },
+    );
 
-    m.insert("rust-crate-not-found", PatternTranslation {
-        title: "Rust Crate nicht gefunden: $1",
-        explanation: "Das Rust Crate '$1' kann nicht gefunden werden.",
-        solution: "\
+    m.insert(
+        "rust-crate-not-found",
+        PatternTranslation {
+            title: "Rust Crate nicht gefunden: $1",
+            explanation: "Das Rust Crate '$1' kann nicht gefunden werden.",
+            solution: "\
 # In Cargo.toml:
 [dependencies]
 $1 = \"*\"
 
 # Für System-Libs:
 buildInputs = [ openssl ];",
-        deep_dive: "\
+            deep_dive: "\
 Crates die C-Bibliotheken linken brauchen diese in buildInputs.
 
 HÄUFIG:
   openssl-sys -> openssl, pkg-config
   rusqlite    -> sqlite",
-        tip: Some("Prüfe ob Crate C-Bibliothek braucht"),
-    });
+            tip: Some("Prüfe ob Crate C-Bibliothek braucht"),
+        },
+    );
 
-    m.insert("rust-linker-native", PatternTranslation {
-        title: "Rust fehlt native Lib: $1",
-        explanation: "Rust kann die native Bibliothek '$1' nicht finden.",
-        solution: "\
+    m.insert(
+        "rust-linker-native",
+        PatternTranslation {
+            title: "Rust fehlt native Lib: $1",
+            explanation: "Rust kann die native Bibliothek '$1' nicht finden.",
+            solution: "\
 buildInputs = [ $1 ];
 nativeBuildInputs = [ pkg-config ];",
-        deep_dive: "\
+            deep_dive: "\
 Ein Rust Crate versucht gegen eine C-Bibliothek zu linken.
 
 LÖSUNG:
   buildInputs = [ openssl ];
   nativeBuildInputs = [ pkg-config ];",
-        tip: None,
-    });
+            tip: None,
+        },
+    );
 
-    m.insert("node-module-not-found", PatternTranslation {
-        title: "Node-Modul nicht gefunden: $1",
-        explanation: "Das Node.js Modul '$1' ist nicht installiert.",
-        solution: "\
+    m.insert(
+        "node-module-not-found",
+        PatternTranslation {
+            title: "Node-Modul nicht gefunden: $1",
+            explanation: "Das Node.js Modul '$1' ist nicht installiert.",
+            solution: "\
 # In shell.nix:
 nodePackages.$1
 
 # Oder mit npm:
 buildInputs = [ nodejs ];",
-        deep_dive: "\
+            deep_dive: "\
 Node.js Module sind in Nix nicht global verfügbar.
 
 OPTIONEN:
@@ -619,38 +684,44 @@ OPTIONEN:
 2. buildNpmPackage
 3. node2nix
 4. dream2nix",
-        tip: Some("Nutze node2nix für komplexe Projekte"),
-    });
+            tip: Some("Nutze node2nix für komplexe Projekte"),
+        },
+    );
 
-    m.insert("permission-denied-nix-store", PatternTranslation {
-        title: "Zugriff verweigert im Nix Store",
-        explanation: "Versuch in den schreibgeschützten Nix Store zu schreiben.",
-        solution: "\
+    m.insert(
+        "permission-denied-nix-store",
+        PatternTranslation {
+            title: "Zugriff verweigert im Nix Store",
+            explanation: "Versuch in den schreibgeschützten Nix Store zu schreiben.",
+            solution: "\
 # Nutze $out für Outputs:
 mkdir -p $out/bin
 
 # Für temp Dateien:
 export HOME=$TMPDIR",
-        deep_dive: "\
+            deep_dive: "\
 Der Nix Store (/nix/store) ist SCHREIBGESCHÜTZT.
 
 LÖSUNGEN:
 1. Output nach $out
 2. Temp-Verzeichnis ($TMPDIR)
 3. wrapProgram für Runtime",
-        tip: Some("Schreibe niemals in /nix/store"),
-    });
+            tip: Some("Schreibe niemals in /nix/store"),
+        },
+    );
 
-    m.insert("path-not-in-store", PatternTranslation {
-        title: "Pfad nicht im Nix Store: $1",
-        explanation: "Der Pfad '$1' muss erst in den Nix Store kopiert werden.",
-        solution: "\
+    m.insert(
+        "path-not-in-store",
+        PatternTranslation {
+            title: "Pfad nicht im Nix Store: $1",
+            explanation: "Der Pfad '$1' muss erst in den Nix Store kopiert werden.",
+            solution: "\
 # Nutze ./pfad für lokale Dateien:
 src = ./my-source;
 
 # Oder fetchen:
 src = fetchurl { url = \"...\"; hash = \"...\"; };",
-        deep_dive: "\
+            deep_dive: "\
 Nix kann nur nutzen:
 1. Pfade in /nix/store
 2. Lokale Pfade (./foo)
@@ -659,22 +730,25 @@ Nix kann nur nutzen:
 WICHTIG:
   ./foo     # PFAD (wird kopiert)
   \"./foo\"   # STRING (kein Pfad!)",
-        tip: None,
-    });
+            tip: None,
+        },
+    );
 
     // =========================================================================
     // NEW PATTERNS - DAEMON / STORE
     // =========================================================================
-    m.insert("cannot-connect-daemon", PatternTranslation {
-        title: "Kann nicht zum Nix-Daemon verbinden",
-        explanation: "Der Nix-Daemon läuft nicht oder ist nicht erreichbar.",
-        solution: "\
+    m.insert(
+        "cannot-connect-daemon",
+        PatternTranslation {
+            title: "Kann nicht zum Nix-Daemon verbinden",
+            explanation: "Der Nix-Daemon läuft nicht oder ist nicht erreichbar.",
+            solution: "\
 # Auf NixOS:
 sudo systemctl start nix-daemon
 
 # Status prüfen:
 systemctl status nix-daemon",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nix nutzt einen Daemon für Multi-User-Installationen. Der Daemon 
 verwaltet /nix/store und führt Builds aus.
@@ -691,19 +765,22 @@ FIXEN:
   # Anderes Linux:
   sudo systemctl enable nix-daemon
   sudo systemctl start nix-daemon",
-        tip: Some("Auf NixOS startet dies automatisch"),
-    });
+            tip: Some("Auf NixOS startet dies automatisch"),
+        },
+    );
 
-    m.insert("experimental-features", PatternTranslation {
-        title: "Experimentelles Feature deaktiviert: $1",
-        explanation: "Das Feature '$1' erfordert explizite Aktivierung.",
-        solution: "\
+    m.insert(
+        "experimental-features",
+        PatternTranslation {
+            title: "Experimentelles Feature deaktiviert: $1",
+            explanation: "Das Feature '$1' erfordert explizite Aktivierung.",
+            solution: "\
 # Temporär:
 nix --experimental-features '$1' <befehl>
 
 # Permanent (~/.config/nix/nix.conf):
 experimental-features = nix-command flakes",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nix hat 'experimentelle' Features die nicht standardmäßig aktiv sind.
 Die häufigsten: 'nix-command' (neue CLI) und 'flakes'.
@@ -715,19 +792,22 @@ PERMANENT AKTIVIEREN:
 
 NixOS configuration.nix:
   nix.settings.experimental-features = [ \"nix-command\" \"flakes\" ];",
-        tip: Some("Die meisten aktivieren 'nix-command flakes' permanent"),
-    });
+            tip: Some("Die meisten aktivieren 'nix-command flakes' permanent"),
+        },
+    );
 
-    m.insert("store-path-not-valid", PatternTranslation {
-        title: "Ungültiger Store-Pfad",
-        explanation: "Ein referenzierter Store-Pfad existiert nicht oder ist beschädigt.",
-        solution: "\
+    m.insert(
+        "store-path-not-valid",
+        PatternTranslation {
+            title: "Ungültiger Store-Pfad",
+            explanation: "Ein referenzierter Store-Pfad existiert nicht oder ist beschädigt.",
+            solution: "\
 # Store verifizieren und reparieren:
 nix-store --verify --check-contents --repair
 
 # Oder Pfad neu bauen:
 nix-store --realise <pfad>",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Store-Pfade können ungültig werden durch:
 1. Garbage Collection entfernte benötigte Pfade
@@ -736,19 +816,22 @@ Store-Pfade können ungültig werden durch:
 
 FIXEN:
   nix-store --verify --check-contents --repair",
-        tip: Some("Versuche: nix-store --verify --repair"),
-    });
+            tip: Some("Versuche: nix-store --verify --repair"),
+        },
+    );
 
-    m.insert("cached-failure", PatternTranslation {
-        title: "Gecachter Build-Fehler",
-        explanation: "Ein vorheriger Build schlug fehl und der Fehler ist gecacht.",
-        solution: "\
+    m.insert(
+        "cached-failure",
+        PatternTranslation {
+            title: "Gecachter Build-Fehler",
+            explanation: "Ein vorheriger Build schlug fehl und der Fehler ist gecacht.",
+            solution: "\
 # Failure-Cache leeren und neu versuchen:
 nix build --rebuild
 
 # Oder alle Failures löschen:
 nix-store --delete $(nix-store -q --failed)",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nix cacht Build-Fehler um wiederholte fehlgeschlagene Builds zu 
 vermeiden. Das kann störend sein wenn du das Problem behoben hast.
@@ -757,16 +840,19 @@ CACHE LEEREN:
   nix build --rebuild .#package
   # Oder:
   nix-store --delete $(nix-store -q --failed)",
-        tip: Some("Nutze --rebuild um gecachten Fehler zu ignorieren"),
-    });
+            tip: Some("Nutze --rebuild um gecachten Fehler zu ignorieren"),
+        },
+    );
 
     // =========================================================================
     // HOME-MANAGER
     // =========================================================================
-    m.insert("home-manager-not-found", PatternTranslation {
-        title: "Home-Manager nicht gefunden",
-        explanation: "Home-Manager ist nicht verfügbar. Fehlender Input oder Import?",
-        solution: "\
+    m.insert(
+        "home-manager-not-found",
+        PatternTranslation {
+            title: "Home-Manager nicht gefunden",
+            explanation: "Home-Manager ist nicht verfügbar. Fehlender Input oder Import?",
+            solution: "\
 # In flake.nix inputs:
 inputs.home-manager = {
   url = \"github:nix-community/home-manager\";
@@ -775,7 +861,7 @@ inputs.home-manager = {
 
 # In outputs:
 outputs = { home-manager, ... }: { };",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Home-Manager ist ein separates Projekt, nicht Teil von nixpkgs.
 Du musst es explizit als Input hinzufügen.
@@ -791,19 +877,23 @@ FLAKE SETUP:
   };
   outputs = { nixpkgs, home-manager, ... }: { };
 }",
-        tip: Some("Vergiss nicht 'inputs.nixpkgs.follows'"),
-    });
+            tip: Some("Vergiss nicht 'inputs.nixpkgs.follows'"),
+        },
+    );
 
-    m.insert("home-option-not-exist", PatternTranslation {
-        title: "Home-Manager Option '$1' existiert nicht",
-        explanation: "Diese Home-Manager Option existiert nicht. Tippfehler oder fehlendes Modul?",
-        solution: "\
+    m.insert(
+        "home-option-not-exist",
+        PatternTranslation {
+            title: "Home-Manager Option '$1' existiert nicht",
+            explanation:
+                "Diese Home-Manager Option existiert nicht. Tippfehler oder fehlendes Modul?",
+            solution: "\
 # Optionen suchen:
 # https://nix-community.github.io/home-manager/options.html
 
 # Falls Programm-Modul, erst aktivieren:
 programs.git.enable = true;",
-        deep_dive: "\
+            deep_dive: "\
 HÄUFIGE FEHLER:
 
 1. PROGRAMM NICHT AKTIVIERT:
@@ -817,19 +907,22 @@ HÄUFIGE FEHLER:
 2. FALSCHER PFAD:
    home.programs.git  # FALSCH
    programs.git       # RICHTIG",
-        tip: Some("Erst Programm aktivieren: programs.X.enable = true"),
-    });
+            tip: Some("Erst Programm aktivieren: programs.X.enable = true"),
+        },
+    );
 
-    m.insert("home-file-collision", PatternTranslation {
-        title: "Home-Manager Datei-Kollision: $1",
-        explanation: "Datei '$1' existiert bereits und HM überschreibt sie nicht.",
-        solution: "\
+    m.insert(
+        "home-file-collision",
+        PatternTranslation {
+            title: "Home-Manager Datei-Kollision: $1",
+            explanation: "Datei '$1' existiert bereits und HM überschreibt sie nicht.",
+            solution: "\
 # Option 1 - Backup und HM verwalten lassen:
 mv ~/.config/file ~/.config/file.backup
 
 # Option 2 - Überschreiben erzwingen:
 home.file.\"pfad\".force = true;",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Home-Manager weigert sich bestehende Dateien zu überschreiben die 
 es nicht verwaltet. Das verhindert Datenverlust.
@@ -838,22 +931,25 @@ LÖSUNGEN:
 1. Datei backuppen und entfernen
 2. home.file.\"pfad\".force = true;
 3. HM von Anfang an verwalten lassen",
-        tip: Some("Erst Datei backuppen, dann HM verwalten lassen"),
-    });
+            tip: Some("Erst Datei backuppen, dann HM verwalten lassen"),
+        },
+    );
 
     // =========================================================================
     // FUNCTION / ARGUMENT ERRORS
     // =========================================================================
-    m.insert("function-expects-argument", PatternTranslation {
-        title: "Funktion fehlt Argument: $2",
-        explanation: "Funktion '$1' erwartet Argument '$2', aber es wurde nicht übergeben.",
-        solution: "\
+    m.insert(
+        "function-expects-argument",
+        PatternTranslation {
+            title: "Funktion fehlt Argument: $2",
+            explanation: "Funktion '$1' erwartet Argument '$2', aber es wurde nicht übergeben.",
+            solution: "\
 # Fehlendes Argument hinzufügen:
 myFunction {
   $2 = <wert>;
   # ... andere args
 }",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nix-Funktionen mit Attribut-Set-Parametern können Pflichtargumente haben.
 
@@ -870,19 +966,22 @@ FUNKTIONSTYPEN:
 3. MIT ... (EXTRA ARGS ERLAUBT):
    f = { a, ... }: a;
    f { a = 1; c = 2; }  # OK: 'c' ignoriert",
-        tip: None,
-    });
+            tip: None,
+        },
+    );
 
-    m.insert("unexpected-argument", PatternTranslation {
-        title: "Unerwartetes Argument: $1",
-        explanation: "Funktion akzeptiert Argument '$1' nicht.",
-        solution: "\
+    m.insert(
+        "unexpected-argument",
+        PatternTranslation {
+            title: "Unerwartetes Argument: $1",
+            explanation: "Funktion akzeptiert Argument '$1' nicht.",
+            solution: "\
 # Argument entfernen oder Funktionssignatur prüfen:
 # Die Funktion hat vielleicht kein '...'
 
 # Falls du die Funktion kontrollierst:
 myFunc = { known, args, ... }: ...",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Die Funktionsparameter enthalten dieses Argument nicht und haben 
 kein '...' um Extra-Argumente zu akzeptieren.
@@ -893,20 +992,23 @@ BEISPIEL:
   
   f = { a, b, ... }: a + b;
   f { a = 1; b = 2; c = 3; }  # OK: 'c' ignoriert",
-        tip: Some("Prüfe auf Tippfehler im Argument-Namen"),
-    });
+            tip: Some("Prüfe auf Tippfehler im Argument-Namen"),
+        },
+    );
 
-    m.insert("not-a-function", PatternTranslation {
-        title: "Keine Funktion (ist $1)",
-        explanation: "Versuch $1 aufzurufen als wäre es eine Funktion.",
-        solution: "\
+    m.insert(
+        "not-a-function",
+        PatternTranslation {
+            title: "Keine Funktion (ist $1)",
+            explanation: "Versuch $1 aufzurufen als wäre es eine Funktion.",
+            solution: "\
 # Typ prüfen:
 builtins.typeOf x
 
 # Häufiger Fix - Attrset nicht aufrufen:
 pkgs.hello      # Derivation (korrekt)
 pkgs.hello { }  # FALSCH - hello ist keine Funktion",
-        deep_dive: "\
+            deep_dive: "\
 HÄUFIGE FEHLER:
 
 1. DERIVATION AUFRUFEN:
@@ -927,22 +1029,25 @@ HÄUFIGE FEHLER:
    # RICHTIG:
    pkgs.hello.override { }
    pkgs.hello.overrideAttrs (old: { })",
-        tip: Some("Nutze builtins.typeOf zum Prüfen"),
-    });
+            tip: Some("Nutze builtins.typeOf zum Prüfen"),
+        },
+    );
 
     // =========================================================================
     // FLAKE ADVANCED
     // =========================================================================
-    m.insert("flake-lock-outdated", PatternTranslation {
-        title: "Flake Input veraltet: $1",
-        explanation: "Die flake.lock ist nicht aktuell mit flake.nix.",
-        solution: "\
+    m.insert(
+        "flake-lock-outdated",
+        PatternTranslation {
+            title: "Flake Input veraltet: $1",
+            explanation: "Die flake.lock ist nicht aktuell mit flake.nix.",
+            solution: "\
 # Alle Inputs updaten:
 nix flake update
 
 # Spezifischen Input updaten:
 nix flake lock --update-input $1",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 flake.lock pinnt exakte Versionen der Inputs. Wenn du flake.nix 
 änderst, muss die Lock-Datei aktualisiert werden.
@@ -951,17 +1056,20 @@ BEFEHLE:
   nix flake update           # Alle updaten
   nix flake lock --update-input nixpkgs  # Einen updaten
   rm flake.lock && nix flake lock  # Neu erstellen",
-        tip: Some("'nix flake update' nach Input-Änderungen"),
-    });
+            tip: Some("'nix flake update' nach Input-Änderungen"),
+        },
+    );
 
-    m.insert("flake-follows-not-found", PatternTranslation {
-        title: "Follows nicht-existenten Input: $1",
-        explanation: "Input versucht '$1' zu folgen, aber dieser Input existiert nicht.",
-        solution: "\
+    m.insert(
+        "flake-follows-not-found",
+        PatternTranslation {
+            title: "Follows nicht-existenten Input: $1",
+            explanation: "Input versucht '$1' zu folgen, aber dieser Input existiert nicht.",
+            solution: "\
 # Stelle sicher dass der gefolgte Input existiert:
 inputs.nixpkgs.url = \"...\";
 inputs.home-manager.inputs.nixpkgs.follows = \"nixpkgs\";",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 'follows' sagt einem Input eine andere Version zu nutzen.
 Das Ziel muss existieren.
@@ -980,22 +1088,25 @@ BEISPIEL:
 HÄUFIGE FEHLER:
 1. Tippfehler im gefolgten Input-Namen
 2. Vergessen den Input zu deklarieren",
-        tip: Some("Schreibweise des gefolgten Inputs prüfen"),
-    });
+            tip: Some("Schreibweise des gefolgten Inputs prüfen"),
+        },
+    );
 
     // =========================================================================
     // BUILD PHASE ERRORS
     // =========================================================================
-    m.insert("substitute-in-place-failed", PatternTranslation {
-        title: "substituteInPlace Pattern nicht gefunden",
-        explanation: "Das zu ersetzende Pattern wurde in der Datei nicht gefunden.",
-        solution: "\
+    m.insert(
+        "substitute-in-place-failed",
+        PatternTranslation {
+            title: "substituteInPlace Pattern nicht gefunden",
+            explanation: "Das zu ersetzende Pattern wurde in der Datei nicht gefunden.",
+            solution: "\
 # Exakten Inhalt prüfen:
 cat $src/pfad/zur/datei | grep 'pattern'
 
 # Flexibleres Pattern oder --replace-warn:
 substituteInPlace datei --replace-warn 'alt' 'neu'",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 substituteInPlace braucht exakten Pattern-Match.
 
@@ -1011,19 +1122,22 @@ DEBUGGING:
 
   # Nicht fehlschlagen:
   substituteInPlace file --replace-warn 'alt' 'neu'",
-        tip: Some("--replace-warn schlägt nicht fehl bei fehlendem Pattern"),
-    });
+            tip: Some("--replace-warn schlägt nicht fehl bei fehlendem Pattern"),
+        },
+    );
 
-    m.insert("patch-failed", PatternTranslation {
-        title: "Patch konnte nicht angewandt werden",
-        explanation: "Eine Patch-Datei konnte nicht auf den Quellcode angewandt werden.",
-        solution: "\
+    m.insert(
+        "patch-failed",
+        PatternTranslation {
+            title: "Patch konnte nicht angewandt werden",
+            explanation: "Eine Patch-Datei konnte nicht auf den Quellcode angewandt werden.",
+            solution: "\
 # Patch für neue Version regenerieren:
 diff -u original modified > fix.patch
 
 # Oder patchFlags nutzen:
 patchFlags = [ \"-p0\" ];",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Patches haben Kontext-Zeilen die matchen müssen. Wenn sich 
 der Quellcode ändert, passen Patches oft nicht mehr.
@@ -1032,19 +1146,22 @@ DEBUGGING:
 1. Patch-Level prüfen (default -p1)
 2. Patch neu generieren
 3. Fuzz versuchen: patchFlags = [ \"-F3\" ];",
-        tip: Some("Patches brechen oft bei Version-Updates"),
-    });
+            tip: Some("Patches brechen oft bei Version-Updates"),
+        },
+    );
 
-    m.insert("patchshebangs-failed", PatternTranslation {
-        title: "patchShebangs fehlgeschlagen",
-        explanation: "Script-Interpreter konnte nicht gefunden oder gepatcht werden.",
-        solution: "\
+    m.insert(
+        "patchshebangs-failed",
+        PatternTranslation {
+            title: "patchShebangs fehlgeschlagen",
+            explanation: "Script-Interpreter konnte nicht gefunden oder gepatcht werden.",
+            solution: "\
 # Interpreter zu nativeBuildInputs hinzufügen:
 nativeBuildInputs = [ bash python3 ];
 
 # Oder Patching überspringen:
 dontPatchShebangs = true;",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nix patcht automatisch #!/usr/bin/env python zu Nix-Store-Pfaden.
 Wenn der Interpreter nicht in der Build-Umgebung ist, schlägt dies fehl.
@@ -1053,18 +1170,22 @@ LÖSUNGEN:
 1. Interpreter zu Build hinzufügen
 2. dontPatchShebangs = true;
 3. Manuell patchen in postFixup",
-        tip: Some("Interpreter zu nativeBuildInputs hinzufügen"),
-    });
+            tip: Some("Interpreter zu nativeBuildInputs hinzufügen"),
+        },
+    );
 
-    m.insert("ifd-disabled", PatternTranslation {
-        title: "Import From Derivation (IFD) deaktiviert",
-        explanation: "Versuch Nix-Code aus Build-Ergebnis zu importieren, aber IFD ist deaktiviert.",
-        solution: "\
+    m.insert(
+        "ifd-disabled",
+        PatternTranslation {
+            title: "Import From Derivation (IFD) deaktiviert",
+            explanation:
+                "Versuch Nix-Code aus Build-Ergebnis zu importieren, aber IFD ist deaktiviert.",
+            solution: "\
 # IFD aktivieren (wenn du das System kontrollierst):
 nix.settings.allow-import-from-derivation = true;
 
 # Oder refaktorieren um IFD zu vermeiden",
-        deep_dive: "\
+            deep_dive: "\
 WAS IST IFD:
 Import From Derivation bedeutet .nix Dateien zu importieren die 
 von einem Build produziert werden. Es ist manchmal deaktiviert 
@@ -1077,22 +1198,25 @@ WARUM PROBLEMATISCH:
 
 AKTIVIEREN:
   nix.settings.allow-import-from-derivation = true;",
-        tip: Some("IFD verlangsamt Evaluation - wenn möglich vermeiden"),
-    });
+            tip: Some("IFD verlangsamt Evaluation - wenn möglich vermeiden"),
+        },
+    );
 
     // =========================================================================
     // SYSTEM / PLATFORM
     // =========================================================================
-    m.insert("unsupported-system", PatternTranslation {
-        title: "System nicht unterstützt: $1",
-        explanation: "Dieses Paket unterstützt deine System-Architektur nicht.",
-        solution: "\
+    m.insert(
+        "unsupported-system",
+        PatternTranslation {
+            title: "System nicht unterstützt: $1",
+            explanation: "Dieses Paket unterstützt deine System-Architektur nicht.",
+            solution: "\
 # Unterstützte Plattformen prüfen:
 nix eval nixpkgs#hello.meta.platforms
 
 # Für Cross-Compilation:
 nix build .#packages.x86_64-linux.hello",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nicht alle Pakete funktionieren auf allen Systemen:
 1. Nur-Binär-Pakete (Steam, Spotify)
@@ -1104,20 +1228,23 @@ SYSTEME IN NIX:
 - aarch64-linux: ARM Linux (Raspberry Pi)
 - x86_64-darwin: Intel Macs
 - aarch64-darwin: Apple Silicon Macs",
-        tip: Some("meta.platforms für unterstützte Systeme prüfen"),
-    });
+            tip: Some("meta.platforms für unterstützte Systeme prüfen"),
+        },
+    );
 
-    m.insert("unfree-not-allowed", PatternTranslation {
-        title: "Unfreies Paket nicht erlaubt",
-        explanation: "Dieses Paket hat eine nicht-freie Lizenz und unfree ist nicht aktiviert.",
-        solution: "\
+    m.insert(
+        "unfree-not-allowed",
+        PatternTranslation {
+            title: "Unfreies Paket nicht erlaubt",
+            explanation: "Dieses Paket hat eine nicht-freie Lizenz und unfree ist nicht aktiviert.",
+            solution: "\
 # Alle unfree erlauben (NixOS):
 nixpkgs.config.allowUnfree = true;
 
 # Oder pro Paket:
 nixpkgs.config.allowUnfreePredicate = pkg:
   builtins.elem (lib.getName pkg) [ \"steam\" ];",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nix respektiert Software-Freiheit standardmäßig. Pakete mit 
 proprietären Lizenzen müssen explizit erlaubt werden.
@@ -1131,18 +1258,21 @@ AKTIVIEREN:
   
   # Umgebungsvariable:
   NIXPKGS_ALLOW_UNFREE=1 nix build ...",
-        tip: Some("allowUnfreePredicate für selektives Unfree nutzen"),
-    });
+            tip: Some("allowUnfreePredicate für selektives Unfree nutzen"),
+        },
+    );
 
-    m.insert("broken-package", PatternTranslation {
-        title: "Paket ist als broken markiert",
-        explanation: "Dieses Paket ist als defekt in nixpkgs bekannt.",
-        solution: "\
+    m.insert(
+        "broken-package",
+        PatternTranslation {
+            title: "Paket ist als broken markiert",
+            explanation: "Dieses Paket ist als defekt in nixpkgs bekannt.",
+            solution: "\
 # Broken erlauben (nicht empfohlen):
 nixpkgs.config.allowBroken = true;
 
 # Besser: Prüfen warum es broken ist",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Pakete werden als broken markiert wenn:
 1. Build konsistent fehlschlägt
@@ -1154,13 +1284,16 @@ BESSERE OPTIONEN:
 1. Alternatives Paket finden
 2. Älteres nixpkgs nutzen
 3. Fixen und zu nixpkgs beitragen",
-        tip: Some("nixpkgs Issues für das Paket prüfen"),
-    });
+            tip: Some("nixpkgs Issues für das Paket prüfen"),
+        },
+    );
 
-    m.insert("insecure-package", PatternTranslation {
-        title: "Paket hat Sicherheitslücken",
-        explanation: "Dieses Paket hat bekannte Sicherheitsprobleme.",
-        solution: "\
+    m.insert(
+        "insecure-package",
+        PatternTranslation {
+            title: "Paket hat Sicherheitslücken",
+            explanation: "Dieses Paket hat bekannte Sicherheitsprobleme.",
+            solution: "\
 # Schwachstellen prüfen:
 nix eval nixpkgs#pkg.meta.knownVulnerabilities
 
@@ -1168,7 +1301,7 @@ nix eval nixpkgs#pkg.meta.knownVulnerabilities
 nixpkgs.config.permittedInsecurePackages = [
   \"openssl-1.1.1w\"
 ];",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nixpkgs trackt CVEs und markiert verwundbare Pakete.
 
@@ -1182,16 +1315,19 @@ BESSERE OPTIONEN:
 1. Auf gefixte Version updaten
 2. Sichere Alternative finden
 3. In Container/VM isolieren",
-        tip: Some("Wenn möglich auf gepatchte Version updaten"),
-    });
+            tip: Some("Wenn möglich auf gepatchte Version updaten"),
+        },
+    );
 
     // =========================================================================
     // GC / STORE MANAGEMENT
     // =========================================================================
-    m.insert("gc-root-protected", PatternTranslation {
-        title: "Kann nicht löschen: Pfad ist GC-Root",
-        explanation: "Dieser Pfad ist durch einen Garbage-Collector-Root geschützt.",
-        solution: "\
+    m.insert(
+        "gc-root-protected",
+        PatternTranslation {
+            title: "Kann nicht löschen: Pfad ist GC-Root",
+            explanation: "Dieser Pfad ist durch einen Garbage-Collector-Root geschützt.",
+            solution: "\
 # GC Roots auflisten:
 nix-store --gc --print-roots
 
@@ -1200,7 +1336,7 @@ rm /nix/var/nix/gcroots/auto/<link>
 
 # Dann Garbage Collection:
 nix-collect-garbage",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 GC-Roots schützen Store-Pfade vor Garbage Collection.
 
@@ -1215,19 +1351,22 @@ ROOTS AUFLISTEN:
   
 ALTE GENERATIONEN ENTFERNEN:
   nix-collect-garbage -d",
-        tip: Some("'nix-collect-garbage -d' entfernt alte Generationen"),
-    });
+            tip: Some("'nix-collect-garbage -d' entfernt alte Generationen"),
+        },
+    );
 
-    m.insert("disk-full", PatternTranslation {
-        title: "Festplatte voll",
-        explanation: "Nicht genug Speicherplatz für Build oder Store-Operationen.",
-        solution: "\
+    m.insert(
+        "disk-full",
+        PatternTranslation {
+            title: "Festplatte voll",
+            explanation: "Nicht genug Speicherplatz für Build oder Store-Operationen.",
+            solution: "\
 # Speicher freigeben mit Garbage Collection:
 nix-collect-garbage -d
 
 # Nutzung prüfen:
 du -sh /nix/store",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 /nix/store kann über Zeit groß werden:
 - Mehrere Paketversionen
@@ -1247,19 +1386,22 @@ SPEICHER FREIGEBEN:
 3. NUTZUNG PRÜFEN:
    df -h /nix
    du -sh /nix/store",
-        tip: Some("'nix-collect-garbage -d' regelmäßig ausführen"),
-    });
+            tip: Some("'nix-collect-garbage -d' regelmäßig ausführen"),
+        },
+    );
 
     // =========================================================================
     // PACKAGE RENAMED / REMOVED
     // =========================================================================
-    m.insert("package-renamed", PatternTranslation {
-        title: "Paket umbenannt: '$1' -> '$2'",
-        explanation: "Das Paket '$1' wurde in '$2' umbenannt.",
-        solution: "\
+    m.insert(
+        "package-renamed",
+        PatternTranslation {
+            title: "Paket umbenannt: '$1' -> '$2'",
+            explanation: "Das Paket '$1' wurde in '$2' umbenannt.",
+            solution: "\
 # Ersetze in deiner Konfiguration:
 $1  ->  $2",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nixpkgs benennt Pakete manchmal um für:
 - Konsistenz (python3Packages statt pythonPackages)
@@ -1274,19 +1416,22 @@ WO ÄNDERN:
 
 SUCHEN UND ERSETZEN:
   grep -r '$1' /etc/nixos/",
-        tip: Some("Folge einfach der Umbenennung"),
-    });
+            tip: Some("Folge einfach der Umbenennung"),
+        },
+    );
 
-    m.insert("package-removed", PatternTranslation {
-        title: "Paket entfernt: $1",
-        explanation: "Das Paket '$1' wurde aus nixpkgs entfernt.",
-        solution: "\
+    m.insert(
+        "package-removed",
+        PatternTranslation {
+            title: "Paket entfernt: $1",
+            explanation: "Das Paket '$1' wurde aus nixpkgs entfernt.",
+            solution: "\
 # Alternative suchen:
 nix search nixpkgs <ähnlicher-name>
 
 # Oder älteres nixpkgs nutzen:
 inputs.nixpkgs-old.url = \"github:NixOS/nixpkgs/nixos-23.11\";",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Pakete werden entfernt wegen:
 - Unmaintained/abandoned upstream
@@ -1305,22 +1450,25 @@ ALTERNATIVEN:
 
 3. SELBST PAKETIEREN:
    Wenn du es wirklich brauchst, erstelle eigene Derivation.",
-        tip: Some("Prüfe ob es eine Alternative gibt"),
-    });
+            tip: Some("Prüfe ob es eine Alternative gibt"),
+        },
+    );
 
     // =========================================================================
     // NETWORK ERRORS
     // =========================================================================
-    m.insert("network-timeout", PatternTranslation {
-        title: "Netzwerk-Timeout",
-        explanation: "Verbindung zu '$1' ist fehlgeschlagen (Timeout).",
-        solution: "\
+    m.insert(
+        "network-timeout",
+        PatternTranslation {
+            title: "Netzwerk-Timeout",
+            explanation: "Verbindung zu '$1' ist fehlgeschlagen (Timeout).",
+            solution: "\
 # Erneut versuchen:
 nix build --option connect-timeout 60
 
 # Offline-Modus wenn möglich:
 nix build --offline",
-        deep_dive: "\
+            deep_dive: "\
 HÄUFIGE URSACHEN:
 1. Langsame/instabile Internetverbindung
 2. Server überlastet
@@ -1341,19 +1489,22 @@ LÖSUNGEN:
 
 4. RETRY:
    Einfach nochmal versuchen.",
-        tip: Some("Oft hilft einfach nochmal versuchen"),
-    });
+            tip: Some("Oft hilft einfach nochmal versuchen"),
+        },
+    );
 
-    m.insert("cannot-resolve-host", PatternTranslation {
-        title: "Host konnte nicht aufgelöst werden",
-        explanation: "DNS-Auflösung für Server fehlgeschlagen.",
-        solution: "\
+    m.insert(
+        "cannot-resolve-host",
+        PatternTranslation {
+            title: "Host konnte nicht aufgelöst werden",
+            explanation: "DNS-Auflösung für Server fehlgeschlagen.",
+            solution: "\
 # DNS prüfen:
 nslookup cache.nixos.org
 
 # Temporär andere DNS nutzen:
 echo 'nameserver 8.8.8.8' | sudo tee /etc/resolv.conf",
-        deep_dive: "\
+            deep_dive: "\
 HÄUFIGE URSACHEN:
 1. Kein Internet
 2. DNS-Server nicht erreichbar
@@ -1370,19 +1521,22 @@ LÖSUNGEN:
 2. DNS-Server in /etc/resolv.conf ändern
 3. VPN deaktivieren/aktivieren
 4. Router neustarten",
-        tip: Some("Prüfe deine Internetverbindung"),
-    });
+            tip: Some("Prüfe deine Internetverbindung"),
+        },
+    );
 
-    m.insert("ssl-certificate-error", PatternTranslation {
-        title: "SSL-Zertifikatsfehler",
-        explanation: "SSL/TLS-Zertifikat konnte nicht verifiziert werden.",
-        solution: "\
+    m.insert(
+        "ssl-certificate-error",
+        PatternTranslation {
+            title: "SSL-Zertifikatsfehler",
+            explanation: "SSL/TLS-Zertifikat konnte nicht verifiziert werden.",
+            solution: "\
 # Systemzeit prüfen (häufige Ursache!):
 date
 
 # CA-Zertifikate aktualisieren:
 sudo nixos-rebuild switch",
-        deep_dive: "\
+            deep_dive: "\
 HÄUFIGE URSACHEN:
 1. FALSCHE SYSTEMZEIT (sehr häufig!)
    Zertifikate haben Gültigkeitszeiträume.
@@ -1405,22 +1559,25 @@ LÖSUNGEN:
 
 3. PROXY-ZERTIFIKATE:
    Füge Firmen-CA zu den vertrauenswürdigen hinzu.",
-        tip: Some("Prüfe zuerst deine Systemzeit!"),
-    });
+            tip: Some("Prüfe zuerst deine Systemzeit!"),
+        },
+    );
 
     // =========================================================================
     // NIXOS-REBUILD SPECIFIC
     // =========================================================================
-    m.insert("nixos-config-not-found", PatternTranslation {
-        title: "NixOS Konfiguration '$1' nicht gefunden",
-        explanation: "nixosConfigurations.$1 existiert nicht im Flake.",
-        solution: "\
+    m.insert(
+        "nixos-config-not-found",
+        PatternTranslation {
+            title: "NixOS Konfiguration '$1' nicht gefunden",
+            explanation: "nixosConfigurations.$1 existiert nicht im Flake.",
+            solution: "\
 # Verfügbare Konfigurationen auflisten:
 nix flake show
 
 # Mit richtigem Hostname:
 sudo nixos-rebuild switch --flake .#<hostname>",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Der Hostname in --flake .#<n> muss mit einem Key in 
 nixosConfigurations übereinstimmen.
@@ -1439,19 +1596,22 @@ HÄUFIGE FEHLER:
 - Tippfehler im Hostname
 - Hostname geändert ohne Flake zu updaten
 - Groß-/Kleinschreibung",
-        tip: Some("Hostname muss mit flake.nix übereinstimmen"),
-    });
+            tip: Some("Hostname muss mit flake.nix übereinstimmen"),
+        },
+    );
 
-    m.insert("activation-script-failed", PatternTranslation {
-        title: "Aktivierungsskript fehlgeschlagen",
-        explanation: "Ein NixOS Aktivierungsskript ist fehlgeschlagen.",
-        solution: "\
+    m.insert(
+        "activation-script-failed",
+        PatternTranslation {
+            title: "Aktivierungsskript fehlgeschlagen",
+            explanation: "Ein NixOS Aktivierungsskript ist fehlgeschlagen.",
+            solution: "\
 # Fehler im Journal prüfen:
 journalctl -xe
 
 # Manuell aktivieren mit Debug:
 sudo /nix/var/nix/profiles/system/activate",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Aktivierungsskripte laufen nach dem Build um das System zu 
 konfigurieren. Fehler können auftreten bei:
@@ -1469,20 +1629,23 @@ HÄUFIGE URSACHEN:
 - Altes State kollidiert mit neuem
 - Service braucht manuelle Migration
 - Hardcodierte Pfade im Service",
-        tip: Some("Prüfe journalctl -xe für Details"),
-    });
+            tip: Some("Prüfe journalctl -xe für Details"),
+        },
+    );
 
-    m.insert("boot-loader-failed", PatternTranslation {
-        title: "Bootloader-Installation fehlgeschlagen",
-        explanation: "Der Bootloader konnte nicht installiert werden.",
-        solution: "\
+    m.insert(
+        "boot-loader-failed",
+        PatternTranslation {
+            title: "Bootloader-Installation fehlgeschlagen",
+            explanation: "Der Bootloader konnte nicht installiert werden.",
+            solution: "\
 # GRUB neu installieren:
 sudo grub-install /dev/sda
 sudo nixos-rebuild boot
 
 # Oder EFI-Partition prüfen:
 mount | grep boot",
-        deep_dive: "\
+            deep_dive: "\
 HÄUFIGE URSACHEN:
 
 1. EFI-PARTITION NICHT GEMOUNTED:
@@ -1506,20 +1669,23 @@ Boote von NixOS USB und:
   mount /dev/sda1 /mnt/boot
   nixos-enter
   nixos-rebuild boot",
-        tip: Some("Bei EFI: Prüfe ob /boot gemounted ist"),
-    });
+            tip: Some("Bei EFI: Prüfe ob /boot gemounted ist"),
+        },
+    );
 
-    m.insert("systemd-service-failed", PatternTranslation {
-        title: "Systemd-Dienst fehlgeschlagen: $1",
-        explanation: "Der Dienst '$1' konnte nach dem Switch nicht starten.",
-        solution: "\
+    m.insert(
+        "systemd-service-failed",
+        PatternTranslation {
+            title: "Systemd-Dienst fehlgeschlagen: $1",
+            explanation: "Der Dienst '$1' konnte nach dem Switch nicht starten.",
+            solution: "\
 # Status prüfen:
 systemctl status $1
 journalctl -u $1
 
 # Neustarten:
 sudo systemctl restart $1",
-        deep_dive: "\
+            deep_dive: "\
 DEBUGGING:
 
 1. STATUS UND LOGS:
@@ -1540,19 +1706,22 @@ HÄUFIGE URSACHEN:
 
 MANUELL TESTEN:
   sudo -u <user> /nix/store/.../bin/<program>",
-        tip: Some("journalctl -u <service> zeigt die Logs"),
-    });
+            tip: Some("journalctl -u <service> zeigt die Logs"),
+        },
+    );
 
-    m.insert("switch-to-configuration-failed", PatternTranslation {
-        title: "switch-to-configuration fehlgeschlagen",
-        explanation: "Die neue Konfiguration konnte nicht aktiviert werden.",
-        solution: "\
+    m.insert(
+        "switch-to-configuration-failed",
+        PatternTranslation {
+            title: "switch-to-configuration fehlgeschlagen",
+            explanation: "Die neue Konfiguration konnte nicht aktiviert werden.",
+            solution: "\
 # Vorherige Generation nutzen:
 sudo nixos-rebuild switch --rollback
 
 # Oder bei Boot:
 # Im GRUB-Menü ältere Generation wählen",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Die Aktivierung der neuen Konfiguration ist fehlgeschlagen.
 Das System läuft noch auf der alten Konfiguration.
@@ -1571,19 +1740,22 @@ HÄUFIGE URSACHEN:
 - Berechtigungsprobleme
 - Ressourcenkonflikte (Ports, Files)
 - Inkompatible State-Migration",
-        tip: Some("Rollback ist sicher und schnell"),
-    });
+            tip: Some("Rollback ist sicher und schnell"),
+        },
+    );
 
-    m.insert("dependency-build-failed", PatternTranslation {
-        title: "Abhängigkeit konnte nicht gebaut werden",
-        explanation: "Eine Abhängigkeit für '$1' konnte nicht gebaut werden.",
-        solution: "\
+    m.insert(
+        "dependency-build-failed",
+        PatternTranslation {
+            title: "Abhängigkeit konnte nicht gebaut werden",
+            explanation: "Eine Abhängigkeit für '$1' konnte nicht gebaut werden.",
+            solution: "\
 # Vollständiges Log prüfen:
 nix log <failed-derivation>
 
 # Oder mit mehr Output:
 nix build -L",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Ein Paket in deiner Abhängigkeitskette ist fehlgeschlagen.
 Dein Paket selbst ist wahrscheinlich okay.
@@ -1603,22 +1775,25 @@ LÖSUNGEN:
 - nixpkgs updaten (Bug könnte gefixt sein)
 - Zur letzten funktionierenden Version zurück
 - Bug in nixpkgs melden",
-        tip: Some("Prüfe nixpkgs GitHub Issues"),
-    });
+            tip: Some("Prüfe nixpkgs GitHub Issues"),
+        },
+    );
 
     // =========================================================================
     // LOCK / PERMISSION
     // =========================================================================
-    m.insert("resource-locked", PatternTranslation {
-        title: "Ressource gesperrt",
-        explanation: "Eine Nix-Ressource ist von einem anderen Prozess gesperrt.",
-        solution: "\
+    m.insert(
+        "resource-locked",
+        PatternTranslation {
+            title: "Ressource gesperrt",
+            explanation: "Eine Nix-Ressource ist von einem anderen Prozess gesperrt.",
+            solution: "\
 # Andere Nix-Prozesse prüfen:
 ps aux | grep nix
 
 # Lock-Datei manuell entfernen (Vorsicht!):
 sudo rm /nix/var/nix/gc.lock",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Nix nutzt Locks um gleichzeitige Zugriffe zu verhindern.
 
@@ -1641,19 +1816,22 @@ LÖSUNGEN:
    sudo rm /nix/var/nix/db/db.lock
    
    VORSICHT: Nur wenn sicher kein anderer Prozess läuft!",
-        tip: Some("Warte bis andere Nix-Prozesse fertig sind"),
-    });
+            tip: Some("Warte bis andere Nix-Prozesse fertig sind"),
+        },
+    );
 
-    m.insert("not-authorized-daemon", PatternTranslation {
-        title: "Nicht autorisiert für Nix-Daemon",
-        explanation: "Du hast keine Berechtigung den Nix-Daemon zu nutzen.",
-        solution: "\
+    m.insert(
+        "not-authorized-daemon",
+        PatternTranslation {
+            title: "Nicht autorisiert für Nix-Daemon",
+            explanation: "Du hast keine Berechtigung den Nix-Daemon zu nutzen.",
+            solution: "\
 # User zur nix-users Gruppe hinzufügen:
 sudo usermod -aG nixbld $USER
 
 # Neu einloggen oder:
 newgrp nixbld",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Multi-User Nix-Installationen erfordern Gruppenmitgliedschaft.
 
@@ -1673,22 +1851,25 @@ LÖSUNGEN:
 PRÜFEN:
   groups  # Zeigt deine Gruppen
   ls -la /nix/var/nix/daemon-socket/",
-        tip: Some("Neu einloggen nach Gruppenänderung"),
-    });
+            tip: Some("Neu einloggen nach Gruppenänderung"),
+        },
+    );
 
     // =========================================================================
     // FLAKE SPECIFIC
     // =========================================================================
-    m.insert("flake-not-found", PatternTranslation {
-        title: "flake.nix nicht gefunden",
-        explanation: "Im angegebenen Pfad/Repository wurde keine flake.nix gefunden.",
-        solution: "\
+    m.insert(
+        "flake-not-found",
+        PatternTranslation {
+            title: "flake.nix nicht gefunden",
+            explanation: "Im angegebenen Pfad/Repository wurde keine flake.nix gefunden.",
+            solution: "\
 # Prüfe ob flake.nix existiert:
 ls -la flake.nix
 
 # Bei Git-Repos - richtiger Branch?
 git branch -a",
-        deep_dive: "\
+            deep_dive: "\
 HÄUFIGE URSACHEN:
 
 1. FALSCHES VERZEICHNIS:
@@ -1707,19 +1888,22 @@ HÄUFIGE URSACHEN:
    
 5. PRIVATES REPO:
    git+ssh://git@github.com/user/private-repo",
-        tip: Some("Ist flake.nix im Git committed?"),
-    });
+            tip: Some("Ist flake.nix im Git committed?"),
+        },
+    );
 
-    m.insert("dirty-git-tree", PatternTranslation {
-        title: "Git-Verzeichnis hat uncommittete Änderungen",
-        explanation: "Das Git-Repository hat ungespeicherte Änderungen.",
-        solution: "\
+    m.insert(
+        "dirty-git-tree",
+        PatternTranslation {
+            title: "Git-Verzeichnis hat uncommittete Änderungen",
+            explanation: "Das Git-Repository hat ungespeicherte Änderungen.",
+            solution: "\
 # Änderungen committen:
 git add -A && git commit -m 'Update'
 
 # Oder dirty erlauben (zum Testen):
 nix build --impure",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Flakes wollen einen sauberen Git-Zustand für Reproduzierbarkeit.
 Uncommittete Dateien werden ignoriert!
@@ -1738,19 +1922,22 @@ LÖSUNGEN:
    
 3. LOKALER PFAD STATT GIT:
    nix build path:.#package",
-        tip: Some("Uncommittete Dateien werden ignoriert!"),
-    });
+            tip: Some("Uncommittete Dateien werden ignoriert!"),
+        },
+    );
 
-    m.insert("pure-eval-forbidden", PatternTranslation {
-        title: "Absoluter Pfad in Pure-Eval verboten",
-        explanation: "Zugriff auf absoluten Pfad ist im Pure-Eval-Modus nicht erlaubt.",
-        solution: "\
+    m.insert(
+        "pure-eval-forbidden",
+        PatternTranslation {
+            title: "Absoluter Pfad in Pure-Eval verboten",
+            explanation: "Zugriff auf absoluten Pfad ist im Pure-Eval-Modus nicht erlaubt.",
+            solution: "\
 # Relativen Pfad nutzen:
 ./config statt /home/user/config
 
 # Oder in flake.nix:
 src = ./.;",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Flakes erzwingen 'pure evaluation' - keine Seiteneffekte, keine 
 absoluten Pfade, volle Reproduzierbarkeit.
@@ -1773,22 +1960,25 @@ UMGEHEN (nicht empfohlen):
     # Mit --impure kann man dann:
     # builtins.getEnv nutzen
   };",
-        tip: Some("Nutze relative Pfade: ./foo statt /absolute/foo"),
-    });
+            tip: Some("Nutze relative Pfade: ./foo statt /absolute/foo"),
+        },
+    );
 
     // =========================================================================
     // COMMON TYPOS / MISTAKES
     // =========================================================================
-    m.insert("not-in-nixpkgs", PatternTranslation {
-        title: "Paket '$1' nicht in nixpkgs",
-        explanation: "Das Paket '$1' konnte in nixpkgs nicht gefunden werden.",
-        solution: "\
+    m.insert(
+        "not-in-nixpkgs",
+        PatternTranslation {
+            title: "Paket '$1' nicht in nixpkgs",
+            explanation: "Das Paket '$1' konnte in nixpkgs nicht gefunden werden.",
+            solution: "\
 # Suchen mit richtigem Namen:
 nix search nixpkgs $1
 
 # Online suchen:
 # https://search.nixos.org/packages",
-        deep_dive: "\
+            deep_dive: "\
 MÖGLICHE URSACHEN:
 
 1. TIPPFEHLER:
@@ -1808,19 +1998,22 @@ MÖGLICHE URSACHEN:
 SUCHEN:
   nix search nixpkgs <n>
   https://search.nixos.org/packages",
-        tip: Some("Exakte Schreibweise auf search.nixos.org prüfen"),
-    });
+            tip: Some("Exakte Schreibweise auf search.nixos.org prüfen"),
+        },
+    );
 
-    m.insert("file-conflict-activation", PatternTranslation {
-        title: "Datei-Konflikt bei Aktivierung",
-        explanation: "Eine Datei existiert bereits und kann nicht ersetzt werden.",
-        solution: "\
+    m.insert(
+        "file-conflict-activation",
+        PatternTranslation {
+            title: "Datei-Konflikt bei Aktivierung",
+            explanation: "Eine Datei existiert bereits und kann nicht ersetzt werden.",
+            solution: "\
 # Alte Datei backuppen:
 sudo mv /konflikt/datei /konflikt/datei.bak
 
 # Dann nochmal:
 sudo nixos-rebuild switch",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 NixOS/Home-Manager wollen eine Datei verwalten die schon existiert.
 
@@ -1840,19 +2033,22 @@ LÖSUNGEN:
 3. PRÜFEN WAS ES IST:
    ls -la /pfad/zur/datei
    file /pfad/zur/datei",
-        tip: Some("Backup machen, dann Datei entfernen"),
-    });
+            tip: Some("Backup machen, dann Datei entfernen"),
+        },
+    );
 
-    m.insert("nar-hash-mismatch", PatternTranslation {
-        title: "NAR Hash Mismatch",
-        explanation: "Der heruntergeladene Inhalt hat einen unerwarteten Hash.",
-        solution: "\
+    m.insert(
+        "nar-hash-mismatch",
+        PatternTranslation {
+            title: "NAR Hash Mismatch",
+            explanation: "Der heruntergeladene Inhalt hat einen unerwarteten Hash.",
+            solution: "\
 # Erneut versuchen (oft temporär):
 nix build --rebuild
 
 # Cache leeren:
 nix-store --delete /nix/store/<hash>...",
-        deep_dive: "\
+            deep_dive: "\
 WARUM PASSIERT DAS:
 Das Binary-Cache lieferte Daten mit falschem Hash.
 
@@ -1877,20 +2073,23 @@ LÖSUNGEN:
 
 4. STORE VERIFIZIEREN:
    nix-store --verify --check-contents",
-        tip: Some("Meist hilft einfach nochmal versuchen"),
-    });
+            tip: Some("Meist hilft einfach nochmal versuchen"),
+        },
+    );
 
     // =========================================================================
     // SUPER COMMON DAILY ERRORS
     // =========================================================================
-    m.insert("need-root", PatternTranslation {
-        title: "Root/sudo erforderlich",
-        explanation: "Diese Operation braucht Root-Rechte.",
-        solution: "\
+    m.insert(
+        "need-root",
+        PatternTranslation {
+            title: "Root/sudo erforderlich",
+            explanation: "Diese Operation braucht Root-Rechte.",
+            solution: "\
 # Mit sudo ausführen:
 sudo nixos-rebuild switch
 sudo nix-collect-garbage",
-        deep_dive: "\
+            deep_dive: "\
 BRAUCHT ROOT:
 - nixos-rebuild switch/boot/test
 - nix-collect-garbage (systemweit)
@@ -1901,86 +2100,101 @@ BRAUCHT KEIN ROOT:
 - nix develop
 - nix-shell
 - User-Profil (nix-env als User)",
-        tip: Some("Nutze sudo für System-Operationen"),
-    });
+            tip: Some("Nutze sudo für System-Operationen"),
+        },
+    );
 
-    m.insert("git-not-found", PatternTranslation {
-        title: "Git nicht gefunden",
-        explanation: "Git wird benötigt aber ist nicht installiert.",
-        solution: "\
+    m.insert(
+        "git-not-found",
+        PatternTranslation {
+            title: "Git nicht gefunden",
+            explanation: "Git wird benötigt aber ist nicht installiert.",
+            solution: "\
 # NixOS - zu configuration.nix:
 environment.systemPackages = [ pkgs.git ];
 
 # Oder temporär:
 nix-shell -p git",
-        deep_dive: "\
+            deep_dive: "\
 WARUM:
 Flakes und viele Fetch-Operationen brauchen git.
 
 LÖSUNGEN:
 1. Permanent: git zu systemPackages
 2. Temporär: nix-shell -p git",
-        tip: Some("Git zu systemPackages hinzufügen"),
-    });
+            tip: Some("Git zu systemPackages hinzufügen"),
+        },
+    );
 
-    m.insert("channel-not-found", PatternTranslation {
-        title: "Nixpkgs Channel nicht gefunden",
-        explanation: "Kein nixpkgs Channel konfiguriert.",
-        solution: "\
+    m.insert(
+        "channel-not-found",
+        PatternTranslation {
+            title: "Nixpkgs Channel nicht gefunden",
+            explanation: "Kein nixpkgs Channel konfiguriert.",
+            solution: "\
 # Channel hinzufügen:
 nix-channel --add https://nixos.org/channels/nixos-unstable nixpkgs
 nix-channel --update
 
 # Oder besser - Flakes nutzen",
-        deep_dive: "\
+            deep_dive: "\
 FÜR TRADITIONELLES NIX:
   nix-channel --add https://nixos.org/channels/nixos-unstable nixpkgs
   nix-channel --update
 
 FÜR FLAKES (EMPFOHLEN):
   inputs.nixpkgs.url = \"github:NixOS/nixpkgs/nixos-unstable\";",
-        tip: Some("Erwäge auf Flakes umzusteigen"),
-    });
+            tip: Some("Erwäge auf Flakes umzusteigen"),
+        },
+    );
 
-    m.insert("value-is-null", PatternTranslation {
-        title: "Wert ist null",
-        explanation: "Ein Wert ist null obwohl etwas anderes erwartet wurde.",
-        solution: "\
+    m.insert(
+        "value-is-null",
+        PatternTranslation {
+            title: "Wert ist null",
+            explanation: "Ein Wert ist null obwohl etwas anderes erwartet wurde.",
+            solution: "\
 # Default-Wert hinzufügen:
 myValue = config.foo.bar or \"default\";
 
 # Oder auf null prüfen:
 if myValue != null then ... else ...",
-        deep_dive: "\
+            deep_dive: "\
 LÖSUNGEN:
 1. Default: config.foo.bar or \"default\"
 2. Null-Check: if x != null then ...
 3. lib.optionalAttrs nutzen",
-        tip: Some("Nutze 'or' für Default-Werte"),
-    });
+            tip: Some("Nutze 'or' für Default-Werte"),
+        },
+    );
 
-    m.insert("attribute-already-defined", PatternTranslation {
-        title: "Attribut '$1' bereits definiert",
-        explanation: "Das Attribut '$1' ist mehrfach definiert.",
-        solution: "\
+    m.insert(
+        "attribute-already-defined",
+        PatternTranslation {
+            title: "Attribut '$1' bereits definiert",
+            explanation: "Das Attribut '$1' ist mehrfach definiert.",
+            solution: "\
 # Zusammenführen statt überschreiben:
 { a = 1; } // { b = 2; }
 
 # Oder lib.mkMerge:
 lib.mkMerge [ config1 config2 ]",
-        deep_dive: "\
+            deep_dive: "\
 LÖSUNGEN:
 1. Verschiedene Namen verwenden
 2. Sets mit // mergen
 3. lib.mkMerge in Modulen
 4. lib.recursiveUpdate für tiefes Merge",
-        tip: Some("Nutze // oder lib.mkMerge"),
-    });
+            tip: Some("Nutze // oder lib.mkMerge"),
+        },
+    );
 
-    m.insert("out-of-memory", PatternTranslation {
-        title: "Speicher voll (OOM)",
-        explanation: "Der Build hat keinen Speicher mehr.",
-        solution: "\
+    m.insert(
+        "out-of-memory",
+        PatternTranslation {
+            title: "Speicher voll (OOM)",
+            explanation: "Der Build hat keinen Speicher mehr.",
+            solution: "\
 # Parallele Jobs limitieren:
 nix build -j 1
 
@@ -1988,37 +2202,43 @@ nix build -j 1
 sudo fallocate -l 8G /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile",
-        deep_dive: "\
+            deep_dive: "\
 LÖSUNGEN:
 1. Weniger parallel: nix build -j 1 --cores 2
 2. Swap hinzufügen
 3. Binary Cache nutzen
 4. Andere Apps schließen",
-        tip: Some("Versuche: nix build -j 1 --cores 2"),
-    });
+            tip: Some("Versuche: nix build -j 1 --cores 2"),
+        },
+    );
 
-    m.insert("build-interrupted", PatternTranslation {
-        title: "Build unterbrochen",
-        explanation: "Build wurde unterbrochen (Ctrl+C).",
-        solution: "\
+    m.insert(
+        "build-interrupted",
+        PatternTranslation {
+            title: "Build unterbrochen",
+            explanation: "Build wurde unterbrochen (Ctrl+C).",
+            solution: "\
 # Einfach nochmal starten:
 nix build
 
 # Partielle Builds sind sicher",
-        deep_dive: "\
+            deep_dive: "\
 DAS IST OK:
 - Nix Builds sind atomar
 - Partielle Builds korrumpieren nicht
 - Einfach nochmal starten
 
 Nix überspringt fertige Teile.",
-        tip: Some("Einfach Befehl nochmal ausführen"),
-    });
+            tip: Some("Einfach Befehl nochmal ausführen"),
+        },
+    );
 
-    m.insert("config-not-found", PatternTranslation {
-        title: "configuration.nix nicht gefunden",
-        explanation: "NixOS Konfigurationsdatei nicht gefunden.",
-        solution: "\
+    m.insert(
+        "config-not-found",
+        PatternTranslation {
+            title: "configuration.nix nicht gefunden",
+            explanation: "NixOS Konfigurationsdatei nicht gefunden.",
+            solution: "\
 # Pfad prüfen:
 ls -la /etc/nixos/
 
@@ -2027,7 +2247,7 @@ sudo nixos-generate-config
 
 # Oder Pfad angeben:
 sudo nixos-rebuild switch -I nixos-config=./configuration.nix",
-        deep_dive: "\
+            deep_dive: "\
 URSACHEN:
 1. Frische Installation ohne Config
 2. Config verschoben/gelöscht
@@ -2037,17 +2257,20 @@ LÖSUNGEN:
 1. sudo nixos-generate-config
 2. Pfad mit -I angeben
 3. --flake für Flake-Configs",
-        tip: Some("--flake für Flake-basierte Configs"),
-    });
+            tip: Some("--flake für Flake-basierte Configs"),
+        },
+    );
 
-    m.insert("flake-lock-not-committed", PatternTranslation {
-        title: "flake.lock nicht committed",
-        explanation: "Die flake.lock muss in Git getrackt werden.",
-        solution: "\
+    m.insert(
+        "flake-lock-not-committed",
+        PatternTranslation {
+            title: "flake.lock nicht committed",
+            explanation: "Die flake.lock muss in Git getrackt werden.",
+            solution: "\
 # Hinzufügen und committen:
 git add flake.lock
 git commit -m 'Update flake.lock'",
-        deep_dive: "\
+            deep_dive: "\
 WARUM LOCK COMMITTEN:
 - Stellt sicher alle nutzen gleiche Versionen
 - Reproduzierbare Builds
@@ -2058,18 +2281,21 @@ WORKFLOW:
 2. nix flake update
 3. git add flake.nix flake.lock
 4. git commit",
-        tip: Some("Immer flake.lock committen"),
-    });
+            tip: Some("Immer flake.lock committen"),
+        },
+    );
 
-    m.insert("evaluation-timeout", PatternTranslation {
-        title: "Evaluation Timeout/Overflow",
-        explanation: "Nix-Evaluation zu lang oder Rekursionslimit erreicht.",
-        solution: "\
+    m.insert(
+        "evaluation-timeout",
+        PatternTranslation {
+            title: "Evaluation Timeout/Overflow",
+            explanation: "Nix-Evaluation zu lang oder Rekursionslimit erreicht.",
+            solution: "\
 # Meist unendliche Schleife - prüfe:
 # - Rekursive Imports
 # - Overlays die sich selbst referenzieren
 # - Zirkuläre Modul-Imports",
-        deep_dive: "\
+            deep_dive: "\
 URSACHEN:
 1. Unendliche Rekursion (Overlay mit final statt prev)
 2. Sehr große Evaluation
@@ -2079,17 +2305,20 @@ DEBUGGING:
   nix eval --show-trace
   
 Suche nach sich wiederholenden Mustern.",
-        tip: Some("Meist unendliche Schleife - Overlays prüfen"),
-    });
+            tip: Some("Meist unendliche Schleife - Overlays prüfen"),
+        },
+    );
 
-    m.insert("binary-cache-miss", PatternTranslation {
-        title: "Kein Binary-Cache Treffer",
-        explanation: "Paket nicht im Cache - wird lokal gebaut.",
-        solution: "\
+    m.insert(
+        "binary-cache-miss",
+        PatternTranslation {
+            title: "Kein Binary-Cache Treffer",
+            explanation: "Paket nicht im Cache - wird lokal gebaut.",
+            solution: "\
 # Informativ, kein Fehler
 # Für mehr Cache: stabiles nixpkgs nutzen:
 inputs.nixpkgs.url = \"github:NixOS/nixpkgs/nixos-24.05\";",
-        deep_dive: "\
+            deep_dive: "\
 WARUM:
 Hydra baut nur für stabile Branches.
 
@@ -2098,16 +2327,19 @@ LÖSUNGEN:
 2. Warten (Hydra baut noch)
 3. Lokalen Build akzeptieren
 4. Cachix für Community-Caches",
-        tip: Some("Stabiles nixpkgs für bessere Cache-Hits"),
-    });
+            tip: Some("Stabiles nixpkgs für bessere Cache-Hits"),
+        },
+    );
 
-    m.insert("derivation-output-mismatch", PatternTranslation {
-        title: "Derivation-Output stimmt nicht",
-        explanation: "Build-Output entspricht nicht dem erwarteten Hash.",
-        solution: "\
+    m.insert(
+        "derivation-output-mismatch",
+        PatternTranslation {
+            title: "Derivation-Output stimmt nicht",
+            explanation: "Build-Output entspricht nicht dem erwarteten Hash.",
+            solution: "\
 # Für fetchurl - Hash updaten:
 hash = lib.fakeHash;  # Korrekten Hash aus Fehler nehmen",
-        deep_dive: "\
+            deep_dive: "\
 URSACHEN:
 1. Upstream hat Datei geändert
 2. Falscher Hash im Paket
@@ -2115,37 +2347,43 @@ URSACHEN:
 
 LÖSUNG:
 lib.fakeHash nutzen, bauen, korrekten Hash einsetzen.",
-        tip: Some("lib.fakeHash für korrekten Hash nutzen"),
-    });
+            tip: Some("lib.fakeHash für korrekten Hash nutzen"),
+        },
+    );
 
-    m.insert("read-only-store", PatternTranslation {
-        title: "Nix Store ist schreibgeschützt",
-        explanation: "Kann nicht in /nix/store schreiben.",
-        solution: "\
+    m.insert(
+        "read-only-store",
+        PatternTranslation {
+            title: "Nix Store ist schreibgeschützt",
+            explanation: "Kann nicht in /nix/store schreiben.",
+            solution: "\
 # Mount prüfen:
 mount | grep /nix
 
 # Remounten wenn nötig:
 sudo mount -o remount,rw /nix",
-        deep_dive: "\
+            deep_dive: "\
 URSACHEN:
 1. Dateisystem read-only gemounted
 2. Disk-Fehler
 3. Docker/Container-Einschränkungen
 4. Nix Daemon läuft nicht",
-        tip: Some("Prüfe: mount | grep nix"),
-    });
+            tip: Some("Prüfe: mount | grep nix"),
+        },
+    );
 
-    m.insert("generation-switch-failed", PatternTranslation {
-        title: "Generation-Wechsel fehlgeschlagen",
-        explanation: "Konnte nicht zur angegebenen Generation wechseln.",
-        solution: "\
+    m.insert(
+        "generation-switch-failed",
+        PatternTranslation {
+            title: "Generation-Wechsel fehlgeschlagen",
+            explanation: "Konnte nicht zur angegebenen Generation wechseln.",
+            solution: "\
 # Verfügbare Generationen:
 sudo nix-env --list-generations -p /nix/var/nix/profiles/system
 
 # Zu bestimmter wechseln:
 sudo nix-env --switch-generation 42 -p /nix/var/nix/profiles/system",
-        deep_dive: "\
+            deep_dive: "\
 URSACHEN:
 1. Generation wurde garbage-collected
 2. Profil korrupt
@@ -2155,19 +2393,22 @@ LÖSUNGEN:
 1. Verfügbare Generationen auflisten
 2. Zu existierender wechseln
 3. Stattdessen neu bauen",
-        tip: Some("Erst verfügbare Generationen prüfen"),
-    });
+            tip: Some("Erst verfügbare Generationen prüfen"),
+        },
+    );
 
-    m.insert("module-import-failed", PatternTranslation {
-        title: "Modul-Import fehlgeschlagen",
-        explanation: "Konnte NixOS/Home-Manager Modul nicht importieren.",
-        solution: "\
+    m.insert(
+        "module-import-failed",
+        PatternTranslation {
+            title: "Modul-Import fehlgeschlagen",
+            explanation: "Konnte NixOS/Home-Manager Modul nicht importieren.",
+            solution: "\
 # Pfad prüfen:
 ls -la ./module.nix
 
 # Syntax prüfen:
 nix-instantiate --parse ./module.nix",
-        deep_dive: "\
+            deep_dive: "\
 URSACHEN:
 1. Datei existiert nicht
 2. Syntaxfehler im Modul
@@ -2176,13 +2417,16 @@ URSACHEN:
 
 DEBUGGING:
   nix eval --show-trace",
-        tip: Some("Datei-Existenz und Syntax prüfen"),
-    });
+            tip: Some("Datei-Existenz und Syntax prüfen"),
+        },
+    );
 
-    m.insert("overlay-infinite-recursion", PatternTranslation {
-        title: "Overlay verursacht unendliche Rekursion",
-        explanation: "Overlay nutzt final statt prev für modifiziertes Paket.",
-        solution: "\
+    m.insert(
+        "overlay-infinite-recursion",
+        PatternTranslation {
+            title: "Overlay verursacht unendliche Rekursion",
+            explanation: "Overlay nutzt final statt prev für modifiziertes Paket.",
+            solution: "\
 # FALSCH:
 (final: prev: {
   pkg = final.pkg.override { };  # FALSCH!
@@ -2192,47 +2436,53 @@ DEBUGGING:
 (final: prev: {
   pkg = prev.pkg.override { };   # prev nutzen!
 })",
-        deep_dive: "\
+            deep_dive: "\
 REGEL:
 - final = Ergebnis NACH allen Overlays
 - prev = VOR diesem Overlay
 
 Paket X modifizieren? -> prev.X nutzen
 Anderes Paket Y nutzen? -> final.Y ist ok",
-        tip: Some("prev für das modifizierte Paket nutzen"),
-    });
+            tip: Some("prev für das modifizierte Paket nutzen"),
+        },
+    );
 
-    m.insert("nix-path-empty", PatternTranslation {
-        title: "NIX_PATH nicht gesetzt",
-        explanation: "<nixpkgs> Lookup schlug fehl weil NIX_PATH leer ist.",
-        solution: "\
+    m.insert(
+        "nix-path-empty",
+        PatternTranslation {
+            title: "NIX_PATH nicht gesetzt",
+            explanation: "<nixpkgs> Lookup schlug fehl weil NIX_PATH leer ist.",
+            solution: "\
 # NIX_PATH setzen:
 export NIX_PATH=nixpkgs=channel:nixos-unstable
 
 # Oder besser - Flakes:
 nix build nixpkgs#hello",
-        deep_dive: "\
+            deep_dive: "\
 LÖSUNGEN:
 1. NIX_PATH exportieren
 2. Channels nutzen
 3. Flakes nutzen (empfohlen)
 4. Expliziten Pfad mit -I angeben",
-        tip: Some("Erwäge Flakes stattdessen"),
-    });
+            tip: Some("Erwäge Flakes stattdessen"),
+        },
+    );
 
     // =========================================================================
     // EXTREMELY COMMON BEGINNER/DAILY ERRORS
     // =========================================================================
-    m.insert("nix-command-not-found", PatternTranslation {
-        title: "Nix Befehl nicht gefunden",
-        explanation: "Nix ist nicht installiert oder nicht im PATH.",
-        solution: "\
+    m.insert(
+        "nix-command-not-found",
+        PatternTranslation {
+            title: "Nix Befehl nicht gefunden",
+            explanation: "Nix ist nicht installiert oder nicht im PATH.",
+            solution: "\
 # Nix installieren:
 sh <(curl -L https://nixos.org/nix/install) --daemon
 
 # Oder zum PATH hinzufügen:
 source ~/.nix-profile/etc/profile.d/nix.sh",
-        deep_dive: "\
+            deep_dive: "\
 URSACHEN:
 1. Nix nicht installiert
 2. Shell nicht konfiguriert (PATH fehlt)
@@ -2242,20 +2492,23 @@ LÖSUNGEN:
 1. Nix installieren
 2. Profile sourcen
 3. Shell neustarten",
-        tip: Some("Neues Terminal? Führe aus: source ~/.nix-profile/etc/profile.d/nix.sh"),
-    });
+            tip: Some("Neues Terminal? Führe aus: source ~/.nix-profile/etc/profile.d/nix.sh"),
+        },
+    );
 
-    m.insert("not-a-derivation", PatternTranslation {
-        title: "Wert ist keine Derivation",
-        explanation: "Erwartet wurde ein Paket/Derivation aber etwas anderes bekommen.",
-        solution: "\
+    m.insert(
+        "not-a-derivation",
+        PatternTranslation {
+            title: "Wert ist keine Derivation",
+            explanation: "Erwartet wurde ein Paket/Derivation aber etwas anderes bekommen.",
+            solution: "\
 # Prüfe was du referenzierst:
 nix repl
 > :t pkgs.hello
 
 # Häufiger Fix - vielleicht ist es eine Funktion:
 pkgs.callPackage ./pkg.nix { }",
-        deep_dive: "\
+            deep_dive: "\
 HÄUFIGE URSACHEN:
 
 1. ES IST EINE FUNKTION:
@@ -2269,18 +2522,21 @@ HÄUFIGE URSACHEN:
    pkgs.python3Packages  # Das ist ein Set!
    # RICHTIG:
    pkgs.python3Packages.numpy",
-        tip: Some("Nutze 'nix repl' zum Erkunden"),
-    });
+            tip: Some("Nutze 'nix repl' zum Erkunden"),
+        },
+    );
 
-    m.insert("override-not-available", PatternTranslation {
-        title: "Paket unterstützt .override nicht",
-        explanation: "Dieses Paket hat kein .override oder .overrideAttrs.",
-        solution: "\
+    m.insert(
+        "override-not-available",
+        PatternTranslation {
+            title: "Paket unterstützt .override nicht",
+            explanation: "Dieses Paket hat kein .override oder .overrideAttrs.",
+            solution: "\
 # Nutze overrideAttrs stattdessen:
 pkg.overrideAttrs (old: {
   patches = old.patches or [] ++ [ ./fix.patch ];
 })",
-        deep_dive: "\
+            deep_dive: "\
 OVERRIDE-METHODEN:
 
 1. overrideAttrs (funktioniert fast immer):
@@ -2292,18 +2548,21 @@ OVERRIDE-METHODEN:
 WANN WAS:
 - Abhängigkeiten ändern -> .override
 - Build-Attribute ändern -> .overrideAttrs",
-        tip: Some("overrideAttrs funktioniert fast überall"),
-    });
+            tip: Some("overrideAttrs funktioniert fast überall"),
+        },
+    );
 
-    m.insert("git-not-a-repository", PatternTranslation {
-        title: "Kein Git-Repository",
-        explanation: "Flakes erfordern dass das Verzeichnis ein Git-Repo ist.",
-        solution: "\
+    m.insert(
+        "git-not-a-repository",
+        PatternTranslation {
+            title: "Kein Git-Repository",
+            explanation: "Flakes erfordern dass das Verzeichnis ein Git-Repo ist.",
+            solution: "\
 # Git initialisieren:
 git init
 git add flake.nix flake.lock
 git commit -m 'Initial commit'",
-        deep_dive: "\
+            deep_dive: "\
 WARUM:
 Flakes tracken Dateien über Git. Ohne Git weiß Nix nicht 
 welche Dateien zum Flake gehören.
@@ -2312,31 +2571,37 @@ WICHTIG:
 - Neue Dateien müssen 'git add' werden!
 - Uncommittete Änderungen können ignoriert werden
 - .gitignore'd Dateien sind für Flakes unsichtbar",
-        tip: Some("'git init' ausführen und Dateien committen"),
-    });
+            tip: Some("'git init' ausführen und Dateien committen"),
+        },
+    );
 
-    m.insert("git-ref-not-found", PatternTranslation {
-        title: "Git-Referenz nicht gefunden",
-        explanation: "Der angegebene Branch, Tag oder Commit existiert nicht.",
-        solution: "\
+    m.insert(
+        "git-ref-not-found",
+        PatternTranslation {
+            title: "Git-Referenz nicht gefunden",
+            explanation: "Der angegebene Branch, Tag oder Commit existiert nicht.",
+            solution: "\
 # Verfügbare Refs prüfen:
 git ls-remote <repo>
 
 # Korrekten Ref in flake.nix nutzen:
 inputs.foo.url = \"github:owner/repo/main\";  # Nicht master!",
-        deep_dive: "\
+            deep_dive: "\
 HÄUFIGE FEHLER:
 1. 'master' vs 'main' - viele Repos haben gewechselt!
 2. Tippfehler im Branch-Namen
 3. Tag existiert noch nicht
 4. Privates Repo ohne Auth",
-        tip: Some("'master' ist oft jetzt 'main'"),
-    });
+            tip: Some("'master' ist oft jetzt 'main'"),
+        },
+    );
 
-    m.insert("not-a-shell-derivation", PatternTranslation {
-        title: "Keine Shell-Derivation",
-        explanation: "'nix develop' auf Paket statt devShell ausgeführt.",
-        solution: "\
+    m.insert(
+        "not-a-shell-derivation",
+        PatternTranslation {
+            title: "Keine Shell-Derivation",
+            explanation: "'nix develop' auf Paket statt devShell ausgeführt.",
+            solution: "\
 # Für Pakete nix shell nutzen:
 nix shell nixpkgs#hello
 
@@ -2344,7 +2609,7 @@ nix shell nixpkgs#hello
 devShells.default = mkShell {
   packages = [ gcc cmake ];
 };",
-        deep_dive: "\
+            deep_dive: "\
 BEFEHLE:
 - nix develop -> Braucht devShell (für Entwicklung)
 - nix shell -> Paket in PATH (zum Ausführen)
@@ -2353,19 +2618,22 @@ BEFEHLE:
 HÄUFIGER FEHLER:
   nix develop nixpkgs#hello  # FALSCH
   nix shell nixpkgs#hello    # RICHTIG",
-        tip: Some("'nix shell' für Pakete, 'nix develop' für devShells"),
-    });
+            tip: Some("'nix shell' für Pakete, 'nix develop' für devShells"),
+        },
+    );
 
-    m.insert("sqlite-database-locked", PatternTranslation {
-        title: "Nix-Datenbank gesperrt",
-        explanation: "Ein anderer Nix-Prozess nutzt die Datenbank.",
-        solution: "\
+    m.insert(
+        "sqlite-database-locked",
+        PatternTranslation {
+            title: "Nix-Datenbank gesperrt",
+            explanation: "Ein anderer Nix-Prozess nutzt die Datenbank.",
+            solution: "\
 # Andere Nix-Prozesse finden:
 ps aux | grep nix
 
 # Warten bis fertig, oder killen wenn hängt:
 sudo pkill -9 nix",
-        deep_dive: "\
+            deep_dive: "\
 URSACHEN:
 1. Anderer nix build läuft
 2. nix-collect-garbage läuft
@@ -2376,13 +2644,16 @@ LÖSUNGEN:
 1. Auf anderen Build warten
 2. Hängenden Prozess killen
 3. Daemon neustarten",
-        tip: Some("Auf andere Nix-Prozesse warten"),
-    });
+            tip: Some("Auf andere Nix-Prozesse warten"),
+        },
+    );
 
-    m.insert("mkderivation-missing-name", PatternTranslation {
-        title: "mkDerivation braucht name/pname",
-        explanation: "stdenv.mkDerivation braucht entweder 'name' oder 'pname' + 'version'.",
-        solution: "\
+    m.insert(
+        "mkderivation-missing-name",
+        PatternTranslation {
+            title: "mkDerivation braucht name/pname",
+            explanation: "stdenv.mkDerivation braucht entweder 'name' oder 'pname' + 'version'.",
+            solution: "\
 # Option 1 - pname + version (empfohlen):
 stdenv.mkDerivation {
   pname = \"my-package\";
@@ -2393,18 +2664,21 @@ stdenv.mkDerivation {
 stdenv.mkDerivation {
   name = \"my-package-1.0.0\";
 }",
-        deep_dive: "\
+            deep_dive: "\
 WARUM pname + version BESSER:
 - Ermöglicht versionbasierte Overrides
 - Saubere Trennung
 - Nixpkgs-Konvention",
-        tip: Some("pname + version nutzen, nicht nur name"),
-    });
+            tip: Some("pname + version nutzen, nicht nur name"),
+        },
+    );
 
-    m.insert("nvidia-driver-mismatch", PatternTranslation {
-        title: "NVIDIA Treiber-Versionskonflikt",
-        explanation: "Kernel-Modul-Version passt nicht zum Userspace-Treiber.",
-        solution: "\
+    m.insert(
+        "nvidia-driver-mismatch",
+        PatternTranslation {
+            title: "NVIDIA Treiber-Versionskonflikt",
+            explanation: "Kernel-Modul-Version passt nicht zum Userspace-Treiber.",
+            solution: "\
 # Nach nixos-rebuild neustarten:
 sudo nixos-rebuild switch
 sudo reboot
@@ -2412,7 +2686,7 @@ sudo reboot
 # Oder Module neu laden:
 sudo rmmod nvidia_uvm nvidia_drm nvidia_modeset nvidia
 sudo modprobe nvidia",
-        deep_dive: "\
+            deep_dive: "\
 WARUM:
 Nach Update ist Kernel-Modul alt aber Userspace neu.
 Die müssen exakt übereinstimmen.
@@ -2422,13 +2696,16 @@ Einfach neustarten nach nixos-rebuild!
 
 NIXOS CONFIG:
   hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.stable;",
-        tip: Some("Nach NVIDIA-Update neustarten"),
-    });
+            tip: Some("Nach NVIDIA-Update neustarten"),
+        },
+    );
 
-    m.insert("overlays-wrong-format", PatternTranslation {
-        title: "Overlays müssen Liste von Funktionen sein",
-        explanation: "Overlays müssen eine Liste von (final: prev: {...}) Funktionen sein.",
-        solution: "\
+    m.insert(
+        "overlays-wrong-format",
+        PatternTranslation {
+            title: "Overlays müssen Liste von Funktionen sein",
+            explanation: "Overlays müssen eine Liste von (final: prev: {...}) Funktionen sein.",
+            solution: "\
 # FALSCH:
 nixpkgs.overlays = (final: prev: { });
 
@@ -2436,7 +2713,7 @@ nixpkgs.overlays = (final: prev: { });
 nixpkgs.overlays = [
   (final: prev: { myPkg = ...; })
 ];",
-        deep_dive: "\
+            deep_dive: "\
 KORREKTES FORMAT:
   nixpkgs.overlays = [
     (final: prev: { myPackage = prev.hello; })
@@ -2446,19 +2723,22 @@ KORREKTES FORMAT:
 FALSCHE FORMATE:
 - Nur Funktion (keine Liste)
 - Set statt Funktion",
-        tip: Some("Overlays = [ (final: prev: {...}) ]"),
-    });
+            tip: Some("Overlays = [ (final: prev: {...}) ]"),
+        },
+    );
 
-    m.insert("modules-wrong-format", PatternTranslation {
-        title: "Module müssen eine Liste sein",
-        explanation: "Die 'modules' oder 'imports' Option erwartet eine Liste.",
-        solution: "\
+    m.insert(
+        "modules-wrong-format",
+        PatternTranslation {
+            title: "Module müssen eine Liste sein",
+            explanation: "Die 'modules' oder 'imports' Option erwartet eine Liste.",
+            solution: "\
 # FALSCH:
 modules = ./module.nix;
 
 # RICHTIG:
 modules = [ ./module.nix ];",
-        deep_dive: "\
+            deep_dive: "\
 Module und imports müssen Listen sein, auch für einzelne Einträge.
 
 RICHTIG:
@@ -2466,13 +2746,16 @@ RICHTIG:
     ./configuration.nix
     ./hardware-configuration.nix
   ];",
-        tip: Some("Immer [ ] nutzen, auch für einzelnes Modul"),
-    });
+            tip: Some("Immer [ ] nutzen, auch für einzelnes Modul"),
+        },
+    );
 
-    m.insert("specialisation-not-found", PatternTranslation {
-        title: "Spezialisierung nicht gefunden",
-        explanation: "Die angegebene NixOS-Spezialisierung existiert nicht.",
-        solution: "\
+    m.insert(
+        "specialisation-not-found",
+        PatternTranslation {
+            title: "Spezialisierung nicht gefunden",
+            explanation: "Die angegebene NixOS-Spezialisierung existiert nicht.",
+            solution: "\
 # Verfügbare Spezialisierungen auflisten:
 ls /nix/var/nix/profiles/system/specialisation/
 
@@ -2480,7 +2763,7 @@ ls /nix/var/nix/profiles/system/specialisation/
 specialisation.gaming.configuration = {
   services.xserver.enable = true;
 };",
-        deep_dive: "\
+            deep_dive: "\
 WAS SIND SPEZIALISIERUNGEN:
 Alternative Systemkonfigurationen die Basis teilen.
 Nützlich für: Gaming-Modus, Arbeit, Minimal.
@@ -2488,13 +2771,16 @@ Nützlich für: Gaming-Modus, Arbeit, Minimal.
 WECHSELN:
 - Beim Booten: Im Bootloader auswählen
 - Zur Laufzeit: sudo .../specialisation/gaming/.../switch-to-configuration switch",
-        tip: Some("Schreibweise prüfen und erst rebuilden"),
-    });
+            tip: Some("Schreibweise prüfen und erst rebuilden"),
+        },
+    );
 
-    m.insert("fetchgit-requires-hash", PatternTranslation {
-        title: "fetchGit braucht Hash im Pure-Modus",
-        explanation: "Pure Evaluation erfordert Hashes für Fetches.",
-        solution: "\
+    m.insert(
+        "fetchgit-requires-hash",
+        PatternTranslation {
+            title: "fetchGit braucht Hash im Pure-Modus",
+            explanation: "Pure Evaluation erfordert Hashes für Fetches.",
+            solution: "\
 # Hash hinzufügen:
 src = fetchGit {
   url = \"https://...\";
@@ -2504,18 +2790,21 @@ src = fetchGit {
 
 # Oder fetchFromGitHub nutzen:
 src = fetchFromGitHub { ... };",
-        deep_dive: "\
+            deep_dive: "\
 HASH BEKOMMEN:
   nix-prefetch-git https://github.com/owner/repo --rev abc123
 
 Oder lib.fakeHash nutzen - Build zeigt korrekten Hash.",
-        tip: Some("lib.fakeHash für korrekten Hash nutzen"),
-    });
+            tip: Some("lib.fakeHash für korrekten Hash nutzen"),
+        },
+    );
 
-    m.insert("home-manager-version-mismatch", PatternTranslation {
-        title: "Home-Manager/nixpkgs Versionskonflikt",
-        explanation: "Home-Manager Version passt nicht zu nixpkgs Version.",
-        solution: "\
+    m.insert(
+        "home-manager-version-mismatch",
+        PatternTranslation {
+            title: "Home-Manager/nixpkgs Versionskonflikt",
+            explanation: "Home-Manager Version passt nicht zu nixpkgs Version.",
+            solution: "\
 # Passende Branches nutzen:
 inputs = {
   nixpkgs.url = \"github:NixOS/nixpkgs/nixos-unstable\";
@@ -2524,20 +2813,23 @@ inputs = {
     inputs.nixpkgs.follows = \"nixpkgs\";  # Wichtig!
   };
 };",
-        deep_dive: "\
+            deep_dive: "\
 PASSENDE VERSIONEN:
   nixos-24.05   -> home-manager release-24.05
   nixos-unstable -> home-manager master
 
 'follows' IST WICHTIG:
 Ohne es nutzt home-manager eigenes nixpkgs -> Konflikte!",
-        tip: Some("Immer 'inputs.nixpkgs.follows' nutzen"),
-    });
+            tip: Some("Immer 'inputs.nixpkgs.follows' nutzen"),
+        },
+    );
 
-    m.insert("boot-read-only-filesystem", PatternTranslation {
-        title: "Kann nicht auf /boot schreiben",
-        explanation: "/boot ist schreibgeschützt oder voll.",
-        solution: "\
+    m.insert(
+        "boot-read-only-filesystem",
+        PatternTranslation {
+            title: "Kann nicht auf /boot schreiben",
+            explanation: "/boot ist schreibgeschützt oder voll.",
+            solution: "\
 # Prüfe ob gemounted:
 mount | grep boot
 
@@ -2547,7 +2839,7 @@ df -h /boot
 # Alte Generationen entfernen:
 sudo nix-collect-garbage -d
 sudo nixos-rebuild boot",
-        deep_dive: "\
+            deep_dive: "\
 URSACHEN:
 1. /boot nicht gemounted
 2. /boot ist voll (häufig bei kleiner EFI-Partition)
@@ -2555,13 +2847,16 @@ URSACHEN:
 
 BEI KLEINER EFI-PARTITION:
   boot.loader.systemd-boot.configurationLimit = 10;",
-        tip: Some("Alte Generationen entfernen: nix-collect-garbage -d"),
-    });
+            tip: Some("Alte Generationen entfernen: nix-collect-garbage -d"),
+        },
+    );
 
-    m.insert("environment-variable-not-set", PatternTranslation {
-        title: "Umgebungsvariable nicht gesetzt",
-        explanation: "Eine benötigte Umgebungsvariable fehlt.",
-        solution: "\
+    m.insert(
+        "environment-variable-not-set",
+        PatternTranslation {
+            title: "Umgebungsvariable nicht gesetzt",
+            explanation: "Eine benötigte Umgebungsvariable fehlt.",
+            solution: "\
 # In Shell setzen:
 export MY_VAR=\"value\"
 
@@ -2570,7 +2865,7 @@ MY_VAR = \"value\";
 
 # Oder preBuild:
 preBuild = ''export MY_VAR=value'';",
-        deep_dive: "\
+            deep_dive: "\
 WARUM:
 Nix Builds laufen in sauberen Umgebungen. Variablen aus 
 deiner Shell sind nicht verfügbar ohne explizite Übergabe.
@@ -2579,13 +2874,16 @@ LÖSUNGEN:
 1. In Derivation setzen
 2. In shellHook setzen  
 3. makeWrapper nutzen für Runtime",
-        tip: Some("Nix Builds haben saubere Umgebungen"),
-    });
+            tip: Some("Nix Builds haben saubere Umgebungen"),
+        },
+    );
 
-    m.insert("lib-not-found-runtime", PatternTranslation {
-        title: "Shared Library zur Laufzeit nicht gefunden",
-        explanation: "Programm kann benötigte .so Bibliothek nicht finden.",
-        solution: "\
+    m.insert(
+        "lib-not-found-runtime",
+        PatternTranslation {
+            title: "Shared Library zur Laufzeit nicht gefunden",
+            explanation: "Programm kann benötigte .so Bibliothek nicht finden.",
+            solution: "\
 # Mit Library-Pfad wrappen:
 postInstall = ''
   wrapProgram $out/bin/app \\
@@ -2595,7 +2893,7 @@ postInstall = ''
 # Oder autoPatchelfHook nutzen:
 nativeBuildInputs = [ autoPatchelfHook ];
 buildInputs = [ libGL ];",
-        deep_dive: "\
+            deep_dive: "\
 WARUM:
 Binary erwartet Libraries in /usr/lib, aber Nix hat sie in /nix/store.
 
@@ -2608,19 +2906,22 @@ HÄUFIGE BIBLIOTHEKEN:
 - libGL.so -> libGL, libglvnd
 - libvulkan.so -> vulkan-loader
 - libstdc++.so -> stdenv.cc.cc.lib",
-        tip: Some("autoPatchelfHook für fertige Binaries nutzen"),
-    });
+            tip: Some("autoPatchelfHook für fertige Binaries nutzen"),
+        },
+    );
 
-    m.insert("flake-private-repo", PatternTranslation {
-        title: "Kann nicht auf privates Repository zugreifen",
-        explanation: "Git-Authentifizierung für privates Repo fehlgeschlagen.",
-        solution: "\
+    m.insert(
+        "flake-private-repo",
+        PatternTranslation {
+            title: "Kann nicht auf privates Repository zugreifen",
+            explanation: "Git-Authentifizierung für privates Repo fehlgeschlagen.",
+            solution: "\
 # SSH URL nutzen:
 inputs.private.url = \"git+ssh://git@github.com/owner/repo\";
 
 # SSH-Key laden:
 ssh-add ~/.ssh/id_ed25519",
-        deep_dive: "\
+            deep_dive: "\
 WARUM:
 HTTPS URLs können nicht authentifizieren. SSH für private Repos nutzen.
 
@@ -2628,23 +2929,26 @@ LÖSUNGEN:
 1. SSH URL nutzen: git+ssh://git@github.com/owner/repo
 2. SSH-Key laden: ssh-add
 3. Testen: ssh -T git@github.com",
-        tip: Some("git+ssh:// für private Repos nutzen"),
-    });
+            tip: Some("git+ssh:// für private Repos nutzen"),
+        },
+    );
 
     // =========================================================================
     // ADDITIONAL COMMON ERRORS
     // =========================================================================
-    m.insert("cannot-unpack-archive", PatternTranslation {
-        title: "Kann Archiv nicht entpacken",
-        explanation: "Entpacken des heruntergeladenen Archivs fehlgeschlagen.",
-        solution: "\
+    m.insert(
+        "cannot-unpack-archive",
+        PatternTranslation {
+            title: "Kann Archiv nicht entpacken",
+            explanation: "Entpacken des heruntergeladenen Archivs fehlgeschlagen.",
+            solution: "\
 # Prüfe ob Archiv korrupt:
 nix-prefetch-url --unpack <url>
 
 # Oder Entpack-Methode angeben:
 src = fetchzip { ... };  # Für zip
 src = fetchurl { ... };  # Für tar.gz",
-        deep_dive: "\
+            deep_dive: "\
 URSACHEN:
 1. Korrupter Download
 2. Falsches Archiv-Format
@@ -2654,19 +2958,22 @@ LÖSUNGEN:
 1. Neu herunterladen
 2. Richtigen Fetcher nutzen (fetchzip vs fetchurl)
 3. URL mit curl prüfen",
-        tip: Some("fetchzip für .zip Dateien nutzen"),
-    });
+            tip: Some("fetchzip für .zip Dateien nutzen"),
+        },
+    );
 
-    m.insert("file-not-found-store", PatternTranslation {
-        title: "Datei nicht im Nix Store gefunden: $1",
-        explanation: "Die referenzierte Datei existiert nicht im Nix Store.",
-        solution: "\
+    m.insert(
+        "file-not-found-store",
+        PatternTranslation {
+            title: "Datei nicht im Nix Store gefunden: $1",
+            explanation: "Die referenzierte Datei existiert nicht im Nix Store.",
+            solution: "\
 # Pfad neu bauen:
 nix-store --realise /nix/store/<pfad>
 
 # Oder Derivation neu bauen:
 nix build --rebuild",
-        deep_dive: "\
+            deep_dive: "\
 URSACHEN:
 1. Pfad wurde garbage-collected
 2. Build wurde unterbrochen
@@ -2676,19 +2983,22 @@ LÖSUNGEN:
 1. nix build --rebuild
 2. nix-store --realise <pfad>
 3. nix-store --verify",
-        tip: Some("Versuche: nix build --rebuild"),
-    });
+            tip: Some("Versuche: nix build --rebuild"),
+        },
+    );
 
-    m.insert("file-not-found-stat", PatternTranslation {
-        title: "Datei nicht gefunden: $1",
-        explanation: "Die Datei oder das Verzeichnis existiert nicht.",
-        solution: "\
+    m.insert(
+        "file-not-found-stat",
+        PatternTranslation {
+            title: "Datei nicht gefunden: $1",
+            explanation: "Die Datei oder das Verzeichnis existiert nicht.",
+            solution: "\
 # Pfad prüfen:
 ls -la <pfad>
 
 # Für Nix-Dateien relativen Pfad nutzen:
 ./myfile.nix  # Nicht /absoluter/pfad",
-        deep_dive: "\
+            deep_dive: "\
 URSACHEN:
 1. Tippfehler im Pfad
 2. Datei gelöscht/verschoben
@@ -2699,20 +3009,23 @@ LÖSUNGEN:
 1. Pfad prüfen
 2. Relative Pfade nutzen
 3. git add für Flakes",
-        tip: Some("Relative Pfade in Flakes nutzen"),
-    });
+            tip: Some("Relative Pfade in Flakes nutzen"),
+        },
+    );
 
-    m.insert("unrecognised-cli-option", PatternTranslation {
-        title: "Unbekannte Kommandozeilen-Option",
-        explanation: "Die Kommandozeilen-Option existiert nicht.",
-        solution: "\
+    m.insert(
+        "unrecognised-cli-option",
+        PatternTranslation {
+            title: "Unbekannte Kommandozeilen-Option",
+            explanation: "Die Kommandozeilen-Option existiert nicht.",
+            solution: "\
 # Verfügbare Optionen prüfen:
 nix build --help
 
 # Alte vs neue CLI:
 # Alt: nix-build -A hello
 # Neu: nix build .#hello",
-        deep_dive: "\
+            deep_dive: "\
 URSACHEN:
 1. Tippfehler
 2. Alte vs neue CLI-Syntax
@@ -2724,13 +3037,16 @@ ALT vs NEU:
 
 NEUE CLI AKTIVIEREN:
   experimental-features = nix-command flakes",
-        tip: Some("Prüfe: nix <befehl> --help"),
-    });
+            tip: Some("Prüfe: nix <befehl> --help"),
+        },
+    );
 
-    m.insert("option-wrong-type", PatternTranslation {
-        title: "Options-Wert hat falschen Typ",
-        explanation: "Der NixOS-Options-Wert entspricht nicht dem erwarteten Typ.",
-        solution: "\
+    m.insert(
+        "option-wrong-type",
+        PatternTranslation {
+            title: "Options-Wert hat falschen Typ",
+            explanation: "Der NixOS-Options-Wert entspricht nicht dem erwarteten Typ.",
+            solution: "\
 # Erwarteten Typ prüfen:
 nixos-option <option>
 
@@ -2738,7 +3054,7 @@ nixos-option <option>
 enable = true;           # bool, nicht \"true\"
 port = 8080;             # int, nicht \"8080\"
 packages = [ pkg ];      # Liste, nicht einzeln",
-        deep_dive: "\
+            deep_dive: "\
 HÄUFIGE TYP-FEHLER:
 
 1. STRING statt BOOL:
@@ -2752,18 +3068,22 @@ HÄUFIGE TYP-FEHLER:
 3. EINZELN statt LISTE:
    packages = pkg;    # FALSCH
    packages = [pkg];  # RICHTIG",
-        tip: Some("Optionstyp auf search.nixos.org prüfen"),
-    });
+            tip: Some("Optionstyp auf search.nixos.org prüfen"),
+        },
+    );
 
-    m.insert("while-evaluating", PatternTranslation {
-        title: "Fehler beim Evaluieren von '$1'",
-        explanation: "Ein Fehler trat beim Evaluieren von '$1' auf. Prüfe den vollständigen Trace.",
-        solution: "\
+    m.insert(
+        "while-evaluating",
+        PatternTranslation {
+            title: "Fehler beim Evaluieren von '$1'",
+            explanation:
+                "Ein Fehler trat beim Evaluieren von '$1' auf. Prüfe den vollständigen Trace.",
+            solution: "\
 # Vollständigen Stack-Trace anzeigen:
 nix build --show-trace
 
 # Der eigentliche Fehler steht unter dieser Zeile",
-        deep_dive: "\
+            deep_dive: "\
 DIESE MELDUNG VERSTEHEN:
 Diese Zeile sagt WO der Fehler passierte, nicht WAS der Fehler ist.
 Die eigentliche Fehlermeldung kommt danach.
@@ -2772,13 +3092,16 @@ DEBUGGING:
 1. VOLLE Fehlerausgabe lesen
 2. --show-trace für kompletten Stack
 3. Von unten nach oben lesen",
-        tip: Some("--show-trace nutzen, von unten lesen"),
-    });
+            tip: Some("--show-trace nutzen, von unten lesen"),
+        },
+    );
 
-    m.insert("derivation-call-error", PatternTranslation {
-        title: "Fehler beim Derivation-Aufruf",
-        explanation: "Beim Erstellen der Derivation ging etwas schief.",
-        solution: "\
+    m.insert(
+        "derivation-call-error",
+        PatternTranslation {
+            title: "Fehler beim Derivation-Aufruf",
+            explanation: "Beim Erstellen der Derivation ging etwas schief.",
+            solution: "\
 # Erforderliche Attribute prüfen:
 # mkDerivation braucht: name (oder pname+version), src
 
@@ -2787,7 +3110,7 @@ stdenv.mkDerivation {
   version = \"1.0\";
   src = ./. ;
 }",
-        deep_dive: "\
+            deep_dive: "\
 ERFORDERLICH FÜR mkDerivation:
 - name ODER (pname + version)
 - src ODER custom phases
@@ -2796,8 +3119,9 @@ HÄUFIGE FEHLER:
 1. name fehlt
 2. src ist String statt Pfad
 3. buildInputs ist keine Liste",
-        tip: Some("Prüfe: name/pname, src, buildInputs Typen"),
-    });
+            tip: Some("Prüfe: name/pname, src, buildInputs Typen"),
+        },
+    );
 
     m
 });
@@ -2815,24 +3139,25 @@ fn substitute_captures(template: &str, captures: &[String]) -> String {
 pub fn translate_to_german(result: &MatchResult) -> MatchResult {
     if let Some(trans) = TRANSLATIONS_DE.get(result.pattern_id.as_str()) {
         let mut translated = result.clone();
-        
+
         // Substitute captures into German templates
         translated.title = substitute_captures(trans.title, &result.captures);
         translated.explanation = substitute_captures(trans.explanation, &result.captures);
         translated.solution = substitute_captures(trans.solution, &result.captures);
         translated.deep_dive = substitute_captures(trans.deep_dive, &result.captures);
         translated.tip = trans.tip.map(|t| substitute_captures(t, &result.captures));
-        
+
         // Special handling for linker errors
         if result.pattern_id == "linker-missing-lib" {
             if let Some(lib_name) = result.captures.first() {
                 if let Some(pkg_name) = library_to_package(lib_name) {
-                    translated.solution = translated.solution
+                    translated.solution = translated
+                        .solution
                         .replace(&format!("[ {} ]", lib_name), &format!("[ {} ]", pkg_name));
                 }
             }
         }
-        
+
         translated
     } else {
         // No translation available, return original
@@ -2870,7 +3195,7 @@ mod tests {
     fn test_translate_to_german() {
         let result = make_test_result();
         let translated = translate_to_german(&result);
-        
+
         assert!(translated.title.contains("ssl"));
         assert!(translated.title.contains("Linker"));
         assert!(translated.explanation.contains("Bibliothek"));
@@ -2880,7 +3205,7 @@ mod tests {
     fn test_translate_preserves_captures() {
         let result = make_test_result();
         let translated = translate(&result, "de");
-        
+
         // $1 should be replaced with "ssl"
         assert!(translated.title.contains("ssl"));
         assert!(!translated.title.contains("$1"));
@@ -2890,7 +3215,7 @@ mod tests {
     fn test_translate_english_unchanged() {
         let result = make_test_result();
         let translated = translate(&result, "en");
-        
+
         assert_eq!(result.title, translated.title);
     }
 }

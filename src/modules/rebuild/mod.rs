@@ -20,7 +20,10 @@ use ratatui::{
     Frame,
 };
 use std::sync::mpsc;
-use std::sync::{Arc, atomic::{AtomicU32, Ordering}};
+use std::sync::{
+    atomic::{AtomicU32, Ordering},
+    Arc,
+};
 use std::time::{Duration, Instant};
 
 // ── Sub-tabs ──
@@ -193,8 +196,8 @@ pub enum LogLevel {
 
 #[derive(Debug, Clone)]
 pub struct LogLine {
-    pub text: String,     // beautified display text
-    pub raw: String,      // original unmodified output
+    pub text: String, // beautified display text
+    pub raw: String,  // original unmodified output
     pub level: LogLevel,
 }
 
@@ -202,9 +205,9 @@ pub struct LogLine {
 
 #[derive(Debug, Clone, Default)]
 pub struct RebuildDiff {
-    pub added: Vec<(String, String)>,     // (name, version)
-    pub removed: Vec<(String, String)>,   // (name, version)
-    pub updated: Vec<(String, String, String)>, // (name, old_ver, new_ver)
+    pub added: Vec<(String, String)>,             // (name, version)
+    pub removed: Vec<(String, String)>,           // (name, version)
+    pub updated: Vec<(String, String, String)>,   // (name, old_ver, new_ver)
     pub kernel_changed: Option<(String, String)>, // (old, new)
     pub reboot_needed: bool,
     pub services_restarted: Vec<String>,
@@ -457,11 +460,8 @@ impl RebuildState {
     /// Get the rebuild command for the current mode (dynamically computed)
     pub fn current_command(&self) -> String {
         let uses_flakes = self.uses_flakes.unwrap_or(false);
-        let (program, args) = build_rebuild_command(
-            self.mode.as_arg(),
-            uses_flakes,
-            self.flake_path.as_deref(),
-        );
+        let (program, args) =
+            build_rebuild_command(self.mode.as_arg(), uses_flakes, self.flake_path.as_deref());
         let mut cmd = format!("{} {}", program, args.join(" "));
         if self.show_trace {
             cmd.push_str(" --show-trace");
@@ -514,11 +514,7 @@ impl RebuildState {
         let (tx, rx) = mpsc::channel();
         std::thread::spawn(move || {
             let uses_flakes = detect_flakes();
-            let flake_path = if uses_flakes {
-                find_flake_path()
-            } else {
-                None
-            };
+            let flake_path = if uses_flakes { find_flake_path() } else { None };
             let _ = tx.send((uses_flakes, flake_path));
         });
 
@@ -579,10 +575,21 @@ impl RebuildState {
         self.detected_command = Some(command.clone());
         let _ = tx.send(RebuildMsg::CommandInfo(command));
 
-        let auth_msg = crate::i18n::get_strings(self.lang).rb_authenticating.to_string();
+        let auth_msg = crate::i18n::get_strings(self.lang)
+            .rb_authenticating
+            .to_string();
         let pid_ref = Arc::clone(&self.child_pid);
         std::thread::spawn(move || {
-            run_rebuild(tx, mode, uses_flakes, flake_path.as_deref(), password, show_trace, pid_ref, auth_msg);
+            run_rebuild(
+                tx,
+                mode,
+                uses_flakes,
+                flake_path.as_deref(),
+                password,
+                show_trace,
+                pid_ref,
+                auth_msg,
+            );
         });
     }
 
@@ -602,7 +609,11 @@ impl RebuildState {
                         let level = classify_line(&line);
                         let display_text = beautify_store_path(&line);
                         self.current_activity = display_text.clone();
-                        self.log_lines.push(LogLine { text: display_text, raw: line, level });
+                        self.log_lines.push(LogLine {
+                            text: display_text,
+                            raw: line,
+                            level,
+                        });
                         // Cap log lines to prevent unbounded memory growth
                         if self.log_lines.len() > 50_000 {
                             self.log_lines.drain(..10_000);
@@ -635,7 +646,11 @@ impl RebuildState {
                         }
                         let level = LogLevel::Phase;
                         let text = format!("── {} ──", phase_label(phase, self.lang));
-                        self.log_lines.push(LogLine { text: text.clone(), raw: text, level });
+                        self.log_lines.push(LogLine {
+                            text: text.clone(),
+                            raw: text,
+                            level,
+                        });
                     }
                     RebuildMsg::Stats(stats) => {
                         self.stats = stats;
@@ -709,7 +724,8 @@ impl RebuildState {
                                     .find(|l| l.level == LogLevel::Error)
                                     .map(|l| {
                                         if l.raw.chars().count() > 80 {
-                                            let truncated: String = l.raw.chars().take(80).collect();
+                                            let truncated: String =
+                                                l.raw.chars().take(80).collect();
                                             format!("{}...", truncated)
                                         } else {
                                             l.raw.clone()
@@ -721,9 +737,7 @@ impl RebuildState {
                         };
 
                         let entry = HistoryEntry {
-                            timestamp: chrono::Local::now()
-                                .format("%Y-%m-%d %H:%M:%S")
-                                .to_string(),
+                            timestamp: chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string(),
                             mode: self.mode,
                             duration,
                             success,
@@ -761,8 +775,13 @@ impl RebuildState {
                             }
                         }
                         self.log_lines.push(LogLine {
-                            text: format!("✗ {}", crate::i18n::get_strings(self.lang).rb_terminated),
-                            raw: crate::i18n::get_strings(self.lang).rb_terminated.to_string(),
+                            text: format!(
+                                "✗ {}",
+                                crate::i18n::get_strings(self.lang).rb_terminated
+                            ),
+                            raw: crate::i18n::get_strings(self.lang)
+                                .rb_terminated
+                                .to_string(),
                             level: LogLevel::Error,
                         });
                     }
@@ -899,7 +918,8 @@ impl RebuildState {
                 // Scroll live output
                 if !self.log_lines.is_empty() {
                     self.log_auto_scroll = false;
-                    self.log_scroll = (self.log_scroll + 1).min(self.log_lines.len().saturating_sub(1));
+                    self.log_scroll =
+                        (self.log_scroll + 1).min(self.log_lines.len().saturating_sub(1));
                 }
                 Ok(true)
             }
@@ -991,13 +1011,7 @@ impl RebuildState {
 
 // ── Rendering ──
 
-pub fn render(
-    frame: &mut Frame,
-    state: &RebuildState,
-    theme: &Theme,
-    lang: Language,
-    area: Rect,
-) {
+pub fn render(frame: &mut Frame, state: &RebuildState, theme: &Theme, lang: Language, area: Rect) {
     let s = i18n::get_strings(lang);
 
     let block = Block::default()
@@ -1017,7 +1031,7 @@ pub fn render(
     // Layout: sub-tabs on top, content below
     let layout = Layout::vertical([
         Constraint::Length(2), // sub-tab bar
-        Constraint::Min(4),   // content
+        Constraint::Min(4),    // content
     ])
     .split(inner);
 
@@ -1046,9 +1060,7 @@ fn render_sub_tabs(
     let titles: Vec<Line> = RebuildSubTab::all()
         .iter()
         .enumerate()
-        .map(|(i, tab)| {
-            Line::from(format!(" F{} {} ", i + 1, tab.label(lang)))
-        })
+        .map(|(i, tab)| Line::from(format!(" F{} {} ", i + 1, tab.label(lang))))
         .collect();
 
     let tabs = Tabs::new(titles)
@@ -1078,7 +1090,7 @@ fn render_dashboard(
         Constraint::Length(5), // active phase explanation (enough for wrapped text)
         Constraint::Length(1), // stats row
         Constraint::Length(1), // separator
-        Constraint::Min(4),   // live output
+        Constraint::Min(4),    // live output
     ])
     .split(area);
 
@@ -1124,8 +1136,7 @@ fn render_phase_boxes(
         }
     } else {
         // Narrow terminal: stack 2 rows of boxes
-        let rows = Layout::vertical([Constraint::Length(3), Constraint::Length(3)])
-            .split(area);
+        let rows = Layout::vertical([Constraint::Length(3), Constraint::Length(3)]).split(area);
         let top = Layout::horizontal([
             Constraint::Percentage(33),
             Constraint::Percentage(34),
@@ -1136,10 +1147,28 @@ fn render_phase_boxes(
             .split(rows[1]);
 
         for (i, col) in top.iter().enumerate() {
-            render_single_phase_box(frame, state, theme, lang, *col, phases[i], phase_labels[i], i);
+            render_single_phase_box(
+                frame,
+                state,
+                theme,
+                lang,
+                *col,
+                phases[i],
+                phase_labels[i],
+                i,
+            );
         }
         for (i, col) in bot.iter().enumerate() {
-            render_single_phase_box(frame, state, theme, lang, *col, phases[i + 3], phase_labels[i + 3], i + 3);
+            render_single_phase_box(
+                frame,
+                state,
+                theme,
+                lang,
+                *col,
+                phases[i + 3],
+                phase_labels[i + 3],
+                i + 3,
+            );
         }
     }
 }
@@ -1218,11 +1247,23 @@ fn render_single_phase_box(
     // Status line: icon + timer/status
     let timing = state.phase_elapsed_str(idx);
     let status_text = if is_active {
-        if timing.is_empty() { "active".to_string() } else { timing }
+        if timing.is_empty() {
+            "active".to_string()
+        } else {
+            timing
+        }
     } else if is_done {
-        if timing.is_empty() { "done".to_string() } else { timing }
+        if timing.is_empty() {
+            "done".to_string()
+        } else {
+            timing
+        }
     } else if is_failed {
-        if timing.is_empty() { "failed".to_string() } else { format!("{} ✗", timing) }
+        if timing.is_empty() {
+            "failed".to_string()
+        } else {
+            format!("{} ✗", timing)
+        }
     } else if is_skipped {
         "skipped".to_string()
     } else {
@@ -1230,7 +1271,10 @@ fn render_single_phase_box(
     };
 
     let status_line = Line::from(vec![
-        Span::styled(format!(" {} ", icon), Style::default().fg(color).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            format!(" {} ", icon),
+            Style::default().fg(color).add_modifier(Modifier::BOLD),
+        ),
         Span::styled(status_text, Style::default().fg(color)),
     ]);
 
@@ -1293,7 +1337,9 @@ fn render_phase_explanation(
             Span::styled("  ℹ ", Style::default().fg(theme.accent)),
             Span::styled(
                 phase_name,
-                Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::styled(
                 format!("  ⏱ {}", elapsed),
@@ -1356,7 +1402,10 @@ fn render_idle_dashboard(
                 s.rb_config_detected,
                 Style::default().fg(theme.fg).add_modifier(Modifier::BOLD),
             ),
-            Span::styled(format!(" {}", config_type), Style::default().fg(theme.accent)),
+            Span::styled(
+                format!(" {}", config_type),
+                Style::default().fg(theme.accent),
+            ),
         ]));
 
         if let Some(ref path) = state.flake_path {
@@ -1386,10 +1435,7 @@ fn render_idle_dashboard(
     // Current mode + show-trace on separate lines but compact
     lines.push(Line::from(vec![
         Span::styled("  ", Style::default()),
-        Span::styled(
-            s.rb_current_mode,
-            Style::default().fg(theme.fg),
-        ),
+        Span::styled(s.rb_current_mode, Style::default().fg(theme.fg)),
         Span::styled(
             format!(" [{}]", state.mode.label(lang)),
             Style::default()
@@ -1402,7 +1448,12 @@ fn render_idle_dashboard(
         ),
         Span::styled("    --show-trace: ", Style::default().fg(theme.fg_dim)),
         if state.show_trace {
-            Span::styled("ON", Style::default().fg(theme.success).add_modifier(Modifier::BOLD))
+            Span::styled(
+                "ON",
+                Style::default()
+                    .fg(theme.success)
+                    .add_modifier(Modifier::BOLD),
+            )
         } else {
             Span::styled("off", Style::default().fg(theme.fg_dim))
         },
@@ -1424,14 +1475,8 @@ fn render_idle_dashboard(
         let est_str = format_duration(est);
         lines.push(Line::from(vec![
             Span::styled("  ⏱ ", Style::default().fg(theme.fg_dim)),
-            Span::styled(
-                s.rb_estimated_time,
-                Style::default().fg(theme.fg_dim),
-            ),
-            Span::styled(
-                format!(" ~{}", est_str),
-                Style::default().fg(theme.accent),
-            ),
+            Span::styled(s.rb_estimated_time, Style::default().fg(theme.fg_dim)),
+            Span::styled(format!(" ~{}", est_str), Style::default().fg(theme.accent)),
         ]));
         lines.push(Line::raw(""));
     }
@@ -1451,12 +1496,14 @@ fn render_idle_dashboard(
                 format!("  {} ", s.rb_last_build),
                 Style::default().fg(theme.fg_dim),
             ),
+            Span::styled(format!("{} ", status_icon), status_style),
             Span::styled(
-                format!("{} ", status_icon),
-                status_style,
-            ),
-            Span::styled(
-                format!("{} ({}) — {}", last.mode.as_arg(), duration_str, last.timestamp),
+                format!(
+                    "{} ({}) — {}",
+                    last.mode.as_arg(),
+                    duration_str,
+                    last.timestamp
+                ),
                 Style::default().fg(theme.fg_dim),
             ),
         ]));
@@ -1486,21 +1533,18 @@ fn render_stats_row(
     let s = i18n::get_strings(lang);
 
     let elapsed_str = format!("⏱ {}", state.elapsed_str());
-    let built_str = format!(
-        "{}:{}",
-        s.rb_stat_built,
-        state.stats.derivations_built
-    );
-    let fetched_str = format!(
-        "{}:{}",
-        s.rb_stat_fetched,
-        state.stats.fetched
-    );
+    let built_str = format!("{}:{}", s.rb_stat_built, state.stats.derivations_built);
+    let fetched_str = format!("{}:{}", s.rb_stat_fetched, state.stats.fetched);
     let warn_str = format!("⚠:{}", state.stats.warnings);
     let err_str = format!("✗:{}", state.stats.errors);
 
     let mut spans = vec![
-        Span::styled(format!("  {}", elapsed_str), Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            format!("  {}", elapsed_str),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled("  │  ", Style::default().fg(theme.border)),
         Span::styled(built_str, Style::default().fg(theme.fg)),
         Span::styled("  │  ", Style::default().fg(theme.border)),
@@ -1527,10 +1571,16 @@ fn render_stats_row(
 
     if state.is_running() {
         spans.push(Span::styled("  │  ", Style::default().fg(theme.border)));
-        spans.push(Span::styled("[c] cancel", Style::default().fg(theme.fg_dim)));
+        spans.push(Span::styled(
+            "[c] cancel",
+            Style::default().fg(theme.fg_dim),
+        ));
     } else if matches!(state.phase, BuildPhase::Done | BuildPhase::Failed) {
         spans.push(Span::styled("  │  ", Style::default().fg(theme.border)));
-        spans.push(Span::styled("[Esc] back  [r] rebuild", Style::default().fg(theme.fg_dim)));
+        spans.push(Span::styled(
+            "[Esc] back  [r] rebuild",
+            Style::default().fg(theme.fg_dim),
+        ));
     }
 
     let stats = Line::from(spans);
@@ -1632,32 +1682,17 @@ fn render_live_output(
     frame.render_widget(list, lines_area);
 }
 
-fn render_log(
-    frame: &mut Frame,
-    state: &RebuildState,
-    theme: &Theme,
-    lang: Language,
-    area: Rect,
-) {
+fn render_log(frame: &mut Frame, state: &RebuildState, theme: &Theme, lang: Language, area: Rect) {
     let s = i18n::get_strings(lang);
 
     if state.log_lines.is_empty() {
         let empty_msg = vec![
             Line::raw(""),
             Line::raw(""),
-            Line::styled(
-                s.rb_log_empty,
-                Style::default().fg(theme.fg_dim),
-            ),
-            Line::styled(
-                s.rb_log_empty_hint,
-                Style::default().fg(theme.fg_dim),
-            ),
+            Line::styled(s.rb_log_empty, Style::default().fg(theme.fg_dim)),
+            Line::styled(s.rb_log_empty_hint, Style::default().fg(theme.fg_dim)),
         ];
-        frame.render_widget(
-            Paragraph::new(empty_msg).alignment(Alignment::Center),
-            area,
-        );
+        frame.render_widget(Paragraph::new(empty_msg).alignment(Alignment::Center), area);
         return;
     }
 
@@ -1763,10 +1798,7 @@ fn render_changes(
                 Line::raw(""),
                 Line::styled(msg, Style::default().fg(theme.fg_dim)),
             ];
-            frame.render_widget(
-                Paragraph::new(content).alignment(Alignment::Center),
-                area,
-            );
+            frame.render_widget(Paragraph::new(content).alignment(Alignment::Center), area);
             return;
         }
     };
@@ -1817,7 +1849,9 @@ fn render_changes(
                 Span::styled("    ", Style::default()),
                 Span::styled(
                     s.rb_reboot_needed,
-                    Style::default().fg(theme.error).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(theme.error)
+                        .add_modifier(Modifier::BOLD),
                 ),
             ]));
         }
@@ -1841,7 +1875,11 @@ fn render_changes(
         lines.push(Line::from(vec![
             Span::styled("  ⚙ ", Style::default()),
             Span::styled(
-                format!("{} ({})", s.rb_services_restarted, diff.services_restarted.len()),
+                format!(
+                    "{} ({})",
+                    s.rb_services_restarted,
+                    diff.services_restarted.len()
+                ),
                 Style::default()
                     .fg(theme.accent)
                     .add_modifier(Modifier::BOLD),
@@ -1858,14 +1896,12 @@ fn render_changes(
 
     // Packages added
     if !diff.added.is_empty() {
-        lines.push(Line::from(vec![
-            Span::styled(
-                format!("  ✚ {} ({})", s.rb_changes_added, diff.added.len()),
-                Style::default()
-                    .fg(theme.diff_added)
-                    .add_modifier(Modifier::BOLD),
-            ),
-        ]));
+        lines.push(Line::from(vec![Span::styled(
+            format!("  ✚ {} ({})", s.rb_changes_added, diff.added.len()),
+            Style::default()
+                .fg(theme.diff_added)
+                .add_modifier(Modifier::BOLD),
+        )]));
         for (name, ver) in &diff.added {
             lines.push(Line::from(vec![
                 Span::styled("    + ", Style::default().fg(theme.diff_added)),
@@ -1878,14 +1914,12 @@ fn render_changes(
 
     // Packages removed
     if !diff.removed.is_empty() {
-        lines.push(Line::from(vec![
-            Span::styled(
-                format!("  ✖ {} ({})", s.rb_changes_removed, diff.removed.len()),
-                Style::default()
-                    .fg(theme.diff_removed)
-                    .add_modifier(Modifier::BOLD),
-            ),
-        ]));
+        lines.push(Line::from(vec![Span::styled(
+            format!("  ✖ {} ({})", s.rb_changes_removed, diff.removed.len()),
+            Style::default()
+                .fg(theme.diff_removed)
+                .add_modifier(Modifier::BOLD),
+        )]));
         for (name, ver) in &diff.removed {
             lines.push(Line::from(vec![
                 Span::styled("    - ", Style::default().fg(theme.diff_removed)),
@@ -1898,19 +1932,20 @@ fn render_changes(
 
     // Packages updated
     if !diff.updated.is_empty() {
-        lines.push(Line::from(vec![
-            Span::styled(
-                format!("  ↑ {} ({})", s.rb_changes_updated, diff.updated.len()),
-                Style::default()
-                    .fg(theme.diff_updated)
-                    .add_modifier(Modifier::BOLD),
-            ),
-        ]));
+        lines.push(Line::from(vec![Span::styled(
+            format!("  ↑ {} ({})", s.rb_changes_updated, diff.updated.len()),
+            Style::default()
+                .fg(theme.diff_updated)
+                .add_modifier(Modifier::BOLD),
+        )]));
         for (name, old_v, new_v) in &diff.updated {
             lines.push(Line::from(vec![
                 Span::styled("    ~ ", Style::default().fg(theme.diff_updated)),
                 Span::styled(name.as_str(), Style::default().fg(theme.fg)),
-                Span::styled(format!(" {} → {}", old_v, new_v), Style::default().fg(theme.fg_dim)),
+                Span::styled(
+                    format!(" {} → {}", old_v, new_v),
+                    Style::default().fg(theme.fg_dim),
+                ),
             ]));
         }
         lines.push(Line::raw(""));
@@ -1947,15 +1982,9 @@ fn render_history(
             Line::raw(""),
             Line::raw(""),
             Line::styled(s.rb_history_empty, Style::default().fg(theme.fg_dim)),
-            Line::styled(
-                s.rb_history_empty_hint,
-                Style::default().fg(theme.fg_dim),
-            ),
+            Line::styled(s.rb_history_empty_hint, Style::default().fg(theme.fg_dim)),
         ];
-        frame.render_widget(
-            Paragraph::new(content).alignment(Alignment::Center),
-            area,
-        );
+        frame.render_widget(Paragraph::new(content).alignment(Alignment::Center), area);
         return;
     }
 
@@ -2007,10 +2036,7 @@ fn render_history(
                 if let Some(ref err) = entry.error_preview {
                     lines.push(Line::from(vec![
                         Span::styled("     ", Style::default()),
-                        Span::styled(
-                            err.as_str(),
-                            Style::default().fg(theme.error),
-                        ),
+                        Span::styled(err.as_str(), Style::default().fg(theme.error)),
                     ]));
                 }
             }
@@ -2057,24 +2083,18 @@ fn render_confirm_popup(
             ),
         ]),
         Line::raw(""),
-        Line::from(vec![
-            Span::styled(
-                format!("  {}: ", s.rb_confirm_cmd),
-                Style::default().fg(theme.fg),
-            ),
-        ]),
-        Line::from(vec![
-            Span::styled(
-                format!("  $ {}", cmd),
-                Style::default().fg(theme.success),
-            ),
-        ]),
-        Line::from(vec![
-            Span::styled(
-                format!("  {}", s.rb_sudo_note),
-                Style::default().fg(theme.fg_dim),
-            ),
-        ]),
+        Line::from(vec![Span::styled(
+            format!("  {}: ", s.rb_confirm_cmd),
+            Style::default().fg(theme.fg),
+        )]),
+        Line::from(vec![Span::styled(
+            format!("  $ {}", cmd),
+            Style::default().fg(theme.success),
+        )]),
+        Line::from(vec![Span::styled(
+            format!("  {}", s.rb_sudo_note),
+            Style::default().fg(theme.fg_dim),
+        )]),
         Line::raw(""),
         Line::from(vec![
             Span::styled(
@@ -2094,10 +2114,7 @@ fn render_confirm_popup(
         ]),
         Line::from(vec![
             Span::styled("  ", Style::default()),
-            Span::styled(
-                s.rb_nopasswd_hint,
-                Style::default().fg(theme.fg_dim),
-            ),
+            Span::styled(s.rb_nopasswd_hint, Style::default().fg(theme.fg_dim)),
         ]),
     ];
 
@@ -2138,12 +2155,22 @@ fn render_confirm_popup(
 
     let buttons = Line::from(vec![
         Span::styled("[", theme.text_dim()),
-        Span::styled("⏎", Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "⏎",
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled("] ", theme.text_dim()),
         Span::styled(s.rb_password_submit, theme.text()),
         Span::raw("    "),
         Span::styled("[", theme.text_dim()),
-        Span::styled("⎋", Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "⎋",
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled("] ", theme.text_dim()),
         Span::styled(s.cancel, theme.text()),
     ]);
@@ -2157,7 +2184,16 @@ fn render_confirm_popup(
 // ── Background rebuild logic ──
 
 #[allow(clippy::too_many_arguments)]
-fn run_rebuild(tx: mpsc::Sender<RebuildMsg>, mode: RebuildMode, uses_flakes: bool, flake_path: Option<&str>, password: Option<String>, show_trace: bool, child_pid: Arc<AtomicU32>, auth_msg: String) {
+fn run_rebuild(
+    tx: mpsc::Sender<RebuildMsg>,
+    mode: RebuildMode,
+    uses_flakes: bool,
+    flake_path: Option<&str>,
+    password: Option<String>,
+    show_trace: bool,
+    child_pid: Arc<AtomicU32>,
+    auth_msg: String,
+) {
     use std::io::{BufRead, BufReader, Write};
     use std::process::{Command, Stdio};
 
@@ -2197,7 +2233,11 @@ fn run_rebuild(tx: mpsc::Sender<RebuildMsg>, mode: RebuildMode, uses_flakes: boo
 
     let mut child = match Command::new(&program)
         .args(&args)
-        .stdin(if password.is_some() { Stdio::piped() } else { Stdio::null() })
+        .stdin(if password.is_some() {
+            Stdio::piped()
+        } else {
+            Stdio::null()
+        })
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
@@ -2232,7 +2272,6 @@ fn run_rebuild(tx: mpsc::Sender<RebuildMsg>, mode: RebuildMode, uses_flakes: boo
             let mut current_phase = BuildPhase::Evaluating;
 
             for line in reader.lines().map_while(Result::ok) {
-
                 // Phase detection
                 let new_phase = detect_phase(&line, current_phase);
                 if new_phase != current_phase {
@@ -2261,7 +2300,7 @@ fn run_rebuild(tx: mpsc::Sender<RebuildMsg>, mode: RebuildMode, uses_flakes: boo
         if let Some(stdout) = stdout {
             let reader = BufReader::new(stdout);
             for line in reader.lines().map_while(Result::ok) {
-                    let _ = tx_stdout.send(RebuildMsg::OutputLine(line));
+                let _ = tx_stdout.send(RebuildMsg::OutputLine(line));
             }
         }
     });
@@ -2301,7 +2340,11 @@ fn run_rebuild(tx: mpsc::Sender<RebuildMsg>, mode: RebuildMode, uses_flakes: boo
 
 // ── System detection helpers ──
 
-fn build_rebuild_command(mode: &str, uses_flakes: bool, flake_path: Option<&str>) -> (String, Vec<String>) {
+fn build_rebuild_command(
+    mode: &str,
+    uses_flakes: bool,
+    flake_path: Option<&str>,
+) -> (String, Vec<String>) {
     if uses_flakes {
         let path = flake_path.unwrap_or("/etc/nixos");
         (
@@ -2314,10 +2357,7 @@ fn build_rebuild_command(mode: &str, uses_flakes: bool, flake_path: Option<&str>
             ],
         )
     } else {
-        (
-            "sudo".into(),
-            vec!["nixos-rebuild".into(), mode.into()],
-        )
+        ("sudo".into(), vec!["nixos-rebuild".into(), mode.into()])
     }
 }
 
@@ -2332,12 +2372,18 @@ fn detect_phase(line: &str, current: BuildPhase) -> BuildPhase {
     }
 
     // Building phase markers
-    if lower.contains("building '") || lower.contains("these derivations will be built") || lower.contains("these paths will be fetched") {
+    if lower.contains("building '")
+        || lower.contains("these derivations will be built")
+        || lower.contains("these paths will be fetched")
+    {
         return BuildPhase::Building;
     }
 
     // Fetching from cache
-    if lower.contains("copying path") || lower.contains("fetching ") || lower.contains("downloading ") {
+    if lower.contains("copying path")
+        || lower.contains("fetching ")
+        || lower.contains("downloading ")
+    {
         return BuildPhase::Fetching;
     }
 
@@ -2378,7 +2424,8 @@ fn update_stats(line: &str, stats: &mut BuildStats) {
     }
 
     // Parse "these X derivations will be built" for total
-    if lower.contains("derivations will be built") || lower.contains("derivation(s) will be built") {
+    if lower.contains("derivations will be built") || lower.contains("derivation(s) will be built")
+    {
         if let Some(num) = extract_number(line) {
             stats.derivations_total = Some(num);
         }
@@ -2417,7 +2464,11 @@ fn detect_service_restart(line: &str) -> Option<String> {
         // or: "starting the following units: bar.service"
         if let Some(idx) = lower.find("units:") {
             let rest = &line[idx + 6..];
-            let services: Vec<&str> = rest.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
+            let services: Vec<&str> = rest
+                .split(',')
+                .map(|s| s.trim())
+                .filter(|s| !s.is_empty())
+                .collect();
             if !services.is_empty() {
                 return Some(services.join(", "));
             }
@@ -2442,7 +2493,10 @@ fn classify_line(line: &str) -> LogLevel {
         LogLevel::Error
     } else if lower.contains("warning:") {
         LogLevel::Warning
-    } else if lower.contains("building '") || lower.contains("fetching ") || lower.contains("copying path") {
+    } else if lower.contains("building '")
+        || lower.contains("fetching ")
+        || lower.contains("copying path")
+    {
         LogLevel::Info
     } else {
         LogLevel::Normal
@@ -2583,7 +2637,7 @@ fn parse_store_path_name(path: &str) -> Option<(String, String)> {
         return None;
     }
     let rest = &basename[33..]; // skip "hash-"
-    // Split name and version — version usually starts with a digit
+                                // Split name and version — version usually starts with a digit
     let parts: Vec<&str> = rest.rsplitn(2, '-').collect();
     if parts.len() == 2 {
         let maybe_ver = parts[0];
@@ -2597,15 +2651,20 @@ fn parse_store_path_name(path: &str) -> Option<(String, String)> {
 fn should_skip_pkg(name: &str) -> bool {
     // Skip infrastructure packages that aren't meaningful for users
     let skip_prefixes = [
-        "hook", "setup-hook", "source", "patch", "wrap",
-        "move-", "make-", "compress-", "strip-",
-        "audit-", "fixup-",
+        "hook",
+        "setup-hook",
+        "source",
+        "patch",
+        "wrap",
+        "move-",
+        "make-",
+        "compress-",
+        "strip-",
+        "audit-",
+        "fixup-",
     ];
-    let skip_names = [
-        "stdenv", "builder", "raw", "env-manifest",
-    ];
-    skip_prefixes.iter().any(|p| name.starts_with(p))
-        || skip_names.contains(&name)
+    let skip_names = ["stdenv", "builder", "raw", "env-manifest"];
+    skip_prefixes.iter().any(|p| name.starts_with(p)) || skip_names.contains(&name)
 }
 
 // ── Diff calculation ──
@@ -2620,8 +2679,14 @@ fn calculate_diff(
 ) -> RebuildDiff {
     use std::collections::HashMap;
 
-    let pre_map: HashMap<&str, &str> = pre_pkgs.iter().map(|(n, v)| (n.as_str(), v.as_str())).collect();
-    let post_map: HashMap<&str, &str> = post_pkgs.iter().map(|(n, v)| (n.as_str(), v.as_str())).collect();
+    let pre_map: HashMap<&str, &str> = pre_pkgs
+        .iter()
+        .map(|(n, v)| (n.as_str(), v.as_str()))
+        .collect();
+    let post_map: HashMap<&str, &str> = post_pkgs
+        .iter()
+        .map(|(n, v)| (n.as_str(), v.as_str()))
+        .collect();
 
     let mut added = Vec::new();
     let mut removed = Vec::new();
@@ -2709,7 +2774,10 @@ fn beautify_store_path(line: &str) -> String {
     if lower.contains("copying path") || lower.contains("fetching path") {
         if let Some(start) = line.find("/nix/store/") {
             let rest = &line[start..];
-            let end = rest.find('\'').or_else(|| rest.find(' ')).unwrap_or(rest.len());
+            let end = rest
+                .find('\'')
+                .or_else(|| rest.find(' '))
+                .unwrap_or(rest.len());
             let store_path = &rest[..end];
             if let Some((name, version)) = parse_store_path_name(store_path) {
                 if version.is_empty() {
@@ -2721,7 +2789,8 @@ fn beautify_store_path(line: &str) -> String {
     }
 
     // Pattern: "these N derivations will be built:"
-    if lower.contains("derivations will be built") || lower.contains("derivation(s) will be built") {
+    if lower.contains("derivations will be built") || lower.contains("derivation(s) will be built")
+    {
         if let Some(n) = extract_number(line) {
             return format!("📋 {} derivations to build", n);
         }
@@ -2834,7 +2903,14 @@ fn save_history(history: &[HistoryEntry]) -> Result<(), Box<dyn std::error::Erro
         std::fs::create_dir_all(parent)?;
     }
     // Keep last 100 entries
-    let to_save: Vec<&HistoryEntry> = history.iter().rev().take(100).collect::<Vec<_>>().into_iter().rev().collect();
+    let to_save: Vec<&HistoryEntry> = history
+        .iter()
+        .rev()
+        .take(100)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .collect();
     let json = serde_json::to_string_pretty(&to_save)?;
     std::fs::write(&path, json)?;
     Ok(())

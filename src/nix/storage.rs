@@ -475,7 +475,11 @@ pub fn history_summary(entries: &[HistoryEntry]) -> (Option<String>, u64) {
 // ════════════════════════════════════════════════════════════════════
 
 /// Run a command with a timeout. Returns None on timeout or error.
-fn output_with_timeout(cmd: &str, args: &[&str], timeout_secs: u64) -> Option<std::process::Output> {
+fn output_with_timeout(
+    cmd: &str,
+    args: &[&str],
+    timeout_secs: u64,
+) -> Option<std::process::Output> {
     let mut child = Command::new(cmd)
         .args(args)
         .stdout(std::process::Stdio::piped())

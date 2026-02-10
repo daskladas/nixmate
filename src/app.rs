@@ -13,8 +13,8 @@ use crate::modules::rebuild::RebuildState;
 use crate::modules::services::ServicesState;
 use crate::modules::splash::{self, ImageCache, ImageProtocol, WelcomeState};
 use crate::modules::storage::StorageState;
-use crate::ui::{ModuleTab, Theme};
 use crate::types::FlashMessage;
+use crate::ui::{ModuleTab, Theme};
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
 use std::collections::HashSet;
@@ -60,10 +60,15 @@ pub struct App {
 #[derive(Debug, Clone)]
 pub enum PopupState {
     None,
-    Error { title: String, message: String },
+    Error {
+        title: String,
+        message: String,
+    },
     #[allow(dead_code)] // Reserved for async operations
     // Planned for future use
-    Loading { message: String },
+    Loading {
+        message: String,
+    },
 }
 
 impl App {
@@ -213,8 +218,11 @@ impl App {
                     return Ok(());
                 }
                 // Global nav keys fall through
-                KeyCode::Char('1'..='9') | KeyCode::Char('0')
-                | KeyCode::Char(',') | KeyCode::Char('?') | KeyCode::Char('q') => {}
+                KeyCode::Char('1'..='9')
+                | KeyCode::Char('0')
+                | KeyCode::Char(',')
+                | KeyCode::Char('?')
+                | KeyCode::Char('q') => {}
                 // All other keys are absorbed by intro
                 _ => return Ok(()),
             }
@@ -253,7 +261,8 @@ impl App {
 
         // Lazy-load installed packages when entering Packages tab
         if self.active_tab == ModuleTab::Packages {
-            self.packages.ensure_source_detected(&self.config.nixpkgs_channel);
+            self.packages
+                .ensure_source_detected(&self.config.nixpkgs_channel);
             self.packages.ensure_installed_loaded();
         }
 
@@ -286,7 +295,8 @@ impl App {
                 let gen = &self.generations;
 
                 // Module captures ALL keys when popup or filter active
-                let has_popup = !matches!(gen.popup, crate::modules::generations::GenPopupState::None);
+                let has_popup =
+                    !matches!(gen.popup, crate::modules::generations::GenPopupState::None);
                 let filter_active = gen.packages_filter_active;
 
                 if has_popup || filter_active {
@@ -302,7 +312,11 @@ impl App {
 
                 // Tab-switch keys and quit stay global
                 match key.code {
-                    KeyCode::Char('1'..='9') | KeyCode::Char('0') | KeyCode::Char(',') | KeyCode::Char('?') | KeyCode::Char('q') => Ok(false),
+                    KeyCode::Char('1'..='9')
+                    | KeyCode::Char('0')
+                    | KeyCode::Char(',')
+                    | KeyCode::Char('?')
+                    | KeyCode::Char('q') => Ok(false),
                     _ => {
                         self.generations.handle_key(key)?;
                         Ok(true)
@@ -335,7 +349,11 @@ impl App {
 
                 // Tab-switch keys, quit, and Tab (sidebar) stay global
                 match key.code {
-                    KeyCode::Char('1'..='9') | KeyCode::Char('0') | KeyCode::Char(',') | KeyCode::Char('?') | KeyCode::Char('q') => Ok(false),
+                    KeyCode::Char('1'..='9')
+                    | KeyCode::Char('0')
+                    | KeyCode::Char(',')
+                    | KeyCode::Char('?')
+                    | KeyCode::Char('q') => Ok(false),
                     _ => {
                         let lang = self.config.language;
                         self.errors.handle_key(key, lang)?;
@@ -370,7 +388,11 @@ impl App {
 
                 // Tab-switch keys, quit, and Tab (sidebar) stay global
                 match key.code {
-                    KeyCode::Char('1'..='9') | KeyCode::Char('0') | KeyCode::Char(',') | KeyCode::Char('?') | KeyCode::Char('q') => Ok(false),
+                    KeyCode::Char('1'..='9')
+                    | KeyCode::Char('0')
+                    | KeyCode::Char(',')
+                    | KeyCode::Char('?')
+                    | KeyCode::Char('q') => Ok(false),
                     _ => {
                         self.services.handle_key(key)?;
                         Ok(true)
@@ -397,7 +419,11 @@ impl App {
 
                 // Tab-switch keys, quit, and Tab (sidebar) stay global
                 match key.code {
-                    KeyCode::Char('1'..='9') | KeyCode::Char('0') | KeyCode::Char(',') | KeyCode::Char('?') | KeyCode::Char('q') => Ok(false),
+                    KeyCode::Char('1'..='9')
+                    | KeyCode::Char('0')
+                    | KeyCode::Char(',')
+                    | KeyCode::Char('?')
+                    | KeyCode::Char('q') => Ok(false),
                     _ => {
                         self.storage.handle_key(key)?;
                         Ok(true)
@@ -412,7 +438,11 @@ impl App {
                 }
 
                 match key.code {
-                    KeyCode::Char('1'..='9') | KeyCode::Char('0') | KeyCode::Char(',') | KeyCode::Char('?') | KeyCode::Char('q') => Ok(false),
+                    KeyCode::Char('1'..='9')
+                    | KeyCode::Char('0')
+                    | KeyCode::Char(',')
+                    | KeyCode::Char('?')
+                    | KeyCode::Char('q') => Ok(false),
                     _ => {
                         self.config_showcase.handle_key(key)?;
                         Ok(true)
@@ -429,7 +459,11 @@ impl App {
                 }
 
                 match key.code {
-                    KeyCode::Char('1'..='9') | KeyCode::Char('0') | KeyCode::Char(',') | KeyCode::Char('?') | KeyCode::Char('q') => Ok(false),
+                    KeyCode::Char('1'..='9')
+                    | KeyCode::Char('0')
+                    | KeyCode::Char(',')
+                    | KeyCode::Char('?')
+                    | KeyCode::Char('q') => Ok(false),
                     _ => {
                         self.packages.handle_key(key)?;
                         Ok(true)
@@ -444,7 +478,11 @@ impl App {
                 }
 
                 match key.code {
-                    KeyCode::Char('1'..='9') | KeyCode::Char('0') | KeyCode::Char(',') | KeyCode::Char('?') | KeyCode::Char('q') => Ok(false),
+                    KeyCode::Char('1'..='9')
+                    | KeyCode::Char('0')
+                    | KeyCode::Char(',')
+                    | KeyCode::Char('?')
+                    | KeyCode::Char('q') => Ok(false),
                     _ => {
                         self.health.handle_key(key)?;
                         Ok(true)
@@ -470,7 +508,11 @@ impl App {
                 }
 
                 match key.code {
-                    KeyCode::Char('1'..='9') | KeyCode::Char('0') | KeyCode::Char(',') | KeyCode::Char('?') | KeyCode::Char('q') => Ok(false),
+                    KeyCode::Char('1'..='9')
+                    | KeyCode::Char('0')
+                    | KeyCode::Char(',')
+                    | KeyCode::Char('?')
+                    | KeyCode::Char('q') => Ok(false),
                     _ => {
                         self.rebuild.handle_key(key)?;
                         Ok(true)
@@ -493,7 +535,11 @@ impl App {
                 }
 
                 match key.code {
-                    KeyCode::Char('1'..='9') | KeyCode::Char('0') | KeyCode::Char(',') | KeyCode::Char('?') | KeyCode::Char('q') => Ok(false),
+                    KeyCode::Char('1'..='9')
+                    | KeyCode::Char('0')
+                    | KeyCode::Char(',')
+                    | KeyCode::Char('?')
+                    | KeyCode::Char('q') => Ok(false),
                     _ => {
                         self.options.handle_key(key)?;
                         Ok(true)
@@ -516,7 +562,11 @@ impl App {
                 }
 
                 match key.code {
-                    KeyCode::Char('1'..='9') | KeyCode::Char('0') | KeyCode::Char(',') | KeyCode::Char('?') | KeyCode::Char('q') => Ok(false),
+                    KeyCode::Char('1'..='9')
+                    | KeyCode::Char('0')
+                    | KeyCode::Char(',')
+                    | KeyCode::Char('?')
+                    | KeyCode::Char('q') => Ok(false),
                     _ => {
                         self.flake_inputs.handle_key(key)?;
                         Ok(true)
@@ -573,19 +623,13 @@ impl App {
                 // Kitty: only re-send if position changed (image persists on its layer)
                 // iTerm2: re-send every frame (ratatui overwrites cell content)
                 let need_send = match self.image_protocol {
-                    ImageProtocol::Kitty => {
-                        self.last_image_area != Some((col, row, cols, rows))
-                    }
+                    ImageProtocol::Kitty => self.last_image_area != Some((col, row, cols, rows)),
                     ImageProtocol::ITerm2 => true,
                     ImageProtocol::None => false,
                 };
 
                 if need_send {
-                    let _ = splash::display_image(
-                        self.image_protocol,
-                        cache,
-                        col, row, cols, rows,
-                    );
+                    let _ = splash::display_image(self.image_protocol, cache, col, row, cols, rows);
                     self.last_image_area = Some((col, row, cols, rows));
                     self.image_displayed = true;
                 }
@@ -681,15 +725,21 @@ impl App {
                     7 => {
                         // Ollama URL
                         self.settings_editing = true;
-                        self.settings_edit_buffer = self.config.ollama_url
-                            .clone().unwrap_or_else(|| "http://localhost:11434".to_string());
+                        self.settings_edit_buffer = self
+                            .config
+                            .ollama_url
+                            .clone()
+                            .unwrap_or_else(|| "http://localhost:11434".to_string());
                         return Ok(());
                     }
                     8 => {
                         // Ollama Model
                         self.settings_editing = true;
-                        self.settings_edit_buffer = self.config.ollama_model
-                            .clone().unwrap_or_else(|| "llama3".to_string());
+                        self.settings_edit_buffer = self
+                            .config
+                            .ollama_model
+                            .clone()
+                            .unwrap_or_else(|| "llama3".to_string());
                         return Ok(());
                     }
                     9 => {
@@ -703,7 +753,9 @@ impl App {
                 let s = i18n::get_strings(self.config.language);
                 if let Err(e) = self.config.save() {
                     self.popup = PopupState::Error {
-                        title: crate::i18n::get_strings(self.config.language).save_failed.into(),
+                        title: crate::i18n::get_strings(self.config.language)
+                            .save_failed
+                            .into(),
                         message: e.to_string(),
                     };
                 } else {
@@ -737,32 +789,18 @@ impl App {
                         self.packages.reset_source();
                     }
                     6 => {
-                        self.config.ai_api_key = if value.is_empty() {
-                            None
-                        } else {
-                            Some(value)
-                        };
+                        self.config.ai_api_key = if value.is_empty() { None } else { Some(value) };
                     }
                     7 => {
-                        self.config.ollama_url = if value.is_empty() {
-                            None
-                        } else {
-                            Some(value)
-                        };
+                        self.config.ollama_url = if value.is_empty() { None } else { Some(value) };
                     }
                     8 => {
-                        self.config.ollama_model = if value.is_empty() {
-                            None
-                        } else {
-                            Some(value)
-                        };
+                        self.config.ollama_model =
+                            if value.is_empty() { None } else { Some(value) };
                     }
                     9 => {
-                        self.config.github_token = if value.is_empty() {
-                            None
-                        } else {
-                            Some(value)
-                        };
+                        self.config.github_token =
+                            if value.is_empty() { None } else { Some(value) };
                     }
                     _ => {}
                 }
@@ -772,7 +810,9 @@ impl App {
                 let s = i18n::get_strings(self.config.language);
                 if let Err(e) = self.config.save() {
                     self.popup = PopupState::Error {
-                        title: crate::i18n::get_strings(self.config.language).save_failed.into(),
+                        title: crate::i18n::get_strings(self.config.language)
+                            .save_failed
+                            .into(),
                         message: e.to_string(),
                     };
                 } else {
@@ -814,7 +854,10 @@ impl App {
         self.errors.start_ai_analysis(
             &self.config.ai_provider,
             self.config.ai_api_key.as_deref().unwrap_or(""),
-            self.config.ollama_url.as_deref().unwrap_or("http://localhost:11434"),
+            self.config
+                .ollama_url
+                .as_deref()
+                .unwrap_or("http://localhost:11434"),
             self.config.ollama_model.as_deref().unwrap_or("llama3"),
             lang_str,
         );

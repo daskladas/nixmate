@@ -12,6 +12,7 @@ pub mod poster;
 use crate::config::Language;
 use crate::i18n;
 use crate::nix::sysinfo::{self, PosterInfo};
+use crate::types::FlashMessage;
 use crate::ui::theme::Theme;
 use crate::ui::widgets;
 use anyhow::Result;
@@ -24,7 +25,6 @@ use ratatui::{
     Frame,
 };
 use std::sync::mpsc;
-use crate::types::FlashMessage;
 
 // ── Sub-tabs ──
 
@@ -190,8 +190,10 @@ impl ConfigShowcaseState {
                 Err(mpsc::TryRecvError::Disconnected) => {
                     self.scanning = false;
                     self.scan_rx = None;
-                    self.flash_message =
-                        Some(FlashMessage::new(crate::i18n::get_strings(self.lang).thread_crashed.into(), true));
+                    self.flash_message = Some(FlashMessage::new(
+                        crate::i18n::get_strings(self.lang).thread_crashed.into(),
+                        true,
+                    ));
                 }
             }
         }
@@ -209,8 +211,10 @@ impl ConfigShowcaseState {
                 Err(mpsc::TryRecvError::Disconnected) => {
                     self.diagram_scanning = false;
                     self.diagram_rx = None;
-                    self.flash_message =
-                        Some(FlashMessage::new(crate::i18n::get_strings(self.lang).thread_crashed.into(), true));
+                    self.flash_message = Some(FlashMessage::new(
+                        crate::i18n::get_strings(self.lang).thread_crashed.into(),
+                        true,
+                    ));
                 }
             }
         }
@@ -278,7 +282,7 @@ pub fn render(
 
     let layout = Layout::vertical([
         Constraint::Length(3), // Sub-tab bar
-        Constraint::Min(4),   // Content
+        Constraint::Min(4),    // Content
     ])
     .split(inner);
 
@@ -349,7 +353,7 @@ fn render_overview(
         Constraint::Length(4), // Description
         Constraint::Length(3), // Generate button
         Constraint::Length(1), // Spacer
-        Constraint::Min(4),   // Status / result
+        Constraint::Min(4),    // Status / result
     ])
     .split(area);
 
@@ -383,8 +387,7 @@ fn render_overview(
                 .add_modifier(Modifier::BOLD),
         )
     };
-    let btn_p =
-        Paragraph::new(vec![Line::raw(""), btn_line]).alignment(Alignment::Center);
+    let btn_p = Paragraph::new(vec![Line::raw(""), btn_line]).alignment(Alignment::Center);
     frame.render_widget(btn_p, chunks[1]);
 
     // Status area
@@ -410,10 +413,7 @@ fn render_overview(
         ));
     } else if let Some(ref err) = state.export_error {
         status_lines.push(Line::raw(""));
-        status_lines.push(Line::styled(
-            format!("  ❌ {}", s.cfg_error),
-            theme.error(),
-        ));
+        status_lines.push(Line::styled(format!("  ❌ {}", s.cfg_error), theme.error()));
         for line in err.lines() {
             status_lines.push(Line::styled(format!("  {}", line), theme.text_dim()));
         }
@@ -446,7 +446,7 @@ fn render_diagram(
         Constraint::Length(4), // Description
         Constraint::Length(3), // Generate button
         Constraint::Length(1), // Spacer
-        Constraint::Min(4),   // Status / result
+        Constraint::Min(4),    // Status / result
     ])
     .split(area);
 
@@ -480,8 +480,7 @@ fn render_diagram(
                 .add_modifier(Modifier::BOLD),
         )
     };
-    let btn_p =
-        Paragraph::new(vec![Line::raw(""), btn_line]).alignment(Alignment::Center);
+    let btn_p = Paragraph::new(vec![Line::raw(""), btn_line]).alignment(Alignment::Center);
     frame.render_widget(btn_p, chunks[1]);
 
     // Status area
@@ -509,15 +508,14 @@ fn render_diagram(
         // Show quick stats if diagram data available
         if let Some(ref info) = state.diagram_result {
             status_lines.push(Line::raw(""));
-            let file_count = info.nodes.iter()
+            let file_count = info
+                .nodes
+                .iter()
                 .filter(|n| n.node_type != diagram::NodeType::FlakeInput)
                 .count();
             let input_count = info.flake_inputs.len();
             let edge_count = info.edges.len();
-            let mut stats = format!(
-                "  📊 {} files · {} connections",
-                file_count, edge_count
-            );
+            let mut stats = format!("  📊 {} files · {} connections", file_count, edge_count);
             if input_count > 0 {
                 stats.push_str(&format!(" · {} flake inputs", input_count));
             }
@@ -525,10 +523,7 @@ fn render_diagram(
         }
     } else if let Some(ref err) = state.diagram_export_error {
         status_lines.push(Line::raw(""));
-        status_lines.push(Line::styled(
-            format!("  ❌ {}", s.cfg_error),
-            theme.error(),
-        ));
+        status_lines.push(Line::styled(format!("  ❌ {}", s.cfg_error), theme.error()));
         for line in err.lines() {
             status_lines.push(Line::styled(format!("  {}", line), theme.text_dim()));
         }

@@ -25,7 +25,7 @@ pub fn list_generations(source: &GenerationSource) -> Result<Vec<Generation>> {
     // Strategy 1: Parse from filesystem (no permissions needed)
     match list_generations_from_fs(source) {
         Ok(gens) if !gens.is_empty() => return Ok(gens),
-        Ok(_) => {} // empty, try fallback
+        Ok(_) => {}  // empty, try fallback
         Err(_) => {} // failed, try fallback
     }
 
@@ -103,8 +103,7 @@ fn list_generations_from_fs(source: &GenerationSource) -> Result<Vec<Generation>
 /// Get timestamp from a symlink (uses lstat metadata)
 fn get_link_timestamp(path: &Path) -> DateTime<Local> {
     // Try symlink metadata first, then regular metadata
-    let metadata = std::fs::symlink_metadata(path)
-        .or_else(|_| std::fs::metadata(path));
+    let metadata = std::fs::symlink_metadata(path).or_else(|_| std::fs::metadata(path));
 
     match metadata {
         Ok(meta) => {
@@ -315,12 +314,14 @@ fn get_kernel_version(gen_path: &Path) -> Option<String> {
     } else {
         let modules_dir = gen_path.join("kernel-modules/lib/modules");
         if modules_dir.exists() {
-            std::fs::read_dir(&modules_dir).ok().and_then(|mut entries| {
-                entries
-                    .next()?
-                    .ok()
-                    .map(|e| e.file_name().to_string_lossy().to_string())
-            })
+            std::fs::read_dir(&modules_dir)
+                .ok()
+                .and_then(|mut entries| {
+                    entries
+                        .next()?
+                        .ok()
+                        .map(|e| e.file_name().to_string_lossy().to_string())
+                })
         } else {
             None
         }

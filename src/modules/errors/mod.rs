@@ -11,6 +11,7 @@ pub mod patterns_i18n;
 
 use crate::config::Language;
 use crate::i18n;
+use crate::types::FlashMessage;
 use crate::ui::theme::Theme;
 use crate::ui::widgets;
 use anyhow::Result;
@@ -24,7 +25,6 @@ use ratatui::{
     Frame,
 };
 use std::sync::mpsc;
-use crate::types::FlashMessage;
 
 // ── Sub-tabs ──
 
@@ -214,8 +214,8 @@ impl ErrorsState {
             Language::German => "de",
         };
 
-        self.result = matcher::analyze(&self.input_buffer)
-            .map(|r| patterns_i18n::translate(&r, lang_str));
+        self.result =
+            matcher::analyze(&self.input_buffer).map(|r| patterns_i18n::translate(&r, lang_str));
         self.input_mode = false;
         self.scroll_offset = 0;
     }
@@ -254,7 +254,12 @@ impl ErrorsState {
 
         std::thread::spawn(move || {
             let result = ai::analyze_with_ai(
-                &provider, &api_key, &ollama_url, &ollama_model, &error_text, &lang,
+                &provider,
+                &api_key,
+                &ollama_url,
+                &ollama_model,
+                &error_text,
+                &lang,
             );
             let msg = match result {
                 Ok(text) => Ok(text),
@@ -427,11 +432,15 @@ impl ErrorsState {
                 self.submit_form.active_field = self.submit_form.active_field.prev();
             }
             KeyCode::Backspace => {
-                let field = self.submit_form.get_field_mut(self.submit_form.active_field);
+                let field = self
+                    .submit_form
+                    .get_field_mut(self.submit_form.active_field);
                 field.pop();
             }
             KeyCode::Char(c) => {
-                let field = self.submit_form.get_field_mut(self.submit_form.active_field);
+                let field = self
+                    .submit_form
+                    .get_field_mut(self.submit_form.active_field);
                 field.push(c);
             }
             KeyCode::Enter => {
@@ -497,7 +506,7 @@ pub fn render(
     // Layout: sub-tab bar + content
     let layout = Layout::vertical([
         Constraint::Length(2), // Sub-tab bar
-        Constraint::Min(8),   // Content
+        Constraint::Min(8),    // Content
     ])
     .split(area);
 
@@ -576,12 +585,7 @@ fn render_analyze(
     }
 }
 
-fn render_idle(
-    frame: &mut Frame,
-    theme: &Theme,
-    lang: Language,
-    area: Rect,
-) {
+fn render_idle(frame: &mut Frame, theme: &Theme, lang: Language, area: Rect) {
     let s = i18n::get_strings(lang);
 
     let block = Block::default()
@@ -597,10 +601,7 @@ fn render_idle(
     let content = vec![
         Line::raw(""),
         Line::raw(""),
-        Line::styled(
-            "🔍",
-            Style::default().add_modifier(Modifier::BOLD),
-        ),
+        Line::styled("🔍", Style::default().add_modifier(Modifier::BOLD)),
         Line::raw(""),
         Line::styled(s.err_idle_title, theme.text()),
         Line::raw(""),
@@ -620,13 +621,7 @@ fn render_idle(
     );
 }
 
-fn render_input(
-    frame: &mut Frame,
-    state: &ErrorsState,
-    theme: &Theme,
-    lang: Language,
-    area: Rect,
-) {
+fn render_input(frame: &mut Frame, state: &ErrorsState, theme: &Theme, lang: Language, area: Rect) {
     let s = i18n::get_strings(lang);
 
     let block = Block::default()
@@ -706,7 +701,7 @@ fn render_result_found(
         Constraint::Length(3), // Status header
         Constraint::Length(4), // Problem
         Constraint::Length(6), // Solution
-        Constraint::Min(6),   // Deep dive (scrollable)
+        Constraint::Min(6),    // Deep dive (scrollable)
     ])
     .split(area);
 
@@ -718,14 +713,12 @@ fn render_result_found(
         result.category.name(),
         result.title
     );
-    let title = Paragraph::new(status_title)
-        .style(theme.success())
-        .block(
-            Block::default()
-                .style(theme.block_style())
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(theme.success)),
-        );
+    let title = Paragraph::new(status_title).style(theme.success()).block(
+        Block::default()
+            .style(theme.block_style())
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(theme.success)),
+    );
     frame.render_widget(title, chunks[0]);
 
     // 2. Problem
@@ -816,10 +809,7 @@ fn render_result_not_found(
     let mut content = vec![
         Line::raw(""),
         Line::raw(""),
-        Line::styled(
-            format!(" ❌ {} ", s.err_not_found),
-            theme.error(),
-        ),
+        Line::styled(format!(" ❌ {} ", s.err_not_found), theme.error()),
         Line::raw(""),
         Line::styled(s.err_no_match_msg, theme.text()),
         Line::raw(""),
@@ -829,17 +819,32 @@ fn render_result_not_found(
     // AI option (only if configured)
     if ai_available {
         content.push(Line::from(vec![
-            Span::styled("  [a] ", Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                "  [a] ",
+                Style::default()
+                    .fg(theme.accent)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::styled(format!("🤖 {}", s.err_ai_ask), theme.text()),
         ]));
     }
 
     content.push(Line::from(vec![
-        Span::styled("  [n] ", Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "  [n] ",
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled(s.err_new_analysis, theme.text()),
     ]));
     content.push(Line::from(vec![
-        Span::styled("  [s] ", Style::default().fg(theme.accent).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "  [s] ",
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
+        ),
         Span::styled(s.err_submit_pattern, theme.text()),
     ]));
 
@@ -876,7 +881,9 @@ fn render_ai_loading(
         Line::raw(""),
         Line::styled(
             format!("🔄 {}", s.err_ai_analyzing),
-            Style::default().fg(theme.accent).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
         ),
         Line::raw(""),
         Line::styled(
@@ -884,10 +891,7 @@ fn render_ai_loading(
             theme.text_dim(),
         ),
         Line::raw(""),
-        Line::styled(
-            format!("[Esc] {}", s.cancel),
-            theme.text_dim(),
-        ),
+        Line::styled(format!("[Esc] {}", s.cancel), theme.text_dim()),
     ];
 
     frame.render_widget(
@@ -910,7 +914,7 @@ fn render_ai_result(
 
     let chunks = Layout::vertical([
         Constraint::Length(3), // Header
-        Constraint::Min(6),   // AI response (scrollable)
+        Constraint::Min(6),    // AI response (scrollable)
     ])
     .split(area);
 
@@ -920,7 +924,11 @@ fn render_ai_result(
         s.err_ai_result, s.err_ai_via, state.ai_provider_name
     );
     let header = Paragraph::new(header_text)
-        .style(Style::default().fg(theme.accent).add_modifier(Modifier::BOLD))
+        .style(
+            Style::default()
+                .fg(theme.accent)
+                .add_modifier(Modifier::BOLD),
+        )
         .block(
             Block::default()
                 .style(theme.block_style())
@@ -999,7 +1007,7 @@ fn render_submit(
         Constraint::Length(3), // Pattern name
         Constraint::Length(4), // Error message
         Constraint::Length(4), // Solution
-        Constraint::Min(3),   // Notes
+        Constraint::Min(3),    // Notes
     ])
     .split(Rect {
         x: inner.x + 1,

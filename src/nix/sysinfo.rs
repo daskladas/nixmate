@@ -125,7 +125,9 @@ fn cmd_any(program: &str, args: &[&str], timeout_secs: u64) -> Option<String> {
             Ok(Some(_)) => {
                 let output = child.wait_with_output().ok()?;
                 let s = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                if !s.is_empty() { return Some(s); }
+                if !s.is_empty() {
+                    return Some(s);
+                }
                 return Some(String::from_utf8_lossy(&output.stderr).trim().to_string());
             }
             Ok(None) => {
@@ -187,7 +189,13 @@ fn get_uptime() -> String {
 fn get_channel() -> String {
     if detect_flakes() {
         if let Ok(content) = std::fs::read_to_string("/etc/nixos/flake.nix") {
-            for tag in &["nixos-unstable", "nixos-25.05", "nixos-25.11", "nixos-24.11", "nixos-24.05"] {
+            for tag in &[
+                "nixos-unstable",
+                "nixos-25.05",
+                "nixos-25.11",
+                "nixos-24.11",
+                "nixos-24.05",
+            ] {
                 if content.contains(tag) {
                     return format!("{} (flake)", tag);
                 }
@@ -245,7 +253,11 @@ fn get_package_count() -> usize {
         }
     }
     // Method 2: nix-store --requisites (classic)
-    if let Some(out) = cmd("nix-store", &["-q", "--requisites", "/run/current-system"], 30) {
+    if let Some(out) = cmd(
+        "nix-store",
+        &["-q", "--requisites", "/run/current-system"],
+        30,
+    ) {
         let count = out.lines().count();
         if count > 0 {
             return count;
@@ -279,9 +291,14 @@ fn get_cpu() -> String {
 }
 
 fn shorten_cpu(name: &str) -> String {
-    let s = name.replace("(R)", "").replace("(TM)", "").replace("(tm)", "")
-        .replace("CPU ", "").replace("Processor", "")
-        .replace("with Radeon Graphics", "").replace("with Radeon Vega Graphics", "");
+    let s = name
+        .replace("(R)", "")
+        .replace("(TM)", "")
+        .replace("(tm)", "")
+        .replace("CPU ", "")
+        .replace("Processor", "")
+        .replace("with Radeon Graphics", "")
+        .replace("with Radeon Vega Graphics", "");
     let s = s.trim();
 
     // AMD Ryzen: keep "Ryzen X NNNN[U/X/H]" (up to 4 words)
@@ -290,8 +307,17 @@ fn shorten_cpu(name: &str) -> String {
             let rest = &s[pos..];
             let words: Vec<&str> = rest.split_whitespace().collect();
             // "Ryzen 7 PRO 5850U" → take 4, "Ryzen 7 5800X" → take 3
-            let take = if words.len() > 2 && words[2] == "PRO" { 4 } else { 3 };
-            return words.iter().take(take).copied().collect::<Vec<&str>>().join(" ");
+            let take = if words.len() > 2 && words[2] == "PRO" {
+                4
+            } else {
+                3
+            };
+            return words
+                .iter()
+                .take(take)
+                .copied()
+                .collect::<Vec<&str>>()
+                .join(" ");
         }
     }
     // Intel: find iN-NNNNN pattern
@@ -302,10 +328,17 @@ fn shorten_cpu(name: &str) -> String {
         }
     }
     // Apple
-    if s.contains("Apple") { return s.to_string(); }
+    if s.contains("Apple") {
+        return s.to_string();
+    }
 
     // Fallback: truncate
-    if s.len() > 25 { let t: String = s.chars().take(25).collect(); format!("{t}…") } else { s.to_string() }
+    if s.len() > 25 {
+        let t: String = s.chars().take(25).collect();
+        format!("{t}…")
+    } else {
+        s.to_string()
+    }
 }
 
 fn get_memory() -> String {
@@ -322,7 +355,9 @@ fn get_memory() -> String {
                     avail_kb = line.split_whitespace().nth(1)?.parse().ok()?;
                 }
             }
-            if total_kb == 0 { return None; }
+            if total_kb == 0 {
+                return None;
+            }
             let used_gb = (total_kb - avail_kb) as f64 / 1048576.0;
             let total_gb = total_kb as f64 / 1048576.0;
             Some(format!("{:.1}/{:.1} GB", used_gb, total_gb))
@@ -334,7 +369,10 @@ fn get_gpu() -> String {
     cmd("lspci", &[], 3)
         .and_then(|output| {
             for line in output.lines() {
-                if line.contains("VGA") || line.contains("3D controller") || line.contains("Display") {
+                if line.contains("VGA")
+                    || line.contains("3D controller")
+                    || line.contains("Display")
+                {
                     // Everything after the last ": "
                     let name = line.rsplit(": ").next()?.trim();
                     return Some(shorten_gpu(name));
@@ -350,7 +388,8 @@ fn shorten_gpu(name: &str) -> String {
     if let Some(start) = name.rfind('[') {
         if let Some(end) = name.rfind(']') {
             let inner = &name[start + 1..end];
-            let short = inner.replace("GeForce ", "")
+            let short = inner
+                .replace("GeForce ", "")
                 .replace("Radeon ", "")
                 .replace("Lite Hash Rate", "");
             let trimmed = short.trim();
@@ -365,7 +404,10 @@ fn shorten_gpu(name: &str) -> String {
                 }
             }
             if trimmed.len() > 22 {
-                return { let t: String = trimmed.chars().take(22).collect(); format!("{t}…") };
+                return {
+                    let t: String = trimmed.chars().take(22).collect();
+                    format!("{t}…")
+                };
             }
             return trimmed.to_string();
         }
@@ -394,21 +436,42 @@ fn shorten_gpu(name: &str) -> String {
         return "RDNA3 (iGPU)".into();
     }
 
-    if trimmed.len() > 22 { let t: String = trimmed.chars().take(22).collect(); format!("{t}…") } else { trimmed.to_string() }
+    if trimmed.len() > 22 {
+        let t: String = trimmed.chars().take(22).collect();
+        format!("{t}…")
+    } else {
+        trimmed.to_string()
+    }
 }
 
 // ── Rice info ──
 
 fn detect_desktop() -> String {
-    for var in &["XDG_SESSION_DESKTOP", "XDG_CURRENT_DESKTOP", "DESKTOP_SESSION"] {
+    for var in &[
+        "XDG_SESSION_DESKTOP",
+        "XDG_CURRENT_DESKTOP",
+        "DESKTOP_SESSION",
+    ] {
         if let Ok(de) = std::env::var(var) {
-            if !de.is_empty() { return capitalize(&de); }
+            if !de.is_empty() {
+                return capitalize(&de);
+            }
         }
     }
-    for (proc, name) in &[("hyprland","Hyprland"),("sway","Sway"),("i3","i3"),
-                           ("dwm","dwm"),("bspwm","bspwm"),("awesome","awesome"),
-                           ("river","river"),("qtile","Qtile"),("niri","niri")] {
-        if cmd("pgrep", &["-x", proc], 2).is_some() { return name.to_string(); }
+    for (proc, name) in &[
+        ("hyprland", "Hyprland"),
+        ("sway", "Sway"),
+        ("i3", "i3"),
+        ("dwm", "dwm"),
+        ("bspwm", "bspwm"),
+        ("awesome", "awesome"),
+        ("river", "river"),
+        ("qtile", "Qtile"),
+        ("niri", "niri"),
+    ] {
+        if cmd("pgrep", &["-x", proc], 2).is_some() {
+            return name.to_string();
+        }
     }
     "Headless".into()
 }
@@ -422,18 +485,30 @@ fn detect_shell() -> String {
 fn detect_terminal() -> String {
     // Best source: TERM_PROGRAM
     if let Ok(t) = std::env::var("TERM_PROGRAM") {
-        if !t.is_empty() { return t; }
+        if !t.is_empty() {
+            return t;
+        }
     }
     // TERMINAL env
     if let Ok(t) = std::env::var("TERMINAL") {
-        if !t.is_empty() { return t.rsplit('/').next().unwrap_or(&t).to_string(); }
+        if !t.is_empty() {
+            return t.rsplit('/').next().unwrap_or(&t).to_string();
+        }
     }
     // Check running processes
-    for (proc, name) in &[("kitty","kitty"),("alacritty","Alacritty"),
-                           ("wezterm-gui","WezTerm"),("foot","foot"),
-                           ("konsole","Konsole"),("st","st"),("urxvt","urxvt"),
-                           ("ghostty","Ghostty")] {
-        if cmd("pgrep", &["-x", proc], 2).is_some() { return name.to_string(); }
+    for (proc, name) in &[
+        ("kitty", "kitty"),
+        ("alacritty", "Alacritty"),
+        ("wezterm-gui", "WezTerm"),
+        ("foot", "foot"),
+        ("konsole", "Konsole"),
+        ("st", "st"),
+        ("urxvt", "urxvt"),
+        ("ghostty", "Ghostty"),
+    ] {
+        if cmd("pgrep", &["-x", proc], 2).is_some() {
+            return name.to_string();
+        }
     }
     // Fallback: TERM, but clean up
     std::env::var("TERM")
@@ -469,9 +544,16 @@ fn detect_editor() -> String {
         }
     }
     // Check which editors are installed
-    for (bin, name) in &[("nvim","Neovim"),("vim","Vim"),("emacs","Emacs"),
-                          ("code","VS Code"),("hx","Helix")] {
-        if cmd("which", &[bin], 2).is_some() { return name.to_string(); }
+    for (bin, name) in &[
+        ("nvim", "Neovim"),
+        ("vim", "Vim"),
+        ("emacs", "Emacs"),
+        ("code", "VS Code"),
+        ("hx", "Helix"),
+    ] {
+        if cmd("which", &[bin], 2).is_some() {
+            return name.to_string();
+        }
     }
     "nano".into()
 }
@@ -479,35 +561,85 @@ fn detect_editor() -> String {
 // ── Services ──
 
 fn get_running_services() -> Vec<String> {
-    cmd("systemctl", &["list-units","--type=service","--state=running","--no-legend","--no-pager"], 5)
-        .map(|output| {
-            output.lines().filter_map(|line| {
+    cmd(
+        "systemctl",
+        &[
+            "list-units",
+            "--type=service",
+            "--state=running",
+            "--no-legend",
+            "--no-pager",
+        ],
+        5,
+    )
+    .map(|output| {
+        output
+            .lines()
+            .filter_map(|line| {
                 let name = line.split_whitespace().next()?;
                 let clean = name.trim_end_matches(".service");
                 // Skip internal/boring services
-                let skip = ["systemd-","dbus","nscd","polkit","accounts-daemon",
-                    "nix-daemon","user@","rtkit","udisks","colord",
-                    "ModemManager","NetworkManager-wait","power-profiles",
-                    "audit","logind","upower","thermald","fwupd",
-                    "getty@","serial-getty@","switcheroo","low-memory",
-                    "fprintd","pcscd","greetd"];
-                if skip.iter().any(|s| clean.starts_with(s)) { return None; }
+                let skip = [
+                    "systemd-",
+                    "dbus",
+                    "nscd",
+                    "polkit",
+                    "accounts-daemon",
+                    "nix-daemon",
+                    "user@",
+                    "rtkit",
+                    "udisks",
+                    "colord",
+                    "ModemManager",
+                    "NetworkManager-wait",
+                    "power-profiles",
+                    "audit",
+                    "logind",
+                    "upower",
+                    "thermald",
+                    "fwupd",
+                    "getty@",
+                    "serial-getty@",
+                    "switcheroo",
+                    "low-memory",
+                    "fprintd",
+                    "pcscd",
+                    "greetd",
+                ];
+                if skip.iter().any(|s| clean.starts_with(s)) {
+                    return None;
+                }
                 Some(clean.to_string())
-            }).take(5).collect()
-        })
-        .unwrap_or_default()
+            })
+            .take(5)
+            .collect()
+    })
+    .unwrap_or_default()
 }
 
 fn get_service_count() -> usize {
-    cmd("systemctl", &["list-units","--type=service","--state=running","--no-legend","--no-pager"], 5)
-        .map(|s| s.lines().count()).unwrap_or(0)
+    cmd(
+        "systemctl",
+        &[
+            "list-units",
+            "--type=service",
+            "--state=running",
+            "--no-legend",
+            "--no-pager",
+        ],
+        5,
+    )
+    .map(|s| s.lines().count())
+    .unwrap_or(0)
 }
 
 fn get_container_count() -> usize {
-    let docker = cmd("docker", &["ps","-q"], 3)
-        .map(|s| if s.is_empty() { 0 } else { s.lines().count() }).unwrap_or(0);
-    let podman = cmd("podman", &["ps","-q"], 3)
-        .map(|s| if s.is_empty() { 0 } else { s.lines().count() }).unwrap_or(0);
+    let docker = cmd("docker", &["ps", "-q"], 3)
+        .map(|s| if s.is_empty() { 0 } else { s.lines().count() })
+        .unwrap_or(0);
+    let podman = cmd("podman", &["ps", "-q"], 3)
+        .map(|s| if s.is_empty() { 0 } else { s.lines().count() })
+        .unwrap_or(0);
     docker + podman
 }
 
@@ -516,43 +648,52 @@ fn get_container_count() -> usize {
 fn get_network_interfaces() -> Vec<(String, String)> {
     cmd("ip", &["-brief", "addr", "show"], 3)
         .map(|output| {
-            output.lines().filter_map(|line| {
-                let parts: Vec<&str> = line.split_whitespace().collect();
-                if parts.len() < 3 { return None; }
-                let name = parts[0];
-                let state = parts[1];
-                if state != "UP" || name == "lo" { return None; }
+            output
+                .lines()
+                .filter_map(|line| {
+                    let parts: Vec<&str> = line.split_whitespace().collect();
+                    if parts.len() < 3 {
+                        return None;
+                    }
+                    let name = parts[0];
+                    let state = parts[1];
+                    if state != "UP" || name == "lo" {
+                        return None;
+                    }
 
-                // Skip Docker/container virtual interfaces
-                if name.starts_with("veth")
-                    || name.starts_with("br-")
-                    || name.starts_with("docker")
-                    || name.starts_with("cni")
-                    || name.starts_with("flannel")
-                    || name.starts_with("vxlan")
-                {
-                    return None;
-                }
+                    // Skip Docker/container virtual interfaces
+                    if name.starts_with("veth")
+                        || name.starts_with("br-")
+                        || name.starts_with("docker")
+                        || name.starts_with("cni")
+                        || name.starts_with("flannel")
+                        || name.starts_with("vxlan")
+                    {
+                        return None;
+                    }
 
-                // Find first IPv4 address (skip IPv6)
-                let ip = parts[2..].iter()
-                    .find(|addr| {
-                        // IPv4 addresses contain dots, IPv6 contain colons
-                        addr.contains('.') && !addr.starts_with("169.254")
-                    })
-                    .or_else(|| parts.get(2))
-                    .unwrap_or(&"");
-                let ip_clean = ip.split('/').next().unwrap_or(ip);
+                    // Find first IPv4 address (skip IPv6)
+                    let ip = parts[2..]
+                        .iter()
+                        .find(|addr| {
+                            // IPv4 addresses contain dots, IPv6 contain colons
+                            addr.contains('.') && !addr.starts_with("169.254")
+                        })
+                        .or_else(|| parts.get(2))
+                        .unwrap_or(&"");
+                    let ip_clean = ip.split('/').next().unwrap_or(ip);
 
-                // Shorten interface names for display
-                let display_name = if name.len() > 12 {
-                    format!("{}…", &name[..12])
-                } else {
-                    name.to_string()
-                };
+                    // Shorten interface names for display
+                    let display_name = if name.len() > 12 {
+                        format!("{}…", &name[..12])
+                    } else {
+                        name.to_string()
+                    };
 
-                Some((display_name, ip_clean.to_string()))
-            }).take(3).collect()
+                    Some((display_name, ip_clean.to_string()))
+                })
+                .take(3)
+                .collect()
         })
         .unwrap_or_default()
 }
@@ -590,7 +731,9 @@ fn get_store_size() -> String {
 }
 
 fn get_store_path_count() -> usize {
-    std::fs::read_dir("/nix/store").map(|e| e.count()).unwrap_or(0)
+    std::fs::read_dir("/nix/store")
+        .map(|e| e.count())
+        .unwrap_or(0)
 }
 
 fn get_disk_info(field: &str) -> String {
@@ -617,37 +760,44 @@ fn get_disk_info(field: &str) -> String {
 fn get_users() -> Vec<String> {
     std::fs::read_to_string("/etc/passwd")
         .map(|content| {
-            content.lines().filter_map(|line| {
-                let parts: Vec<&str> = line.split(':').collect();
-                if parts.len() < 7 { return None; }
-                let name = parts[0];
-                let uid: u32 = parts[2].parse().ok()?;
-                let shell = parts[6];
+            content
+                .lines()
+                .filter_map(|line| {
+                    let parts: Vec<&str> = line.split(':').collect();
+                    if parts.len() < 7 {
+                        return None;
+                    }
+                    let name = parts[0];
+                    let uid: u32 = parts[2].parse().ok()?;
+                    let shell = parts[6];
 
-                // Only real users: UID 1000-59999, with real shell, not system accounts
-                if !(1000..60000).contains(&uid) { return None; }
+                    // Only real users: UID 1000-59999, with real shell, not system accounts
+                    if !(1000..60000).contains(&uid) {
+                        return None;
+                    }
 
-                // Skip nix build users and other system-like accounts
-                if name.starts_with("nixbld")
-                    || name.starts_with("systemd-")
-                    || name.starts_with("polkitd")
-                    || name == "nobody"
-                    || name == "messagebus"
-                    || name == "avahi"
-                    || name == "nm-openconnect"
-                    || name == "colord"
-                    || name == "flatpak"
-                {
-                    return None;
-                }
+                    // Skip nix build users and other system-like accounts
+                    if name.starts_with("nixbld")
+                        || name.starts_with("systemd-")
+                        || name.starts_with("polkitd")
+                        || name == "nobody"
+                        || name == "messagebus"
+                        || name == "avahi"
+                        || name == "nm-openconnect"
+                        || name == "colord"
+                        || name == "flatpak"
+                    {
+                        return None;
+                    }
 
-                // Skip users with nologin/false shell
-                if shell.ends_with("nologin") || shell.ends_with("/false") {
-                    return None;
-                }
+                    // Skip users with nologin/false shell
+                    if shell.ends_with("nologin") || shell.ends_with("/false") {
+                        return None;
+                    }
 
-                Some(name.to_string())
-            }).collect()
+                    Some(name.to_string())
+                })
+                .collect()
         })
         .unwrap_or_default()
 }
@@ -668,8 +818,12 @@ fn detect_bootloader() -> String {
     }
     // Try bootctl (might work without root)
     if let Some(out) = cmd_any("bootctl", &["status"], 3) {
-        if out.contains("systemd-boot") { return "systemd-boot".into(); }
-        if out.contains("grub") { return "GRUB".into(); }
+        if out.contains("systemd-boot") {
+            return "systemd-boot".into();
+        }
+        if out.contains("grub") {
+            return "GRUB".into();
+        }
     }
     "unknown".into()
 }
@@ -679,10 +833,14 @@ fn get_generation_count() -> usize {
 
     // System profiles
     if let Ok(entries) = std::fs::read_dir("/nix/var/nix/profiles/") {
-        count += entries.filter_map(|e| e.ok())
-            .filter(|e| e.file_name().to_str()
-                .map(|n| n.starts_with("system-") && n.ends_with("-link"))
-                .unwrap_or(false))
+        count += entries
+            .filter_map(|e| e.ok())
+            .filter(|e| {
+                e.file_name()
+                    .to_str()
+                    .map(|n| n.starts_with("system-") && n.ends_with("-link"))
+                    .unwrap_or(false)
+            })
             .count();
     }
 
@@ -691,9 +849,14 @@ fn get_generation_count() -> usize {
         if let Ok(target) = std::fs::read_link("/nix/var/nix/profiles/system") {
             if let Some(name) = target.file_name().and_then(|n| n.to_str()) {
                 // "system-142-link" → 142
-                if let Some(num_str) = name.strip_prefix("system-").and_then(|s| s.strip_suffix("-link")) {
+                if let Some(num_str) = name
+                    .strip_prefix("system-")
+                    .and_then(|s| s.strip_suffix("-link"))
+                {
                     if let Ok(n) = num_str.parse::<usize>() {
-                        if n > count { count = n; }
+                        if n > count {
+                            count = n;
+                        }
                     }
                 }
             }

@@ -63,7 +63,11 @@ fn parse_path_info_json(json_str: &str) -> Result<Vec<Package>> {
                 }
             } else {
                 seen_names.insert(name.clone(), packages.len());
-                packages.push(Package { name, version, size });
+                packages.push(Package {
+                    name,
+                    version,
+                    size,
+                });
             }
         }
     }
