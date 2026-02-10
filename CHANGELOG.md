@@ -18,10 +18,8 @@ Full development history of nixmate — every version, every feature.
 ### Known Issues
 - Generations: Packages/Diff tabs may show empty content on some configurations
 - Error Translator: Crashes reported on some setups
-- Services: May show incomplete data on non-systemd or containerized setups
 - Package Search: Crashes or fails on some configurations
 
----
 ---
 
 ### v0.1 — ✅ Foundations
