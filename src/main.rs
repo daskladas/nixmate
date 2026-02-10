@@ -141,7 +141,7 @@ KEYBINDINGS:
     1-9,0            Switch modules
     j/k              Navigate up/down
     Enter            Select/confirm
-    F1-F4            Switch sub-tabs
+    [ / ]            Previous / next sub-tab
     q                Quit
 
 MODULES:

@@ -374,7 +374,7 @@ Then in `app.rs`:
 
 ## Adding sub-tabs
 
-If your module needs multiple views (like F1/F2/F3):
+If your module needs multiple views (sub-tabs navigable with [ and ]):
 
 ```rust
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]

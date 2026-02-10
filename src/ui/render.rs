@@ -362,10 +362,10 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Kernel update and security package highlighting",
             ],
             tabs: &[
-                "F1 Overview  — all generations at a glance",
-                "F2 Packages  — searchable package list per generation",
-                "F3 Diff      — compare any two generations side-by-side",
-                "F4 Manage    — delete, pin, restore with undo",
+                "Overview  — all generations at a glance",
+                "Packages  — searchable package list per generation",
+                "Diff      — compare any two generations side-by-side",
+                "Manage    — delete, pin, restore with undo",
             ],
         }),
         (ModuleTab::Generations, Language::German) => Some(IntroContent {
@@ -379,10 +379,10 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Kernel-Update und Sicherheitspaket-Hervorhebung",
             ],
             tabs: &[
-                "F1 Übersicht  — alle Generationen auf einen Blick",
-                "F2 Pakete     — durchsuchbare Paketliste pro Generation",
-                "F3 Diff       — zwei Generationen vergleichen",
-                "F4 Verwalten  — löschen, pinnen, wiederherstellen",
+                "Übersicht  — alle Generationen auf einen Blick",
+                "Pakete     — durchsuchbare Paketliste pro Generation",
+                "Diff       — zwei Generationen vergleichen",
+                "Verwalten  — löschen, pinnen, wiederherstellen",
             ],
         }),
         // ── Error Translator ──
@@ -397,8 +397,8 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Pipe support: nixos-rebuild switch 2>&1 | nixmate",
             ],
             tabs: &[
-                "F1 Translator  — paste an error, get a clear fix",
-                "F2 Submit      — submit new error patterns to help others",
+                "Translator  — paste an error, get a clear fix",
+                "Submit      — submit new error patterns to help others",
             ],
         }),
         (ModuleTab::Errors, Language::German) => Some(IntroContent {
@@ -412,8 +412,8 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Pipe-Support: nixos-rebuild switch 2>&1 | nixmate",
             ],
             tabs: &[
-                "F1 Übersetzer  — Fehler einfügen, klare Lösung erhalten",
-                "F2 Einreichen  — neue Fehlermuster für andere einreichen",
+                "Übersetzer  — Fehler einfügen, klare Lösung erhalten",
+                "Einreichen  — neue Fehlermuster für andere einreichen",
             ],
         }),
         // ── Services & Ports ──
@@ -428,10 +428,10 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Color-coded live logs from journalctl and container logs",
             ],
             tabs: &[
-                "F1 Overview  — all services and containers with status",
-                "F2 Ports     — every listening TCP/UDP port mapped to its service",
-                "F3 Manage    — start, stop, restart, enable, disable",
-                "F4 Logs      — live color-coded log viewer",
+                "Overview  — all services and containers with status",
+                "Ports     — every listening TCP/UDP port mapped to its service",
+                "Manage    — start, stop, restart, enable, disable",
+                "Logs      — live color-coded log viewer",
             ],
         }),
         (ModuleTab::Services, Language::German) => Some(IntroContent {
@@ -445,10 +445,10 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Farbcodierte Live-Logs von journalctl und Container-Logs",
             ],
             tabs: &[
-                "F1 Übersicht  — alle Dienste und Container mit Status",
-                "F2 Ports      — alle TCP/UDP-Ports mit zugeordnetem Dienst",
-                "F3 Verwalten  — starten, stoppen, neustarten",
-                "F4 Logs       — farbcodierter Live-Log-Viewer",
+                "Übersicht  — alle Dienste und Container mit Status",
+                "Ports      — alle TCP/UDP-Ports mit zugeordnetem Dienst",
+                "Verwalten  — starten, stoppen, neustarten",
+                "Logs       — farbcodierter Live-Log-Viewer",
             ],
         }),
         // ── Storage ──
@@ -463,10 +463,10 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Garbage collect, store optimize, and full clean with dry-run preview",
             ],
             tabs: &[
-                "F1 Dashboard  — disk usage overview and recommendations",
-                "F2 Explorer   — browse all store paths sorted by size",
-                "F3 Clean      — garbage collect, optimize, full clean",
-                "F4 History    — persistent log of all cleanup actions",
+                "Dashboard  — disk usage overview and recommendations",
+                "Explorer   — browse all store paths sorted by size",
+                "Clean      — garbage collect, optimize, full clean",
+                "History    — persistent log of all cleanup actions",
             ],
         }),
         (ModuleTab::Storage, Language::German) => Some(IntroContent {
@@ -480,10 +480,10 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Garbage Collection, Store-Optimierung und Vollreinigung mit Vorschau",
             ],
             tabs: &[
-                "F1 Dashboard  — Speicherplatz-Übersicht und Empfehlungen",
-                "F2 Explorer   — Store-Pfade nach Größe durchsuchen",
-                "F3 Aufräumen  — GC, Optimierung, Vollreinigung",
-                "F4 Verlauf    — Protokoll aller Bereinigungen",
+                "Dashboard  — Speicherplatz-Übersicht und Empfehlungen",
+                "Explorer   — Store-Pfade nach Größe durchsuchen",
+                "Aufräumen  — GC, Optimierung, Vollreinigung",
+                "Verlauf    — Protokoll aller Bereinigungen",
             ],
         }),
         // ── Config Showcase ──
@@ -498,8 +498,8 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Designed for r/unixporn, GitHub READMEs, and flex posts",
             ],
             tabs: &[
-                "F1 System Overview  — generate your system poster (SVG)",
-                "F2 Config Diagram   — architecture visualization of your config",
+                "System Overview  — generate your system poster (SVG)",
+                "Config Diagram   — architecture visualization of your config",
             ],
         }),
         (ModuleTab::Config, Language::German) => Some(IntroContent {
@@ -513,8 +513,8 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Designed für r/unixporn, GitHub READMEs und Flex-Posts",
             ],
             tabs: &[
-                "F1 Systemübersicht   — System-Poster generieren (SVG)",
-                "F2 Config-Diagramm   — Architektur-Visualisierung der Config",
+                "Systemübersicht   — System-Poster generieren (SVG)",
+                "Config-Diagramm   — Architektur-Visualisierung der Config",
             ],
         }),
         // ── Options Explorer ──
@@ -529,9 +529,9 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Related sibling options: see everything you can configure for a service",
             ],
             tabs: &[
-                "F1 Search   — fuzzy search with detail view and current values",
-                "F2 Browse   — tree navigation through the option hierarchy",
-                "F3 Related  — sibling options for the selected option",
+                "Search   — fuzzy search with detail view and current values",
+                "Browse   — tree navigation through the option hierarchy",
+                "Related  — sibling options for the selected option",
             ],
         }),
         (ModuleTab::Options, Language::German) => Some(IntroContent {
@@ -545,9 +545,9 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Verwandte Optionen: alles sehen was du für einen Service konfigurieren kannst",
             ],
             tabs: &[
-                "F1 Suche        — Fuzzy-Suche mit Detailansicht und aktuellen Werten",
-                "F2 Durchsuchen  — Baumnavigation durch die Options-Hierarchie",
-                "F3 Verwandte    — Schwester-Optionen der ausgewählten Option",
+                "Suche        — Fuzzy-Suche mit Detailansicht und aktuellen Werten",
+                "Durchsuchen  — Baumnavigation durch die Options-Hierarchie",
+                "Verwandte    — Schwester-Optionen der ausgewählten Option",
             ],
         }),
         // ── Rebuild ──
@@ -562,10 +562,10 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Post-rebuild diff: packages added/removed, kernel changes, service restarts",
             ],
             tabs: &[
-                "F1 Dashboard  — 5-phase progress with live status",
-                "F2 Build Log  — full searchable build output",
-                "F3 Changes    — post-rebuild package and service diff",
-                "F4 History    — persistent log of all rebuilds",
+                "Dashboard  — 5-phase progress with live status",
+                "Build Log  — full searchable build output",
+                "Changes    — post-rebuild package and service diff",
+                "History    — persistent log of all rebuilds",
             ],
         }),
         (ModuleTab::Rebuild, Language::German) => Some(IntroContent {
@@ -579,10 +579,10 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Nachher-Diff: Pakete hinzugefügt/entfernt, Kernel-Änderungen, Dienst-Neustarts",
             ],
             tabs: &[
-                "F1 Dashboard   — 5-Phasen-Fortschritt mit Live-Status",
-                "F2 Build-Log   — vollständige durchsuchbare Build-Ausgabe",
-                "F3 Änderungen  — Paket- und Dienst-Diff nach Rebuild",
-                "F4 Verlauf     — Protokoll aller Rebuilds",
+                "Dashboard   — 5-Phasen-Fortschritt mit Live-Status",
+                "Build-Log   — vollständige durchsuchbare Build-Ausgabe",
+                "Änderungen  — Paket- und Dienst-Diff nach Rebuild",
+                "Verlauf     — Protokoll aller Rebuilds",
             ],
         }),
         // ── Flake Inputs ──
@@ -597,10 +597,10 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Full detail view: type, branch, revision, NAR hash, follows relationships",
             ],
             tabs: &[
-                "F1 Overview  — all inputs with revision, URL, and age",
-                "F2 Update    — select inputs with Space, update with Enter",
-                "F3 History   — diff of old → new revisions from last update",
-                "F4 Details   — full info for the selected input",
+                "Overview  — all inputs with revision, URL, and age",
+                "Update    — select inputs with Space, update with Enter",
+                "History   — diff of old → new revisions from last update",
+                "Details   — full info for the selected input",
             ],
         }),
         (ModuleTab::FlakeInputs, Language::German) => Some(IntroContent {
@@ -614,10 +614,10 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Vollständige Detailansicht: Typ, Branch, Revision, NAR-Hash, Follows-Beziehungen",
             ],
             tabs: &[
-                "F1 Übersicht      — alle Inputs mit Revision, URL und Alter",
-                "F2 Aktualisieren  — Inputs mit Leertaste auswählen, mit Enter updaten",
-                "F3 Verlauf        — Diff von alter → neuer Revision",
-                "F4 Details        — vollständige Info zum ausgewählten Input",
+                "Übersicht      — alle Inputs mit Revision, URL und Alter",
+                "Aktualisieren  — Inputs mit Leertaste auswählen, mit Enter updaten",
+                "Verlauf        — Diff von alter → neuer Revision",
+                "Details        — vollständige Info zum ausgewählten Input",
             ],
         }),
         // ── Package Search ──
@@ -661,8 +661,8 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Auto-scan on entry, rescan anytime with r",
             ],
             tabs: &[
-                "F1 Dashboard  — health score and check overview",
-                "F2 Fix        — select an issue and apply the fix",
+                "Dashboard  — health score and check overview",
+                "Fix        — select an issue and apply the fix",
             ],
         }),
         (ModuleTab::Health, Language::German) => Some(IntroContent {
@@ -676,8 +676,8 @@ fn get_intro_content(tab: ModuleTab, lang: Language) -> Option<IntroContent> {
                 "Auto-Scan bei Aufruf, erneuter Scan jederzeit mit r",
             ],
             tabs: &[
-                "F1 Dashboard   — Gesundheitsscore und Check-Übersicht",
-                "F2 Reparieren  — Problem auswählen und Fix anwenden",
+                "Dashboard   — Gesundheitsscore und Check-Übersicht",
+                "Reparieren  — Problem auswählen und Fix anwenden",
             ],
         }),
         _ => None,
@@ -1119,7 +1119,7 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
             match gen_state.active_sub_tab {
                 crate::modules::generations::GenSubTab::Overview => {
                     format!(
-                        "[j/k] {}  [Tab] Panel  [Enter] Pkgs  [F1-F4] Sub  {}",
+                        "[j/k] {}  [Tab] Panel  [Enter] Pkgs  [[ / ]] Tab  {}",
                         s.navigate, s.status_quit
                     )
                 }
@@ -1159,7 +1159,7 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                 crate::modules::errors::ErrSubTab::Analyze => {
                     if err_state.input_mode {
                         format!(
-                            "[Enter] {}  [Esc] {}  [F1-F2] Sub  {}",
+                            "[Enter] {}  [Esc] {}  [[ / ]] Tab  {}",
                             s.confirm, s.back, s.status_quit
                         )
                     } else if err_state.ai_loading {
@@ -1174,7 +1174,7 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                         )
                     } else if err_state.result.is_some() {
                         format!(
-                            "[j/k] Scroll  [n] {}  [s] Submit  [F1-F2] Sub  {}",
+                            "[j/k] Scroll  [n] {}  [s] Submit  [[ / ]] Tab  {}",
                             s.err_new_analysis, s.status_quit
                         )
                     } else if !err_state.input_buffer.is_empty() && app.config.ai_available() {
@@ -1184,7 +1184,7 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                         )
                     } else {
                         format!(
-                            "[i] {}  [s] {}  [F1-F2] Sub  {}",
+                            "[i] {}  [s] {}  [[ / ]] Tab  {}",
                             s.err_start_input, s.err_submit_pattern, s.status_quit
                         )
                     }
@@ -1208,26 +1208,26 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                             format!("[Enter] {}  [Esc] {}  {}", s.confirm, s.back, s.status_quit)
                         } else {
                             format!(
-                            "[j/k] {}  [/] Search  [f] Filter  [r] Refresh  [Enter] Logs  [m] Manage  [F1-F4] Sub  {}",
+                            "[j/k] {}  [/] Search  [f] Filter  [r] Refresh  [Enter] Logs  [m] Manage  [[ / ]] Tab  {}",
                             s.navigate, s.status_quit
                         )
                         }
                     }
                     crate::modules::services::SvcSubTab::Ports => {
                         format!(
-                            "[j/k] {}  [r] Refresh  [F1-F4] Sub  {}",
+                            "[j/k] {}  [r] Refresh  [[ / ]] Tab  {}",
                             s.navigate, s.status_quit
                         )
                     }
                     crate::modules::services::SvcSubTab::Manage => {
                         format!(
-                            "[j/k] {}  [Enter] Execute  [F1-F4] Sub  {}",
+                            "[j/k] {}  [Enter] Execute  [[ / ]] Tab  {}",
                             s.navigate, s.status_quit
                         )
                     }
                     crate::modules::services::SvcSubTab::Logs => {
                         format!(
-                            "[j/k] Scroll  [r] Refresh  [g/G] Top/End  [F1-F4] Sub  {}",
+                            "[j/k] Scroll  [r] Refresh  [g/G] Top/End  [[ / ]] Tab  {}",
                             s.status_quit
                         )
                     }
@@ -1241,26 +1241,26 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
             } else {
                 match sto_state.active_sub_tab {
                     crate::modules::storage::StoSubTab::Dashboard => {
-                        format!("[r] Refresh  [F1-F4] Sub  {}", s.status_quit)
+                        format!("[r] Refresh  [[ / ]] Tab  {}", s.status_quit)
                     }
                     crate::modules::storage::StoSubTab::Explorer => {
                         if sto_state.explorer_search_active {
                             format!("[Enter] {}  [Esc] {}  {}", s.confirm, s.back, s.status_quit)
                         } else {
                             format!(
-                                "[j/k] {}  [/] Search  [f] Filter  [r] Refresh  [F1-F4] Sub  {}",
+                                "[j/k] {}  [/] Search  [f] Filter  [r] Refresh  [[ / ]] Tab  {}",
                                 s.navigate, s.status_quit
                             )
                         }
                     }
                     crate::modules::storage::StoSubTab::Clean => {
                         format!(
-                            "[j/k] {}  [Enter] Execute  [F1-F4] Sub  {}",
+                            "[j/k] {}  [Enter] Execute  [[ / ]] Tab  {}",
                             s.navigate, s.status_quit
                         )
                     }
                     crate::modules::storage::StoSubTab::History => {
-                        format!("[j/k] Scroll  [r] Refresh  [F1-F4] Sub  {}", s.status_quit)
+                        format!("[j/k] Scroll  [r] Refresh  [[ / ]] Tab  {}", s.status_quit)
                     }
                 }
             }
@@ -1283,10 +1283,10 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                 crate::modules::config_showcase::CfgSubTab::Diagram => s.cfg_diag_scanning,
             };
             if is_scanning {
-                format!("⏳ {}  [F1/F2] Tab  {}", scanning_label, s.status_quit)
+                format!("⏳ {}  [[ / ]] Tab  {}", scanning_label, s.status_quit)
             } else {
                 format!(
-                    "[Enter/g] {}  [F1/F2] Tab  {}",
+                    "[Enter/g] {}  [[ / ]] Tab  {}",
                     generate_label, s.status_quit
                 )
             }
@@ -1308,15 +1308,15 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
         }
         ModuleTab::Health => {
             if app.health.scanning {
-                format!("⏳ Scanning...  [F1/F2] Tab  {}", s.status_quit)
+                format!("⏳ Scanning...  [[ / ]] Tab  {}", s.status_quit)
             } else if app.health.sub_tab == crate::modules::health::HealthSubTab::Fix {
                 format!(
-                    "[j/k] {}  [Enter] Fix  [r] Rescan  [F1/F2] Tab  {}",
+                    "[j/k] {}  [Enter] Fix  [r] Rescan  [[ / ]] Tab  {}",
                     s.navigate, s.status_quit
                 )
             } else {
                 format!(
-                    "[j/k] {}  [r] Rescan  [F1/F2] Tab  {}",
+                    "[j/k] {}  [r] Rescan  [[ / ]] Tab  {}",
                     s.navigate, s.status_quit
                 )
             }
@@ -1327,10 +1327,10 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                 match rb.sub_tab {
                     crate::modules::rebuild::RebuildSubTab::Dashboard
                     | crate::modules::rebuild::RebuildSubTab::Log => {
-                        format!("[j/k] Scroll  [G] Live  [F1-F4] Tab  {}", s.status_quit)
+                        format!("[j/k] Scroll  [G] Live  [[ / ]] Tab  {}", s.status_quit)
                     }
                     _ => {
-                        format!("[j/k] Scroll  [F1-F4] Tab  {}", s.status_quit)
+                        format!("[j/k] Scroll  [[ / ]] Tab  {}", s.status_quit)
                     }
                 }
             } else if rb.log_search_active {
@@ -1339,21 +1339,21 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                 match rb.sub_tab {
                     crate::modules::rebuild::RebuildSubTab::Dashboard => {
                         format!(
-                            "[Enter/r] Rebuild  [m] Mode  [F1-F4] Tab  {}",
+                            "[Enter/r] Rebuild  [m] Mode  [[ / ]] Tab  {}",
                             s.status_quit
                         )
                     }
                     crate::modules::rebuild::RebuildSubTab::Log => {
                         format!(
-                            "[j/k] Scroll  [/] Search  [g/G] Top/End  [F1-F4] Tab  {}",
+                            "[j/k] Scroll  [/] Search  [g/G] Top/End  [[ / ]] Tab  {}",
                             s.status_quit
                         )
                     }
                     crate::modules::rebuild::RebuildSubTab::Changes => {
-                        format!("[j/k] Scroll  [F1-F4] Tab  {}", s.status_quit)
+                        format!("[j/k] Scroll  [[ / ]] Tab  {}", s.status_quit)
                     }
                     crate::modules::rebuild::RebuildSubTab::History => {
-                        format!("[j/k] {}  [F1-F4] Tab  {}", s.navigate, s.status_quit)
+                        format!("[j/k] {}  [[ / ]] Tab  {}", s.navigate, s.status_quit)
                     }
                 }
             }

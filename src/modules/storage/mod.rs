@@ -60,6 +60,22 @@ impl StoSubTab {
             StoSubTab::History => s.sto_history,
         }
     }
+
+    pub fn next(&self) -> Self {
+        let tabs = Self::all();
+        let idx = (self.index() + 1) % tabs.len();
+        tabs[idx]
+    }
+
+    pub fn prev(&self) -> Self {
+        let tabs = Self::all();
+        let idx = if self.index() == 0 {
+            tabs.len() - 1
+        } else {
+            self.index() - 1
+        };
+        tabs[idx]
+    }
 }
 
 // ── Popup state ──
@@ -341,22 +357,14 @@ impl StorageState {
             StoPopupState::None => {}
         }
 
-        // Sub-tab switching
+        // Sub-tab switching with [ / ]
         match key.code {
-            KeyCode::F(1) => {
-                self.active_sub_tab = StoSubTab::Dashboard;
+            KeyCode::Char('[') => {
+                self.active_sub_tab = self.active_sub_tab.prev();
                 return Ok(());
             }
-            KeyCode::F(2) => {
-                self.active_sub_tab = StoSubTab::Explorer;
-                return Ok(());
-            }
-            KeyCode::F(3) => {
-                self.active_sub_tab = StoSubTab::Clean;
-                return Ok(());
-            }
-            KeyCode::F(4) => {
-                self.active_sub_tab = StoSubTab::History;
+            KeyCode::Char(']') => {
+                self.active_sub_tab = self.active_sub_tab.next();
                 return Ok(());
             }
             _ => {}
@@ -546,14 +554,13 @@ fn render_sub_tabs(
 ) {
     let tab_titles: Vec<Line> = StoSubTab::all()
         .iter()
-        .enumerate()
-        .map(|(i, tab)| {
+        .map(|tab| {
             let style = if state.active_sub_tab == *tab {
                 theme.tab_active()
             } else {
                 theme.tab_inactive()
             };
-            Line::styled(format!("[F{}] {}", i + 1, tab.label(lang)), style)
+            Line::styled(format!(" {} ", tab.label(lang)), style)
         })
         .collect();
 
@@ -782,7 +789,7 @@ fn render_dashboard(
 
         if info.paths.len() > 10 {
             lines.push(Line::styled(
-                format!("    … {} → [F2]", s.sto_more_in_explorer),
+                format!("    … {} → Explorer", s.sto_more_in_explorer),
                 theme.text_dim(),
             ));
         }
@@ -797,7 +804,7 @@ fn render_dashboard(
         recs.push(Line::from(vec![
             Span::styled("  ● ", Style::default().fg(theme.warning)),
             Span::styled(
-                format!("{} {} → [F3]", format_bytes(info.dead_size), s.sto_rec_gc),
+                format!("{} {} → Clean", format_bytes(info.dead_size), s.sto_rec_gc),
                 Style::default().fg(theme.warning),
             ),
         ]));

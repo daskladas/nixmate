@@ -2,6 +2,22 @@
 
 Full development history of nixmate — every version, every feature.
 
+
+## v0.7.1 — Keybinding Overhaul + Code Quality
+
+### Changed
+- **Keybindings:** Replaced F1–F4 sub-tab switching with `[` / `]` (previous/next). Works reliably over SSH, tmux, and on laptops without Fn-key issues.
+- **README:** Rewritten — less marketing, more technical. Added Known Issues section and AI Disclosure.
+- **Code quality:** Applied `cargo fmt` to entire codebase. Zero clippy warnings.
+- **Docs:** Updated KEYBINDINGS.md and ADDING_MODULES.md to reflect new keybindings.
+
+### Known Issues
+- Generations: Packages/Diff tabs may show empty content on some configurations
+- Error Translator: Crashes reported on some setups
+- Services: Service list may not populate on non-standard setups
+- Package Search: Crashes or fails on some configurations
+
+---
 ---
 
 ### v0.1 — ✅ Foundations
@@ -9,7 +25,7 @@ Full development history of nixmate — every version, every feature.
 The core architecture, module system, and first two real modules.
 
 - [x] Full TUI framework: ratatui-based, keyboard-driven, modular architecture
-- [x] Module system with sub-tabs (F1–F4), popup dialogs, flash messages, and status bar hints
+- [x] Module system with sub-tabs ([ / ]), popup dialogs, flash messages, and status bar hints
 - [x] **Generations module** — overview, packages, diff, and manage with undo safety net
   - [x] System + Home-Manager profile detection (Flakes and Channels)
   - [x] Side-by-side diff with added/removed/updated packages
@@ -84,7 +100,7 @@ Expand Config Showcase with a full architecture diagram of your NixOS configurat
   - [x] Color-sorted layers — same types grouped together within each row
   - [x] Works with any config size: 1 file or 200+ files
   - [x] SVG export with JetBrains Mono, glow effects, gradient topbar, legend
-  - [x] Two sub-tabs: F1 = System Overview poster, F2 = Config Diagram
+  - [x] Two sub-tabs: System Overview poster, Config Diagram
 
 ### v0.6 — ✅ Welcome Screen, Mascot & Sidebar
 

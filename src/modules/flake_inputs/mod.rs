@@ -2,10 +2,10 @@
 //!
 //! Manage, update, and inspect flake inputs individually.
 //! Sub-tabs:
-//!   F1 Overview — all inputs with revision, age, status
-//!   F2 Update   — selective per-input updates with checkboxes
-//!   F3 History  — diff of last update (old vs new revisions)
-//!   F4 Details  — full info for the selected input
+//!   Overview — all inputs with revision, age, status
+//!   Update   — selective per-input updates with checkboxes
+//!   History  — diff of last update (old vs new revisions)
+//!   Details  — full info for the selected input
 //!
 //! Data source: flake.lock (JSON) + flake.nix parsing.
 //! Updates via `nix flake lock --update-input <name>`.
@@ -35,6 +35,42 @@ pub enum FlakeSubTab {
     Update,
     History,
     Details,
+}
+
+impl FlakeSubTab {
+    pub fn all() -> &'static [FlakeSubTab] {
+        &[
+            FlakeSubTab::Overview,
+            FlakeSubTab::Update,
+            FlakeSubTab::History,
+            FlakeSubTab::Details,
+        ]
+    }
+
+    pub fn index(&self) -> usize {
+        match self {
+            FlakeSubTab::Overview => 0,
+            FlakeSubTab::Update => 1,
+            FlakeSubTab::History => 2,
+            FlakeSubTab::Details => 3,
+        }
+    }
+
+    pub fn next(&self) -> Self {
+        let tabs = Self::all();
+        let idx = (self.index() + 1) % tabs.len();
+        tabs[idx]
+    }
+
+    pub fn prev(&self) -> Self {
+        let tabs = Self::all();
+        let idx = if self.index() == 0 {
+            tabs.len() - 1
+        } else {
+            self.index() - 1
+        };
+        tabs[idx]
+    }
 }
 
 // ── Flake input data ──
@@ -339,22 +375,14 @@ impl FlakeInputsState {
             FlakePopup::None => {}
         }
 
-        // Sub-tab switching
+        // Sub-tab switching with [ / ]
         match key.code {
-            KeyCode::F(1) => {
-                self.sub_tab = FlakeSubTab::Overview;
+            KeyCode::Char('[') => {
+                self.sub_tab = self.sub_tab.prev();
                 return Ok(true);
             }
-            KeyCode::F(2) => {
-                self.sub_tab = FlakeSubTab::Update;
-                return Ok(true);
-            }
-            KeyCode::F(3) => {
-                self.sub_tab = FlakeSubTab::History;
-                return Ok(true);
-            }
-            KeyCode::F(4) => {
-                self.sub_tab = FlakeSubTab::Details;
+            KeyCode::Char(']') => {
+                self.sub_tab = self.sub_tab.next();
                 return Ok(true);
             }
             _ => {}
@@ -962,17 +990,12 @@ pub fn render(
 
     // Tab bar
     let tabs = vec![
-        format!("F1 {}", s.fi_tab_overview),
-        format!("F2 {}", s.fi_tab_update),
-        format!("F3 {}", s.fi_tab_history),
-        format!("F4 {}", s.fi_tab_details),
+        s.fi_tab_overview.to_string(),
+        s.fi_tab_update.to_string(),
+        s.fi_tab_history.to_string(),
+        s.fi_tab_details.to_string(),
     ];
-    let tab_selected = match state.sub_tab {
-        FlakeSubTab::Overview => 0,
-        FlakeSubTab::Update => 1,
-        FlakeSubTab::History => 2,
-        FlakeSubTab::Details => 3,
-    };
+    let tab_selected = state.sub_tab.index();
     let tab_titles: Vec<Line> = tabs.into_iter().map(Line::from).collect();
     let tabs_widget = Tabs::new(tab_titles)
         .select(tab_selected)

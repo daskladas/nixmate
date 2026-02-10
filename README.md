@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/icon.png" alt="nixmate logo" width="180">
+  <img src="assets/icon.png" alt="nixmate logo" width="140">
 </p>
 
 <p align="center">
@@ -15,31 +15,17 @@
   <sub>10 modules · 13 themes · EN/DE · works over SSH</sub>
 </p>
 
-<p align="center">
-  <a href="#install">Install</a> · <a href="#modules">Modules</a> · <a href="#usage">Usage</a> · <a href="#configuration">Config</a> · <a href="#roadmap">Roadmap</a>
-</p>
-
 ---
-
-NixOS is powerful — but the day-to-day tooling is scattered across a dozen different commands with different interfaces. **nixmate** brings them all into one fast, keyboard-driven TUI. Desktop or headless server, local or SSH — same experience everywhere.
-
-<p align="center">
-  <img src="assets/screenshots/screenshot01.png" alt="Welcome Screen" width="80%">
-</p>
-<p align="center">
-  <img src="assets/screenshots/screenshot02.png" alt="Module Intro" width="48%">
-  <img src="assets/screenshots/screenshot03.png" alt="Rebuild Dashboard" width="48%">
-</p>
-
----
-
-## Why?
 
 NixOS is powerful, but managing it means juggling `nix-env`, `nixos-rebuild`,
 `nix search`, `systemctl`, `nix-collect-garbage`, and a dozen other commands —
 each with different flags, output formats, and gotchas. nixmate replaces that
-workflow with one tool that works the same on your desktop, your server, and
-over SSH.
+workflow with one keyboard-driven tool that works the same on your desktop,
+your server, and over SSH.
+
+<p align="center">
+  <img src="assets/screenshots/screenshot01.png" alt="Welcome Screen" width="80%">
+</p>
 
 ---
 
@@ -62,20 +48,20 @@ nix develop && cargo run
 
 ## Modules
 
-Every module opens with an intro page explaining what it does, which problem it solves, and how to use it. Press Enter to dive in.
+Every module opens with an intro page explaining what it does and how to use it. Press Enter to dive in.
 
 | Key | Module | What it does |
 |-----|--------|-------------|
-| `1` | **🕰️ Generations** | Browse, diff, delete, pin, restore generations. Side-by-side package comparison. Undo safety net. |
-| `2` | **🔍 Error Translator** | Paste a Nix error → get a human explanation + fix. 50+ patterns. AI fallback via Claude/OpenAI/Ollama. |
-| `3` | **🖥️ Services & Ports** | Systemd + Docker + Podman in one view. Port mapping. Start/stop/restart. Live logs. |
-| `4` | **💾 Storage** | Disk dashboard. Store breakdown (live/dead paths). GC, optimize, full clean. History. |
-| `5` | **🎨 Config Showcase** | Auto-generate a system poster + config architecture diagram as SVG. r/unixporn ready. |
-| `6` | **🔧 Options Explorer** | search.nixos.org in your terminal. Fuzzy search + tree browsing + your current values vs defaults. |
-| `7` | **⚡ Rebuild** | Live `nixos-rebuild` dashboard. 5-phase progress. Educational explanations. Post-build diff. |
-| `8` | **📦 Flake Inputs** | Selective per-input updates. No more all-or-nothing `nix flake update`. Age tracking. Revision diffs. |
-| `9` | **📦 Package Search** | Fuzzy search across 100k+ packages. Install status. Auto-detects Flakes vs Channels. |
-| `0` | **🩺 Nix Doctor** | Health score 0–100%. 5 automated checks. One-click fixes. |
+| `1` | **Generations** | Browse, diff, delete, pin, restore generations. Side-by-side package comparison. |
+| `2` | **Error Translator** | Paste a Nix error, get a human explanation + fix. 50+ patterns. AI fallback (Claude/OpenAI/Ollama). |
+| `3` | **Services & Ports** | Systemd + Docker + Podman in one view. Port mapping. Start/stop/restart. Live logs. |
+| `4` | **Storage** | Disk dashboard. Store breakdown (live/dead paths). GC, optimize, full clean. |
+| `5` | **Config Showcase** | Auto-generate a system poster + config architecture diagram as SVG. |
+| `6` | **Options Explorer** | search.nixos.org in your terminal. Fuzzy search, tree browsing, current values vs defaults. |
+| `7` | **Rebuild** | Live `nixos-rebuild` dashboard. 5-phase progress. Post-build diff. |
+| `8` | **Flake Inputs** | Selective per-input updates. No more all-or-nothing `nix flake update`. |
+| `9` | **Package Search** | Fuzzy search across 100k+ packages. Install status. Auto-detects Flakes vs Channels. |
+| `0` | **Nix Doctor** | Health score 0-100. Automated checks with one-click fixes. |
 
 ### Pipe mode
 
@@ -86,12 +72,12 @@ nix build .#foo 2>&1 | nixmate         # works with any nix command
 
 ---
 
-## Usage
+## Keybindings
 
 | Key | Action |
 |-----|--------|
-| `1`–`9`, `0` | Switch module |
-| `F1`–`F4` | Sub-tabs within a module |
+| `1`-`9`, `0` | Switch module |
+| `[` / `]` | Previous / next sub-tab |
 | `j` / `k` | Navigate |
 | `g` / `G` | Top / bottom |
 | `Enter` | Select / confirm |
@@ -100,12 +86,6 @@ nix build .#foo 2>&1 | nixmate         # works with any nix command
 | `,` | Settings |
 | `?` | Help |
 | `q` | Quit |
-
-**13 themes:** Gruvbox · Nord · Catppuccin · Dracula · Tokyo Night · Rosé Pine · Everforest · Kanagawa · Solarized Dark · One Dark · Monokai · Hacker · Transparent
-
-**Languages:** English · Deutsch (bilingual UI with full error pattern translations)
-
-**Terminal images:** Kitty · WezTerm · Ghostty · iTerm2 (auto-detected)
 
 ---
 
@@ -119,7 +99,6 @@ nix build .#foo 2>&1 | nixmate         # works with any nix command
 theme = "gruvbox"           # 13 themes available
 language = "english"         # english, german
 layout = "auto"              # auto, sidebyside, tabsonly
-welcome_shown = true         # false = show welcome screen again
 nixpkgs_channel = "auto"    # auto-detect or manual override
 
 # AI fallback for unknown errors (optional)
@@ -130,19 +109,24 @@ ollama_url = "http://localhost:11434"
 ollama_model = "llama3"
 ```
 
-Everything can also be changed from the Settings module (`,`) inside the TUI.
+Everything can also be changed from the Settings panel (`,`) inside the TUI.
+
+**Themes:** Gruvbox · Nord · Catppuccin · Dracula · Tokyo Night · Rosé Pine · Everforest · Kanagawa · Solarized Dark · One Dark · Monokai · Hacker · Transparent
+
+**Languages:** English · Deutsch
 
 ---
 
-## 🎨 Custom Themes
+## Known Issues
 
-Want to create your own theme? It's easy — see [docs/developer/ADDING_THEMES.md](docs/developer/ADDING_THEMES.md) for a step-by-step guide. PRs with new themes are always welcome!
+Working on fixes for these — feedback welcome.
 
----
+- **Generations:** Packages and Diff tabs may show empty content depending on system configuration
+- **Error Translator:** Crashes reported on some setups
+- **Services:** Service list may not populate on non-standard setups
+- **Package Search:** Crashes or fails on some configurations
 
-## Roadmap
-
-See [CHANGELOG.md](CHANGELOG.md) for the full development history (v0.1–v0.7) and planned features.
+Most of these stem from assumptions about flake-based configs in `/etc/nixos`. Improving detection and error handling for non-flake and custom-path setups is the next priority.
 
 ---
 
@@ -155,7 +139,11 @@ git clone https://github.com/daskladas/nixmate.git
 cd nixmate && nix develop && cargo run
 ```
 
-Check out the [docs/](docs/) folder for user guides and developer guides on how to add modules, themes, and error patterns.
+See [docs/](docs/) for user guides and developer documentation.
+
+### AI Disclosure
+
+This project uses AI-assisted development. All code is reviewed, tested, and maintained by a human.
 
 ---
 
@@ -164,6 +152,5 @@ Check out the [docs/](docs/) folder for user guides and developer guides on how 
 MIT — see [LICENSE](LICENSE)
 
 <p align="center">
-  Made with ♥ by <a href="https://github.com/daskladas">daskladas</a><br>
-  <sub>The goal: make nixmate a must-have for every NixOS user.</sub>
+  Made with ♥ by <a href="https://github.com/daskladas">daskladas</a>
 </p>

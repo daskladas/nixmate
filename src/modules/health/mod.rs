@@ -34,6 +34,35 @@ pub enum HealthSubTab {
     Fix,
 }
 
+impl HealthSubTab {
+    pub fn all() -> &'static [HealthSubTab] {
+        &[HealthSubTab::Dashboard, HealthSubTab::Fix]
+    }
+
+    pub fn index(&self) -> usize {
+        match self {
+            HealthSubTab::Dashboard => 0,
+            HealthSubTab::Fix => 1,
+        }
+    }
+
+    pub fn next(&self) -> Self {
+        let tabs = Self::all();
+        let idx = (self.index() + 1) % tabs.len();
+        tabs[idx]
+    }
+
+    pub fn prev(&self) -> Self {
+        let tabs = Self::all();
+        let idx = if self.index() == 0 {
+            tabs.len() - 1
+        } else {
+            self.index() - 1
+        };
+        tabs[idx]
+    }
+}
+
 // ── Health check severity ──
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -231,12 +260,12 @@ impl HealthState {
 
     pub fn handle_key(&mut self, key: KeyEvent) -> Result<bool> {
         match key.code {
-            KeyCode::F(1) => {
-                self.sub_tab = HealthSubTab::Dashboard;
+            KeyCode::Char('[') => {
+                self.sub_tab = self.sub_tab.prev();
                 return Ok(true);
             }
-            KeyCode::F(2) => {
-                self.sub_tab = HealthSubTab::Fix;
+            KeyCode::Char(']') => {
+                self.sub_tab = self.sub_tab.next();
                 return Ok(true);
             }
             KeyCode::Char('r') => {
@@ -662,8 +691,8 @@ pub fn render(frame: &mut Frame, state: &HealthState, theme: &Theme, lang: Langu
 
     // Render tab bar
     let tab_titles: Vec<Line> = vec![
-        Line::from(format!(" F1 {} ", s.health_dashboard)),
-        Line::from(format!(" F2 {} ", s.health_fix)),
+        Line::from(format!(" {} ", s.health_dashboard)),
+        Line::from(format!(" {} ", s.health_fix)),
     ];
     let tab_idx = match state.sub_tab {
         HealthSubTab::Dashboard => 0,

@@ -54,6 +54,22 @@ impl ErrSubTab {
             ErrSubTab::Submit => s.err_submit,
         }
     }
+
+    pub fn next(&self) -> Self {
+        let tabs = Self::all();
+        let idx = (self.index() + 1) % tabs.len();
+        tabs[idx]
+    }
+
+    pub fn prev(&self) -> Self {
+        let tabs = Self::all();
+        let idx = if self.index() == 0 {
+            tabs.len() - 1
+        } else {
+            self.index() - 1
+        };
+        tabs[idx]
+    }
 }
 
 // ── Submit form ──
@@ -305,14 +321,14 @@ impl ErrorsState {
             }
         }
 
-        // Sub-tab switching with F1-F2
+        // Sub-tab switching with [ / ]
         match key.code {
-            KeyCode::F(1) => {
-                self.active_sub_tab = ErrSubTab::Analyze;
+            KeyCode::Char('[') => {
+                self.active_sub_tab = self.active_sub_tab.prev();
                 return Ok(());
             }
-            KeyCode::F(2) => {
-                self.active_sub_tab = ErrSubTab::Submit;
+            KeyCode::Char(']') => {
+                self.active_sub_tab = self.active_sub_tab.next();
                 return Ok(());
             }
             _ => {}
@@ -534,15 +550,14 @@ fn render_sub_tabs(
 ) {
     let tab_titles: Vec<Line> = ErrSubTab::all()
         .iter()
-        .enumerate()
-        .map(|(i, tab)| {
+        .map(|tab| {
             let is_active = state.active_sub_tab == *tab;
             let style = if is_active {
                 theme.tab_active()
             } else {
                 theme.tab_inactive()
             };
-            Line::styled(format!("[F{}] {}", i + 1, tab.label(lang)), style)
+            Line::styled(format!(" {} ", tab.label(lang)), style)
         })
         .collect();
 

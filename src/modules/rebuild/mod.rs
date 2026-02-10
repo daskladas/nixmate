@@ -65,6 +65,22 @@ impl RebuildSubTab {
             RebuildSubTab::History => s.rb_history,
         }
     }
+
+    pub fn next(&self) -> Self {
+        let tabs = Self::all();
+        let idx = (self.index() + 1) % tabs.len();
+        tabs[idx]
+    }
+
+    pub fn prev(&self) -> Self {
+        let tabs = Self::all();
+        let idx = if self.index() == 0 {
+            tabs.len() - 1
+        } else {
+            self.index() - 1
+        };
+        tabs[idx]
+    }
 }
 
 // ── Rebuild mode ──
@@ -853,22 +869,14 @@ impl RebuildState {
             }
         }
 
-        // Sub-tab switching
+        // Sub-tab switching with [ / ]
         match key.code {
-            KeyCode::F(1) => {
-                self.sub_tab = RebuildSubTab::Dashboard;
+            KeyCode::Char('[') => {
+                self.sub_tab = self.sub_tab.prev();
                 return Ok(true);
             }
-            KeyCode::F(2) => {
-                self.sub_tab = RebuildSubTab::Log;
-                return Ok(true);
-            }
-            KeyCode::F(3) => {
-                self.sub_tab = RebuildSubTab::Changes;
-                return Ok(true);
-            }
-            KeyCode::F(4) => {
-                self.sub_tab = RebuildSubTab::History;
+            KeyCode::Char(']') => {
+                self.sub_tab = self.sub_tab.next();
                 return Ok(true);
             }
             // Cancel running build from any tab
@@ -1059,8 +1067,7 @@ fn render_sub_tabs(
 ) {
     let titles: Vec<Line> = RebuildSubTab::all()
         .iter()
-        .enumerate()
-        .map(|(i, tab)| Line::from(format!(" F{} {} ", i + 1, tab.label(lang))))
+        .map(|tab| Line::from(format!(" {} ", tab.label(lang))))
         .collect();
 
     let tabs = Tabs::new(titles)

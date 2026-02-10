@@ -213,7 +213,7 @@ impl App {
         // Module intro page handling
         if self.is_intro_showing() {
             match key.code {
-                KeyCode::Enter | KeyCode::F(1..=4) => {
+                KeyCode::Enter | KeyCode::Char('[') | KeyCode::Char(']') => {
                     self.intros_dismissed.insert(self.active_tab.index());
                     return Ok(());
                 }
@@ -304,8 +304,8 @@ impl App {
                     return Ok(true);
                 }
 
-                // F-keys always go to module
-                if matches!(key.code, KeyCode::F(1..=4)) {
+                // Sub-tab keys always go to module
+                if matches!(key.code, KeyCode::Char('[') | KeyCode::Char(']')) {
                     self.generations.handle_key(key)?;
                     return Ok(true);
                 }
@@ -340,8 +340,8 @@ impl App {
                     return Ok(true);
                 }
 
-                // F-keys always go to module
-                if matches!(key.code, KeyCode::F(1..=2)) {
+                // Sub-tab keys always go to module
+                if matches!(key.code, KeyCode::Char('[') | KeyCode::Char(']')) {
                     let lang = self.config.language;
                     self.errors.handle_key(key, lang)?;
                     return Ok(true);
@@ -380,8 +380,8 @@ impl App {
                     return Ok(true);
                 }
 
-                // F-keys always go to module
-                if matches!(key.code, KeyCode::F(1..=4)) {
+                // Sub-tab keys always go to module
+                if matches!(key.code, KeyCode::Char('[') | KeyCode::Char(']')) {
                     self.services.handle_key(key)?;
                     return Ok(true);
                 }
@@ -411,8 +411,8 @@ impl App {
                     return Ok(true);
                 }
 
-                // F-keys always go to module
-                if matches!(key.code, KeyCode::F(1..=4)) {
+                // Sub-tab keys always go to module
+                if matches!(key.code, KeyCode::Char('[') | KeyCode::Char(']')) {
                     self.storage.handle_key(key)?;
                     return Ok(true);
                 }
@@ -431,8 +431,8 @@ impl App {
                 }
             }
             ModuleTab::Config => {
-                // F-keys always go to module for sub-tab switching
-                if matches!(key.code, KeyCode::F(1..=2)) {
+                // Sub-tab keys always go to module
+                if matches!(key.code, KeyCode::Char('[') | KeyCode::Char(']')) {
                     self.config_showcase.handle_key(key)?;
                     return Ok(true);
                 }
@@ -471,8 +471,8 @@ impl App {
                 }
             }
             ModuleTab::Health => {
-                // F-keys always go to module
-                if matches!(key.code, KeyCode::F(1..=2)) {
+                // Sub-tab keys always go to module
+                if matches!(key.code, KeyCode::Char('[') | KeyCode::Char(']')) {
                     self.health.handle_key(key)?;
                     return Ok(true);
                 }
@@ -501,8 +501,8 @@ impl App {
                     return Ok(true);
                 }
 
-                // F-keys always go to module
-                if matches!(key.code, KeyCode::F(1..=4)) {
+                // Sub-tab keys always go to module
+                if matches!(key.code, KeyCode::Char('[') | KeyCode::Char(']')) {
                     self.rebuild.handle_key(key)?;
                     return Ok(true);
                 }
@@ -528,8 +528,8 @@ impl App {
                     return Ok(true);
                 }
 
-                // F-keys always go to module
-                if matches!(key.code, KeyCode::F(1..=3)) {
+                // Sub-tab keys always go to module
+                if matches!(key.code, KeyCode::Char('[') | KeyCode::Char(']')) {
                     self.options.handle_key(key)?;
                     return Ok(true);
                 }
@@ -555,8 +555,8 @@ impl App {
                     return Ok(true);
                 }
 
-                // F-keys always go to module
-                if matches!(key.code, KeyCode::F(1..=4)) {
+                // Sub-tab keys always go to module
+                if matches!(key.code, KeyCode::Char('[') | KeyCode::Char(']')) {
                     self.flake_inputs.handle_key(key)?;
                     return Ok(true);
                 }

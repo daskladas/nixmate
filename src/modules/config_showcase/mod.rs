@@ -54,6 +54,22 @@ impl CfgSubTab {
             CfgSubTab::Diagram => s.cfg_diagram,
         }
     }
+
+    pub fn next(&self) -> Self {
+        let tabs = Self::all();
+        let idx = (self.index() + 1) % tabs.len();
+        tabs[idx]
+    }
+
+    pub fn prev(&self) -> Self {
+        let tabs = Self::all();
+        let idx = if self.index() == 0 {
+            tabs.len() - 1
+        } else {
+            self.index() - 1
+        };
+        tabs[idx]
+    }
 }
 
 // ── State ──
@@ -100,14 +116,14 @@ impl ConfigShowcaseState {
     }
 
     pub fn handle_key(&mut self, key: KeyEvent) -> Result<()> {
-        // Sub-tab switching
+        // Sub-tab switching with [ / ]
         match key.code {
-            KeyCode::F(1) => {
-                self.active_sub_tab = CfgSubTab::Overview;
+            KeyCode::Char('[') => {
+                self.active_sub_tab = self.active_sub_tab.prev();
                 return Ok(());
             }
-            KeyCode::F(2) => {
-                self.active_sub_tab = CfgSubTab::Diagram;
+            KeyCode::Char(']') => {
+                self.active_sub_tab = self.active_sub_tab.next();
                 return Ok(());
             }
             _ => {}
@@ -310,8 +326,7 @@ fn render_sub_tabs(
 ) {
     let tab_titles: Vec<Line> = CfgSubTab::all()
         .iter()
-        .enumerate()
-        .map(|(i, tab)| {
+        .map(|tab| {
             let style = if state.active_sub_tab == *tab {
                 Style::default()
                     .fg(theme.accent)
@@ -319,7 +334,7 @@ fn render_sub_tabs(
             } else {
                 Style::default().fg(theme.fg_dim)
             };
-            Line::styled(format!(" F{} {} ", i + 1, tab.label(lang)), style)
+            Line::styled(format!(" {} ", tab.label(lang)), style)
         })
         .collect();
 

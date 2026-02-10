@@ -62,6 +62,22 @@ impl GenSubTab {
             GenSubTab::Manage => s.gen_manage,
         }
     }
+
+    pub fn next(&self) -> Self {
+        let tabs = Self::all();
+        let idx = (self.index() + 1) % tabs.len();
+        tabs[idx]
+    }
+
+    pub fn prev(&self) -> Self {
+        let tabs = Self::all();
+        let idx = if self.index() == 0 {
+            tabs.len() - 1
+        } else {
+            self.index() - 1
+        };
+        tabs[idx]
+    }
 }
 
 // ── Popup state ──
@@ -293,22 +309,14 @@ impl GenerationsState {
             GenPopupState::None => {}
         }
 
-        // Sub-tab switching with F1-F4
+        // Sub-tab switching with [ / ]
         match key.code {
-            KeyCode::F(1) => {
-                self.active_sub_tab = GenSubTab::Overview;
+            KeyCode::Char('[') => {
+                self.active_sub_tab = self.active_sub_tab.prev();
                 return Ok(());
             }
-            KeyCode::F(2) => {
-                self.active_sub_tab = GenSubTab::Packages;
-                return Ok(());
-            }
-            KeyCode::F(3) => {
-                self.active_sub_tab = GenSubTab::Diff;
-                return Ok(());
-            }
-            KeyCode::F(4) => {
-                self.active_sub_tab = GenSubTab::Manage;
+            KeyCode::Char(']') => {
+                self.active_sub_tab = self.active_sub_tab.next();
                 return Ok(());
             }
             _ => {}
@@ -1015,7 +1023,7 @@ fn render_sub_tab_bar(
             } else {
                 theme.tab_inactive()
             };
-            Line::styled(format!("[F{}] {}", tab.index() + 1, tab.label(lang)), style)
+            Line::styled(format!(" {} ", tab.label(lang)), style)
         })
         .collect();
 

@@ -2,9 +2,9 @@
 //!
 //! Search, browse, and discover all 20,000+ NixOS options.
 //! Three sub-tabs:
-//!   F1 Search  — fuzzy search with detail view + current values
-//!   F2 Browse  — tree navigation through the option hierarchy
-//!   F3 Related — sibling options for the selected option
+//!   Search  — fuzzy search with detail view + current values
+//!   Browse  — tree navigation through the option hierarchy
+//!   Related — sibling options for the selected option
 //!
 //! Data source: options.json from NixOS manual (pre-built or generated).
 //! Current values loaded on-demand via nixos-option.
@@ -34,6 +34,36 @@ pub enum OptSubTab {
     Search,
     Browse,
     Related,
+}
+
+impl OptSubTab {
+    pub fn all() -> &'static [OptSubTab] {
+        &[OptSubTab::Search, OptSubTab::Browse, OptSubTab::Related]
+    }
+
+    pub fn index(&self) -> usize {
+        match self {
+            OptSubTab::Search => 0,
+            OptSubTab::Browse => 1,
+            OptSubTab::Related => 2,
+        }
+    }
+
+    pub fn next(&self) -> Self {
+        let tabs = Self::all();
+        let idx = (self.index() + 1) % tabs.len();
+        tabs[idx]
+    }
+
+    pub fn prev(&self) -> Self {
+        let tabs = Self::all();
+        let idx = if self.index() == 0 {
+            tabs.len() - 1
+        } else {
+            self.index() - 1
+        };
+        tabs[idx]
+    }
 }
 
 // ── NixOS option data ──
@@ -535,19 +565,20 @@ impl OptionsState {
             return Ok(true);
         }
 
-        // Sub-tab switching
+        // Sub-tab switching with [ / ]
         match key.code {
-            KeyCode::F(1) => {
-                self.sub_tab = OptSubTab::Search;
+            KeyCode::Char('[') => {
+                self.sub_tab = self.sub_tab.prev();
+                if self.sub_tab == OptSubTab::Browse {
+                    self.ensure_tree_built();
+                }
                 return Ok(true);
             }
-            KeyCode::F(2) => {
-                self.sub_tab = OptSubTab::Browse;
-                self.ensure_tree_built();
-                return Ok(true);
-            }
-            KeyCode::F(3) => {
-                self.sub_tab = OptSubTab::Related;
+            KeyCode::Char(']') => {
+                self.sub_tab = self.sub_tab.next();
+                if self.sub_tab == OptSubTab::Browse {
+                    self.ensure_tree_built();
+                }
                 return Ok(true);
             }
             _ => {}

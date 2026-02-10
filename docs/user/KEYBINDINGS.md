@@ -9,10 +9,10 @@ Complete keyboard reference for nixmate. Print this or keep it open in a second 
 | Key | Action |
 |-----|--------|
 | `1` – `9`, `0` | Switch to module 1–10 |
+| `[` / `]` | Previous / next sub-tab |
 | `,` | Open Settings |
 | `?` | Open Help / About |
 | `q` | Quit nixmate |
-| `F1` – `F4` | Switch sub-tabs within a module |
 
 ---
 
@@ -32,12 +32,10 @@ Complete keyboard reference for nixmate. Print this or keep it open in a second 
 
 ## [1] Generations
 
+Sub-tabs: Overview · Packages · Diff · Manage
+
 | Key | Action |
 |-----|--------|
-| `F1` | Overview — list all generations |
-| `F2` | Packages — show packages in selected generation |
-| `F3` | Diff — compare two generations side by side |
-| `F4` | Manage — delete, pin, restore generations |
 | `Enter` | Select generation for detail view |
 | `/` | Search/filter packages (in Packages tab) |
 | `Tab` | Switch focus between panels |
@@ -50,10 +48,10 @@ Complete keyboard reference for nixmate. Print this or keep it open in a second 
 
 ## [2] Error Translator
 
+Sub-tabs: Analyze · Submit
+
 | Key | Action |
 |-----|--------|
-| `F1` | Analyze — paste and analyze errors |
-| `F2` | Submit — submit a new pattern |
 | `i` | Enter input mode (start typing/pasting) |
 | `Esc` | Exit input mode |
 | `Enter` | Analyze the pasted error |
@@ -64,12 +62,10 @@ Complete keyboard reference for nixmate. Print this or keep it open in a second 
 
 ## [3] Services & Ports
 
+Sub-tabs: Overview · Ports · Manage · Logs
+
 | Key | Action |
 |-----|--------|
-| `F1` | All services |
-| `F2` | Active only |
-| `F3` | Failed only |
-| `F4` | Ports |
 | `/` | Search/filter services |
 | `Enter` | View service details / logs |
 | `s` | Start service |
@@ -82,12 +78,10 @@ Complete keyboard reference for nixmate. Print this or keep it open in a second 
 
 ## [4] Storage
 
+Sub-tabs: Dashboard · Explorer · Clean · History
+
 | Key | Action |
 |-----|--------|
-| `F1` | Dashboard — disk usage overview |
-| `F2` | Explorer — browse store paths |
-| `F3` | Cleanup — GC, optimize, full clean |
-| `F4` | History — past cleanup operations |
 | `/` | Search store paths (in Explorer) |
 | `Enter` | Run selected cleanup action |
 
@@ -95,10 +89,10 @@ Complete keyboard reference for nixmate. Print this or keep it open in a second 
 
 ## [5] Config Showcase
 
+Sub-tabs: System Overview · Config Diagram
+
 | Key | Action |
 |-----|--------|
-| `F1` | System Poster — generate system info SVG |
-| `F2` | Config Diagram — architecture diagram |
 | `Enter` | Generate / export SVG |
 | `r` | Refresh system scan |
 
@@ -106,11 +100,10 @@ Complete keyboard reference for nixmate. Print this or keep it open in a second 
 
 ## [6] Options Explorer
 
+Sub-tabs: Search · Browse · Related
+
 | Key | Action |
 |-----|--------|
-| `F1` | Search — fuzzy search all options |
-| `F2` | Browse — tree navigation |
-| `F3` | Related — sibling options |
 | `/` or `i` | Start typing a search query |
 | `Enter` | Open detail view for selected option |
 | `Esc` | Close detail view / exit search |
@@ -120,12 +113,10 @@ Complete keyboard reference for nixmate. Print this or keep it open in a second 
 
 ## [7] Rebuild Dashboard
 
+Sub-tabs: Dashboard · Log · Changes · History
+
 | Key | Action |
 |-----|--------|
-| `F1` | Dashboard — build progress |
-| `F2` | Log — raw build output |
-| `F3` | Changes — post-build diff |
-| `F4` | History — past builds |
 | `Enter` / `r` | Start rebuild (shows sudo prompt) |
 | `m` | Cycle rebuild mode (switch/boot/test/build/dry-build) |
 | `t` | Toggle `--show-trace` |
@@ -136,12 +127,10 @@ Complete keyboard reference for nixmate. Print this or keep it open in a second 
 
 ## [8] Flake Input Manager
 
+Sub-tabs: Overview · Update · History · Details
+
 | Key | Action |
 |-----|--------|
-| `F1` | Overview — all inputs with age |
-| `F2` | Update — selective per-input update |
-| `F3` | History — update diffs |
-| `F4` | Details — full input info |
 | `Space` | Toggle input selection (Update tab) |
 | `Enter` | Confirm update / view details |
 | `u` | Update selected inputs |
@@ -160,10 +149,10 @@ Complete keyboard reference for nixmate. Print this or keep it open in a second 
 
 ## [0] Nix Doctor
 
+Sub-tabs: Dashboard · Fix
+
 | Key | Action |
 |-----|--------|
-| `F1` | Health — score and check results |
-| `F2` | Fix — one-click fix suggestions |
 | `Enter` | Run selected fix |
 | `r` | Re-scan |
 
