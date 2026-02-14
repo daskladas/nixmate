@@ -93,6 +93,7 @@ pub struct ConfigShowcaseState {
 
     // Common
     pub lang: Language,
+    pub config_path: Option<String>,
     pub flash_message: Option<FlashMessage>,
 }
 
@@ -111,6 +112,7 @@ impl ConfigShowcaseState {
             diagram_export_error: None,
             diagram_rx: None,
             lang: Language::English,
+            config_path: None,
             flash_message: None,
         }
     }
@@ -185,8 +187,9 @@ impl ConfigShowcaseState {
         let (tx, rx) = mpsc::channel();
         self.diagram_rx = Some(rx);
 
+        let cp = self.config_path.clone();
         std::thread::spawn(move || {
-            let info = diagram::scan_config();
+            let info = diagram::scan_config(cp.as_deref());
             let _ = tx.send(info);
         });
     }

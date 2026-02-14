@@ -564,7 +564,7 @@ fn check_channel_freshness(lang: Language) -> HealthCheck {
     };
 
     // Detect if flakes or channels for fix command
-    let uses_flakes = crate::nix::detect::detect_system()
+    let uses_flakes = crate::nix::detect::detect_system(None)
         .map(|s| s.uses_flakes)
         .unwrap_or(false);
 

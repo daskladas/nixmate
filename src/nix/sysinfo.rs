@@ -49,7 +49,7 @@ pub fn gather() -> PosterInfo {
         kernel: get_kernel(),
         uptime: get_uptime(),
         channel: get_channel(),
-        is_flake: detect_flakes(),
+        is_flake: detect_flakes(None),
         has_home_manager: detect_home_manager(),
         package_count: get_package_count(),
         cpu: get_cpu(),
@@ -187,7 +187,7 @@ fn get_uptime() -> String {
 }
 
 fn get_channel() -> String {
-    if detect_flakes() {
+    if detect_flakes(None) {
         if let Ok(content) = std::fs::read_to_string("/etc/nixos/flake.nix") {
             for tag in &[
                 "nixos-unstable",

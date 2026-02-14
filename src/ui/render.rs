@@ -988,18 +988,18 @@ fn render_settings(frame: &mut Frame, app: &App, area: Rect) {
         ),
         (
             s.settings_ai_key,
-            if app.settings_editing && app.settings_selected == 6 {
+            if app.settings_editing && app.settings_selected == 7 {
                 format!("{}_", app.settings_edit_buffer)
             } else if app.config.ai_api_key.is_some() {
                 "••••••••".to_string()
             } else {
                 s.settings_not_set.to_string()
             },
-            app.settings_editing && app.settings_selected == 6,
+            app.settings_editing && app.settings_selected == 7,
         ),
         (
             s.settings_ollama_url,
-            if app.settings_editing && app.settings_selected == 7 {
+            if app.settings_editing && app.settings_selected == 8 {
                 format!("{}_", app.settings_edit_buffer)
             } else {
                 app.config
@@ -1007,11 +1007,11 @@ fn render_settings(frame: &mut Frame, app: &App, area: Rect) {
                     .clone()
                     .unwrap_or_else(|| s.settings_not_set.to_string())
             },
-            app.settings_editing && app.settings_selected == 7,
+            app.settings_editing && app.settings_selected == 8,
         ),
         (
             s.settings_ollama_model,
-            if app.settings_editing && app.settings_selected == 8 {
+            if app.settings_editing && app.settings_selected == 9 {
                 format!("{}_", app.settings_edit_buffer)
             } else {
                 app.config
@@ -1019,18 +1019,18 @@ fn render_settings(frame: &mut Frame, app: &App, area: Rect) {
                     .clone()
                     .unwrap_or_else(|| s.settings_not_set.to_string())
             },
-            app.settings_editing && app.settings_selected == 8,
+            app.settings_editing && app.settings_selected == 9,
         ),
         (
             s.settings_github_token,
-            if app.settings_editing && app.settings_selected == 9 {
+            if app.settings_editing && app.settings_selected == 10 {
                 format!("{}_", app.settings_edit_buffer)
             } else if app.config.has_github() {
                 "••••••••".to_string()
             } else {
                 s.settings_not_set.to_string()
             },
-            app.settings_editing && app.settings_selected == 9,
+            app.settings_editing && app.settings_selected == 10,
         ),
     ];
 
@@ -1050,7 +1050,40 @@ fn render_settings(frame: &mut Frame, app: &App, area: Rect) {
         ])));
     }
 
-    // Section separator
+    // Paths section separator
+    let paths_sep = format!("  ── {} ──", s.settings_paths_section);
+    items.push(ListItem::new(Line::styled(paths_sep, theme.text_dim())));
+
+    // NixOS config path (index 4)
+    {
+        let style = if 4 == app.settings_selected {
+            theme.selected()
+        } else {
+            theme.text()
+        };
+        let value = if app.settings_editing && app.settings_selected == 4 {
+            format!("{}_", app.settings_edit_buffer)
+        } else {
+            app.config
+                .config_path
+                .clone()
+                .unwrap_or_else(|| s.settings_not_set.to_string())
+        };
+        let editing = app.settings_editing && app.settings_selected == 4;
+        let value_style = if editing {
+            Style::default()
+                .fg(theme.success)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(theme.accent)
+        };
+        items.push(ListItem::new(Line::from(vec![
+            Span::styled(format!("  {:<24}", s.settings_nixos_config_path), style),
+            Span::styled(format!("[{}]", value), value_style),
+        ])));
+    }
+
+    // Error Translator section separator
     let separator_line = format!("  ── {} ──", s.settings_err_section);
     items.push(ListItem::new(Line::styled(
         separator_line,
@@ -1059,7 +1092,7 @@ fn render_settings(frame: &mut Frame, app: &App, area: Rect) {
 
     // Error Translator / AI settings items
     for (i, (label, value, editing)) in err_settings.iter().enumerate() {
-        let global_idx = i + 4; // offset by 4 global settings
+        let global_idx = i + 5; // offset by 4 global + 1 path setting
         let style = if global_idx == app.settings_selected {
             theme.selected()
         } else {

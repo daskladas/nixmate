@@ -189,26 +189,26 @@ impl GenerationsState {
         let mut init_errors = Vec::new();
 
         // Detect system
-        let (hostname, username, uses_flakes, system_profile, hm_info) = match nix::detect_system()
-        {
-            Ok(info) => (
-                info.hostname,
-                info.username,
-                info.uses_flakes,
-                info.system_profile,
-                info.home_manager,
-            ),
-            Err(e) => {
-                init_errors.push(format!("System detection failed: {}", e));
-                (
-                    "unknown".into(),
-                    "unknown".into(),
-                    false,
-                    std::path::PathBuf::from("/nix/var/nix/profiles/system"),
-                    None,
-                )
-            }
-        };
+        let (hostname, username, uses_flakes, system_profile, hm_info) =
+            match nix::detect_system(None) {
+                Ok(info) => (
+                    info.hostname,
+                    info.username,
+                    info.uses_flakes,
+                    info.system_profile,
+                    info.home_manager,
+                ),
+                Err(e) => {
+                    init_errors.push(format!("System detection failed: {}", e));
+                    (
+                        "unknown".into(),
+                        "unknown".into(),
+                        false,
+                        std::path::PathBuf::from("/nix/var/nix/profiles/system"),
+                        None,
+                    )
+                }
+            };
 
         // Load system generations
         let system_source = GenerationSource {

@@ -99,7 +99,7 @@ pub struct DiagramInfo {
 //  Scanning
 // ═══════════════════════════════════════
 
-pub fn scan_config() -> DiagramInfo {
+pub fn scan_config(custom_path: Option<&str>) -> DiagramInfo {
     let hostname = std::fs::read_to_string("/etc/hostname")
         .map(|s| s.trim().to_string())
         .or_else(|_| {
@@ -124,7 +124,7 @@ pub fn scan_config() -> DiagramInfo {
         })
         .unwrap_or_else(|| "?".into());
 
-    let config_root = find_config_root();
+    let config_root = find_config_root(custom_path);
     let is_flake = Path::new(&config_root).join("flake.nix").exists();
 
     let mut nodes: Vec<DiagramNode> = Vec::new();
@@ -253,7 +253,12 @@ fn shorten_url(url: &str) -> String {
 //  File system helpers
 // ═══════════════════════════════════════
 
-fn find_config_root() -> String {
+fn find_config_root(custom_path: Option<&str>) -> String {
+    if let Some(p) = custom_path {
+        if Path::new(p).exists() {
+            return p.to_string();
+        }
+    }
     let candidates = ["/etc/nixos"];
     for c in &candidates {
         if Path::new(c).exists() {

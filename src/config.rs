@@ -41,6 +41,10 @@ pub struct Config {
     // Package Search settings
     #[serde(default = "default_nixpkgs_channel")]
     pub nixpkgs_channel: String,
+
+    // Custom NixOS config path (overrides /etc/nixos default)
+    #[serde(default)]
+    pub config_path: Option<String>,
 }
 
 fn default_ai_provider() -> String {
@@ -73,6 +77,7 @@ impl Default for Config {
             ollama_url: Some("http://localhost:11434".to_string()),
             ollama_model: Some("llama3".to_string()),
             nixpkgs_channel: "auto".to_string(),
+            config_path: None,
         }
     }
 }

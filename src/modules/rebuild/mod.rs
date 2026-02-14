@@ -320,6 +320,7 @@ pub struct RebuildState {
     // Build tracking
     pub stats: BuildStats,
     pub start_time: Option<Instant>,
+    pub final_duration: Option<Duration>,
     pub log_lines: Vec<LogLine>,
     pub log_scroll: usize,
     pub log_auto_scroll: bool,
@@ -367,6 +368,12 @@ pub struct RebuildState {
     // Show --show-trace flag
     pub show_trace: bool,
 
+    // Run `nix flake update` before rebuild
+    pub update_flake_inputs: bool,
+
+    // Custom NixOS config path
+    pub config_path: Option<String>,
+
     // Child process PID for cancellation
     child_pid: Arc<AtomicU32>,
 
@@ -385,6 +392,7 @@ impl RebuildState {
             popup: RebuildPopup::None,
             stats: BuildStats::default(),
             start_time: None,
+            final_duration: None,
             log_lines: Vec::new(),
             log_scroll: 0,
             log_auto_scroll: true,
@@ -411,6 +419,8 @@ impl RebuildState {
             flash_message: None,
             password_buffer: String::new(),
             show_trace: false,
+            update_flake_inputs: false,
+            config_path: None,
             child_pid: Arc::new(AtomicU32::new(0)),
             build_rx: None,
             _detect_rx: None,
@@ -430,9 +440,11 @@ impl RebuildState {
     }
 
     pub fn elapsed(&self) -> Duration {
-        self.start_time
-            .map(|t| t.elapsed())
-            .unwrap_or(Duration::ZERO)
+        self.final_duration.unwrap_or_else(|| {
+            self.start_time
+                .map(|t| t.elapsed())
+                .unwrap_or(Duration::ZERO)
+        })
     }
 
     pub fn elapsed_str(&self) -> String {
@@ -478,7 +490,16 @@ impl RebuildState {
         let uses_flakes = self.uses_flakes.unwrap_or(false);
         let (program, args) =
             build_rebuild_command(self.mode.as_arg(), uses_flakes, self.flake_path.as_deref());
-        let mut cmd = format!("{} {}", program, args.join(" "));
+        let mut cmd = String::new();
+        if uses_flakes && self.update_flake_inputs {
+            let path = self.flake_path.as_deref().unwrap_or("/etc/nixos");
+            if path.starts_with("/etc/") {
+                cmd.push_str(&format!("sudo nix flake update --flake {} && ", path));
+            } else {
+                cmd.push_str(&format!("nix flake update --flake {} && ", path));
+            }
+        }
+        cmd.push_str(&format!("{} {}", program, args.join(" ")));
         if self.show_trace {
             cmd.push_str(" --show-trace");
         }
@@ -503,6 +524,7 @@ impl RebuildState {
             unsafe {
                 libc::kill(-(pid as i32), libc::SIGTERM);
             }
+            self.final_duration = Some(self.elapsed());
             self.phase = BuildPhase::Failed;
             let s = crate::i18n::get_strings(self.lang);
             self.log_lines.push(LogLine {
@@ -528,9 +550,14 @@ impl RebuildState {
         self.detecting = true;
 
         let (tx, rx) = mpsc::channel();
+        let cp = self.config_path.clone();
         std::thread::spawn(move || {
-            let uses_flakes = detect_flakes();
-            let flake_path = if uses_flakes { find_flake_path() } else { None };
+            let uses_flakes = detect_flakes(cp.as_deref());
+            let flake_path = if uses_flakes {
+                find_flake_path(cp.as_deref())
+            } else {
+                None
+            };
             let _ = tx.send((uses_flakes, flake_path));
         });
 
@@ -564,6 +591,7 @@ impl RebuildState {
         self.phase = BuildPhase::Preparing;
         self.stats = BuildStats::default();
         self.start_time = Some(Instant::now());
+        self.final_duration = None;
         self.log_lines.clear();
         self.log_scroll = 0;
         self.log_auto_scroll = true;
@@ -583,7 +611,17 @@ impl RebuildState {
         self.child_pid.store(0, Ordering::SeqCst);
 
         let (prog, args) = build_rebuild_command(mode.as_arg(), uses_flakes, flake_path.as_deref());
-        let mut command = format!("{} {}", prog, args.join(" "));
+        let mut command = String::new();
+        let update_flake = uses_flakes && self.update_flake_inputs;
+        if update_flake {
+            let path = flake_path.as_deref().unwrap_or("/etc/nixos");
+            if path.starts_with("/etc/") {
+                command.push_str(&format!("sudo nix flake update --flake {} && ", path));
+            } else {
+                command.push_str(&format!("nix flake update --flake {} && ", path));
+            }
+        }
+        command.push_str(&format!("{} {}", prog, args.join(" ")));
         let show_trace = self.show_trace;
         if show_trace {
             command.push_str(" --show-trace");
@@ -591,9 +629,10 @@ impl RebuildState {
         self.detected_command = Some(command.clone());
         let _ = tx.send(RebuildMsg::CommandInfo(command));
 
-        let auth_msg = crate::i18n::get_strings(self.lang)
-            .rb_authenticating
-            .to_string();
+        let s = crate::i18n::get_strings(self.lang);
+        let auth_msg = s.rb_authenticating.to_string();
+        let updating_flake_msg = s.rb_updating_flake.to_string();
+        let flake_update_failed_msg = s.rb_flake_update_failed.to_string();
         let pid_ref = Arc::clone(&self.child_pid);
         std::thread::spawn(move || {
             run_rebuild(
@@ -605,6 +644,9 @@ impl RebuildState {
                 show_trace,
                 pid_ref,
                 auth_msg,
+                update_flake,
+                updating_flake_msg,
+                flake_update_failed_msg,
             );
         });
     }
@@ -717,6 +759,7 @@ impl RebuildState {
                             }
                         }
 
+                        self.final_duration = Some(self.elapsed());
                         self.phase = if success {
                             BuildPhase::Done
                         } else {
@@ -761,6 +804,10 @@ impl RebuildState {
                             command: self.detected_command.clone().unwrap_or_default(),
                         };
                         self.history.push(entry);
+                        // Cap history to prevent unbounded memory growth
+                        if self.history.len() > 100 {
+                            self.history.drain(..self.history.len() - 100);
+                        }
 
                         // Persist to disk
                         let _ = save_history(&self.history);
@@ -784,6 +831,7 @@ impl RebuildState {
                                 }
                             }
                         }
+                        self.final_duration = Some(self.elapsed());
                         self.phase = BuildPhase::Failed;
                         for i in 0..5 {
                             if self.phase_times[i].is_none() {
@@ -919,6 +967,12 @@ impl RebuildState {
             KeyCode::Char('t') => {
                 if !self.is_running() {
                     self.show_trace = !self.show_trace;
+                }
+                Ok(true)
+            }
+            KeyCode::Char('u') => {
+                if !self.is_running() && self.uses_flakes == Some(true) {
+                    self.update_flake_inputs = !self.update_flake_inputs;
                 }
                 Ok(true)
             }
@@ -1467,6 +1521,27 @@ fn render_idle_dashboard(
         },
         Span::styled(" [t]", Style::default().fg(theme.fg_dim)),
     ]));
+
+    // Flake update toggle (only shown for flake-based configs)
+    if state.uses_flakes == Some(true) {
+        lines.push(Line::from(vec![
+            Span::styled(
+                format!("  {} ", s.rb_flake_update),
+                Style::default().fg(theme.fg_dim),
+            ),
+            if state.update_flake_inputs {
+                Span::styled(
+                    "ON",
+                    Style::default()
+                        .fg(theme.success)
+                        .add_modifier(Modifier::BOLD),
+                )
+            } else {
+                Span::styled("off", Style::default().fg(theme.fg_dim))
+            },
+            Span::styled(" [u]", Style::default().fg(theme.fg_dim)),
+        ]));
+    }
 
     lines.push(Line::raw(""));
 
@@ -2197,6 +2272,9 @@ fn run_rebuild(
     show_trace: bool,
     child_pid: Arc<AtomicU32>,
     auth_msg: String,
+    update_flake: bool,
+    updating_flake_msg: String,
+    flake_update_failed_msg: String,
 ) {
     use std::io::{BufRead, BufReader, Write};
     use std::process::{Command, Stdio};
@@ -2209,6 +2287,89 @@ fn run_rebuild(
         pre_snapshot.1.clone(),
         pre_snapshot.2.clone(),
     ));
+
+    // Run `nix flake update` if requested
+    if update_flake {
+        let _ = tx.send(RebuildMsg::OutputLine(updating_flake_msg));
+
+        let flake_dir = flake_path.unwrap_or("/etc/nixos");
+        let needs_sudo = flake_dir.starts_with("/etc/");
+
+        let mut cmd = if needs_sudo {
+            let mut c = Command::new("sudo");
+            let mut a = Vec::new();
+            if password.is_some() {
+                a.push("-S".to_string());
+            }
+            a.extend([
+                "nix".into(),
+                "flake".into(),
+                "update".into(),
+                "--flake".into(),
+                flake_dir.to_string(),
+            ]);
+            c.args(&a);
+            c
+        } else {
+            let mut c = Command::new("nix");
+            c.args(["flake", "update", "--flake", flake_dir]);
+            c
+        };
+
+        cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
+        if needs_sudo && password.is_some() {
+            cmd.stdin(Stdio::piped());
+        } else {
+            cmd.stdin(Stdio::null());
+        }
+
+        let mut child = match cmd.spawn() {
+            Ok(c) => c,
+            Err(e) => {
+                let _ = tx.send(RebuildMsg::OutputLine(format!(
+                    "{}: {}",
+                    flake_update_failed_msg, e
+                )));
+                let _ = tx.send(RebuildMsg::Finished(false, Some(e.to_string())));
+                return;
+            }
+        };
+
+        if needs_sudo {
+            if let Some(ref pw) = password {
+                if let Some(mut stdin) = child.stdin.take() {
+                    let _ = writeln!(stdin, "{}", pw);
+                    drop(stdin);
+                }
+            }
+        }
+
+        // Stream stderr (nix outputs progress there)
+        if let Some(stderr) = child.stderr.take() {
+            for line in BufReader::new(stderr).lines().map_while(Result::ok) {
+                let _ = tx.send(RebuildMsg::OutputLine(line));
+            }
+        }
+
+        match child.wait() {
+            Ok(status) if status.success() => {}
+            Ok(status) => {
+                let code = status.code().unwrap_or(-1);
+                let msg = format!("{} (exit {})", flake_update_failed_msg, code);
+                let _ = tx.send(RebuildMsg::OutputLine(msg.clone()));
+                let _ = tx.send(RebuildMsg::Finished(false, Some(msg)));
+                return;
+            }
+            Err(e) => {
+                let _ = tx.send(RebuildMsg::OutputLine(format!(
+                    "{}: {}",
+                    flake_update_failed_msg, e
+                )));
+                let _ = tx.send(RebuildMsg::Finished(false, Some(e.to_string())));
+                return;
+            }
+        }
+    }
 
     // Phase 2: Build the command
     let _ = tx.send(RebuildMsg::Phase(BuildPhase::Evaluating));

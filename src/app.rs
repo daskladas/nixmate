@@ -119,6 +119,14 @@ impl App {
         let mut flake_inputs = FlakeInputsState::new();
         flake_inputs.lang = lang;
 
+        // Sync custom config path to modules
+        let cp = config.config_path.clone();
+        rebuild.config_path = cp.clone();
+        config_showcase.config_path = cp.clone();
+        flake_inputs.config_path = cp.clone();
+        options.config_path = cp.clone();
+        packages.config_path = cp;
+
         Ok(Self {
             should_quit: false,
             active_tab,
@@ -683,7 +691,7 @@ impl App {
     }
 
     fn handle_settings_key(&mut self, key: KeyEvent) -> Result<()> {
-        let settings_count = 10; // 3 global + 1 pkg search + 6 error translator/AI
+        let settings_count = 11; // 3 global + 1 pkg search + 1 path + 6 error translator/AI
         match key.code {
             KeyCode::Char('j') | KeyCode::Down => {
                 if self.settings_selected < settings_count - 1 {
@@ -712,11 +720,18 @@ impl App {
                         self.settings_edit_buffer = self.config.nixpkgs_channel.clone();
                         return Ok(());
                     }
-                    // Error Translator / AI settings
+                    // NixOS Config Path
                     4 => {
+                        self.settings_editing = true;
+                        self.settings_edit_buffer =
+                            self.config.config_path.clone().unwrap_or_default();
+                        return Ok(());
+                    }
+                    // Error Translator / AI settings
+                    5 => {
                         self.config.ai_enabled = !self.config.ai_enabled;
                     }
-                    5 => {
+                    6 => {
                         self.config.ai_provider = match self.config.ai_provider.as_str() {
                             "claude" => "openai".to_string(),
                             "openai" => "ollama".to_string(),
@@ -724,13 +739,13 @@ impl App {
                         };
                     }
                     // Text-editable fields: enter edit mode
-                    6 => {
+                    7 => {
                         // AI API Key
                         self.settings_editing = true;
                         self.settings_edit_buffer = String::new(); // Start fresh (don't reveal old key)
                         return Ok(());
                     }
-                    7 => {
+                    8 => {
                         // Ollama URL
                         self.settings_editing = true;
                         self.settings_edit_buffer = self
@@ -740,7 +755,7 @@ impl App {
                             .unwrap_or_else(|| "http://localhost:11434".to_string());
                         return Ok(());
                     }
-                    8 => {
+                    9 => {
                         // Ollama Model
                         self.settings_editing = true;
                         self.settings_edit_buffer = self
@@ -750,7 +765,7 @@ impl App {
                             .unwrap_or_else(|| "llama3".to_string());
                         return Ok(());
                     }
-                    9 => {
+                    10 => {
                         // GitHub Token
                         self.settings_editing = true;
                         self.settings_edit_buffer = String::new();
@@ -796,17 +811,51 @@ impl App {
                         // Reset source detection so it picks up the new channel
                         self.packages.reset_source();
                     }
-                    6 => {
-                        self.config.ai_api_key = if value.is_empty() { None } else { Some(value) };
+                    4 => {
+                        self.config.config_path = if value.is_empty() {
+                            None
+                        } else {
+                            Some(value.clone())
+                        };
+                        self.sync_config_path_to_modules();
+                        // Validate the path
+                        if !value.is_empty() {
+                            let s = i18n::get_strings(self.config.language);
+                            let p = std::path::Path::new(&value);
+                            if !p.exists() {
+                                self.flash_message = Some(FlashMessage::new(
+                                    format!("⚠ {}", s.settings_path_not_found),
+                                    true,
+                                ));
+                            } else if p.join("flake.nix").exists() {
+                                self.flash_message = Some(FlashMessage::new(
+                                    format!("✓ {}", s.settings_path_found_flake),
+                                    false,
+                                ));
+                            } else if p.join("configuration.nix").exists() {
+                                self.flash_message = Some(FlashMessage::new(
+                                    format!("✓ {}", s.settings_path_found_config),
+                                    false,
+                                ));
+                            } else {
+                                self.flash_message = Some(FlashMessage::new(
+                                    format!("⚠ {}", s.settings_path_no_config),
+                                    true,
+                                ));
+                            }
+                        }
                     }
                     7 => {
-                        self.config.ollama_url = if value.is_empty() { None } else { Some(value) };
+                        self.config.ai_api_key = if value.is_empty() { None } else { Some(value) };
                     }
                     8 => {
+                        self.config.ollama_url = if value.is_empty() { None } else { Some(value) };
+                    }
+                    9 => {
                         self.config.ollama_model =
                             if value.is_empty() { None } else { Some(value) };
                     }
-                    9 => {
+                    10 => {
                         self.config.github_token =
                             if value.is_empty() { None } else { Some(value) };
                     }
@@ -823,7 +872,7 @@ impl App {
                             .into(),
                         message: e.to_string(),
                     };
-                } else {
+                } else if self.flash_message.is_none() {
                     self.flash_message = Some(FlashMessage::new(s.settings_saved.into(), false));
                 }
             }
@@ -895,5 +944,14 @@ impl App {
         self.options.lang = lang;
         self.flake_inputs.lang = lang;
         self.rebuild.lang = lang;
+    }
+
+    fn sync_config_path_to_modules(&mut self) {
+        let cp = self.config.config_path.clone();
+        self.rebuild.config_path = cp.clone();
+        self.config_showcase.config_path = cp.clone();
+        self.flake_inputs.config_path = cp.clone();
+        self.options.config_path = cp.clone();
+        self.packages.config_path = cp;
     }
 }

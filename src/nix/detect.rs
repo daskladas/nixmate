@@ -23,10 +23,10 @@ pub struct HomeManagerInfo {
 }
 
 /// Detect system configuration
-pub fn detect_system() -> Result<SystemInfo> {
+pub fn detect_system(custom_path: Option<&str>) -> Result<SystemInfo> {
     let hostname = get_hostname()?;
     let username = get_username()?;
-    let uses_flakes = detect_flakes();
+    let uses_flakes = detect_flakes(custom_path);
     let system_profile = PathBuf::from("/nix/var/nix/profiles/system");
     let home_manager = detect_home_manager(&username);
 
@@ -66,26 +66,34 @@ fn get_username() -> Result<String> {
         .context("Could not determine username from USER or LOGNAME environment variable")
 }
 
-pub fn detect_flakes() -> bool {
+pub fn detect_flakes(custom_path: Option<&str>) -> bool {
     let home = env::var("HOME").unwrap_or_default();
-    let flake_paths = [
+    let mut flake_paths = Vec::new();
+    if let Some(p) = custom_path {
+        flake_paths.push(PathBuf::from(p).join("flake.nix"));
+    }
+    flake_paths.extend([
         PathBuf::from("/etc/nixos/flake.nix"),
         PathBuf::from(&home).join(".config/nixos/flake.nix"),
         PathBuf::from(&home).join("nixos/flake.nix"),
         PathBuf::from(&home).join(".nixos/flake.nix"),
-    ];
+    ]);
     flake_paths.iter().any(|p| p.exists())
 }
 
 /// Find the directory containing flake.nix (checks common locations)
-pub fn find_flake_path() -> Option<String> {
+pub fn find_flake_path(custom_path: Option<&str>) -> Option<String> {
     let home = env::var("HOME").unwrap_or_default();
-    let candidates = [
+    let mut candidates = Vec::new();
+    if let Some(p) = custom_path {
+        candidates.push(format!("{}/flake.nix", p));
+    }
+    candidates.extend([
         "/etc/nixos/flake.nix".to_string(),
         format!("{}/.config/nixos/flake.nix", home),
         format!("{}/nixos/flake.nix", home),
         format!("{}/.nixos/flake.nix", home),
-    ];
+    ]);
 
     for candidate in &candidates {
         let path = Path::new(candidate);

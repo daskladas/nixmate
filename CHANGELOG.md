@@ -3,6 +3,18 @@
 Full development history of nixmate — every version, every feature.
 
 
+## v0.7.3 — Bugfixes + Custom Config Path
+
+### Fixed
+- **Rebuild timer:** Timer no longer ticks after build finishes. Duration is now frozen on Done, Failed, Cancel, and Disconnect. Previously showed ever-increasing time after build completion.
+- **History memory cap:** Rebuild history is now capped at 100 entries. Prevents unbounded memory growth over months of usage.
+
+### Added
+- **Flake update toggle:** Press `[u]` in the Rebuild Dashboard to run `nix flake update` before rebuilding. Only shown for flake-based configs. Handles sudo for `/etc/` paths automatically.
+- **Custom NixOS config path:** New setting in Settings → Paths → "NixOS Config Path". Overrides the default `/etc/nixos` for all modules (Rebuild, Config Showcase, Flake Inputs, Options Explorer, Package Search). Path is validated on save with instant feedback (✓ found flake.nix / ⚠ path not found).
+
+---
+
 ## v0.7.2 — UI Polish + Bootloader Fix
 
 ### Fixed

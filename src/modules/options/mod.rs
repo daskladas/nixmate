@@ -157,6 +157,7 @@ pub struct OptionsState {
 
     pub lang: Language,
     pub flash_message: Option<FlashMessage>,
+    pub config_path: Option<String>,
 }
 
 impl OptionsState {
@@ -193,6 +194,7 @@ impl OptionsState {
             related_for_path: String::new(),
             lang: Language::English,
             flash_message: None,
+            config_path: None,
         }
     }
 
@@ -209,9 +211,10 @@ impl OptionsState {
         let (tx, rx) = mpsc::channel();
         self.load_rx = Some(rx);
         let lang = self.lang;
+        let config_path = self.config_path.clone();
 
         std::thread::spawn(move || {
-            load_options_background(tx, lang);
+            load_options_background(tx, lang, config_path.as_deref());
         });
     }
 
@@ -784,7 +787,11 @@ fn safe_truncate(s: &str, max_bytes: usize) -> &str {
 
 // ── Background loading ──
 
-fn load_options_background(tx: mpsc::Sender<LoadStatus>, lang: Language) {
+fn load_options_background(
+    tx: mpsc::Sender<LoadStatus>,
+    lang: Language,
+    config_path: Option<&str>,
+) {
     let s = crate::i18n::get_strings(lang);
     use std::process::Command;
 
@@ -826,12 +833,16 @@ fn load_options_background(tx: mpsc::Sender<LoadStatus>, lang: Language) {
     let _ = tx.send(LoadStatus::Phase(s.opt_trying_flakes.to_string()));
 
     let home = std::env::var("HOME").unwrap_or_default();
-    let flake_dirs = [
-        "/etc/nixos",
-        &format!("{}/.config/nixos", home),
-        &format!("{}/nixos", home),
-        &format!("{}/.nixos", home),
-    ];
+    let mut flake_dirs: Vec<String> = Vec::new();
+    if let Some(p) = config_path {
+        flake_dirs.push(p.to_string());
+    }
+    flake_dirs.extend([
+        "/etc/nixos".to_string(),
+        format!("{}/.config/nixos", home),
+        format!("{}/nixos", home),
+        format!("{}/.nixos", home),
+    ]);
 
     for flake_dir in &flake_dirs {
         let flake_nix = format!("{}/flake.nix", flake_dir);

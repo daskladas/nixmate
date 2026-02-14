@@ -161,6 +161,7 @@ pub struct FlakeInputsState {
     pub history_scroll: usize,
 
     pub lang: Language,
+    pub config_path: Option<String>,
     pub flash_message: Option<FlashMessage>,
 }
 
@@ -197,6 +198,7 @@ impl FlakeInputsState {
             history_selected: 0,
             history_scroll: 0,
             lang: Language::English,
+            config_path: None,
             flash_message: None,
         }
     }
@@ -212,9 +214,10 @@ impl FlakeInputsState {
         let (tx, rx) = mpsc::channel();
         self.load_rx = Some(rx);
         let lang = self.lang;
+        let cp = self.config_path.clone();
 
         std::thread::spawn(move || {
-            let result = load_flake_inputs(lang);
+            let result = load_flake_inputs(lang, cp.as_deref());
             let _ = tx.send(result);
         });
     }
@@ -521,14 +524,18 @@ impl FlakeInputsState {
 
 // ── Data loading ──
 
-fn find_flake_dir() -> Option<String> {
+fn find_flake_dir(custom_path: Option<&str>) -> Option<String> {
     let home = std::env::var("HOME").unwrap_or_default();
-    let candidates = [
+    let mut candidates = Vec::new();
+    if let Some(p) = custom_path {
+        candidates.push(p.to_string());
+    }
+    candidates.extend([
         "/etc/nixos".to_string(),
         format!("{}/.config/nixos", home),
         format!("{}/nixos", home),
         format!("{}/.nixos", home),
-    ];
+    ]);
 
     for dir in &candidates {
         let flake_nix = format!("{}/flake.nix", dir);
@@ -549,9 +556,9 @@ fn find_flake_dir() -> Option<String> {
     None
 }
 
-fn load_flake_inputs(lang: Language) -> LoadResult {
+fn load_flake_inputs(lang: Language, config_path: Option<&str>) -> LoadResult {
     let s = crate::i18n::get_strings(lang);
-    let flake_dir = match find_flake_dir() {
+    let flake_dir = match find_flake_dir(config_path) {
         Some(d) => d,
         None => {
             return LoadResult::Error(s.flk_no_flake.to_string());

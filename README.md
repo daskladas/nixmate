@@ -121,11 +121,10 @@ Everything can also be changed from the Settings panel (`,`) inside the TUI.
 
 Working on fixes for these — feedback welcome.
 
-- **Generations:** Packages and Diff tabs may show empty content depending on system configuration
-- **Error Translator:** Crashes reported on some setups
-- **Package Search:** Crashes or fails on some configurations
+- **Generations:** UI freezes during package loading (blocking I/O in main thread). Fix planned for v0.7.4.
+- **Generations:** Packages and Diff tabs may show empty content depending on system configuration.
 
-Most of these stem from assumptions about flake-based configs in `/etc/nixos`. Improving detection and error handling for non-flake and custom-path setups is the next priority.
+Custom config paths outside `/etc/nixos` are now supported — set your path in Settings → Paths.
 
 ---
 

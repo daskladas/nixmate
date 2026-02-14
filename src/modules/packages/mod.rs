@@ -84,6 +84,7 @@ pub struct PackagesState {
     pub lang: Language,
     pub flash_message: Option<FlashMessage>,
     pub error_message: Option<String>,
+    pub config_path: Option<String>,
 }
 
 impl PackagesState {
@@ -109,6 +110,7 @@ impl PackagesState {
             lang: Language::English,
             flash_message: None,
             error_message: None,
+            config_path: None,
         }
     }
 
@@ -127,7 +129,7 @@ impl PackagesState {
                 channel: config_channel.to_string(),
             });
         } else {
-            self.source = detect_nixpkgs_source(self.lang);
+            self.source = detect_nixpkgs_source(self.lang, self.config_path.as_deref());
         }
     }
 
@@ -305,14 +307,17 @@ impl PackagesState {
 
 // ── Nixpkgs source detection ──
 
-fn detect_nixpkgs_source(lang: crate::config::Language) -> Option<NixpkgsSource> {
+fn detect_nixpkgs_source(
+    lang: crate::config::Language,
+    config_path: Option<&str>,
+) -> Option<NixpkgsSource> {
     let s = crate::i18n::get_strings(lang);
-    let uses_flakes = crate::nix::detect::detect_system()
+    let uses_flakes = crate::nix::detect::detect_system(config_path)
         .map(|s| s.uses_flakes)
         .unwrap_or(false);
 
     if uses_flakes {
-        let channel = detect_flake_nixpkgs().unwrap_or_else(|| "nixpkgs".to_string());
+        let channel = detect_flake_nixpkgs(config_path).unwrap_or_else(|| "nixpkgs".to_string());
         return Some(NixpkgsSource {
             display_name: s.pkg_source_flakes.replace("{}", &channel),
             is_flakes: true,
@@ -335,17 +340,21 @@ fn detect_nixpkgs_source(lang: crate::config::Language) -> Option<NixpkgsSource>
     })
 }
 
-fn detect_flake_nixpkgs() -> Option<String> {
+fn detect_flake_nixpkgs(config_path: Option<&str>) -> Option<String> {
     use std::process::Command;
 
     // Find flake.nix location
     let home = std::env::var("HOME").unwrap_or_default();
-    let flake_dirs = [
-        "/etc/nixos",
-        &format!("{}/.config/nixos", home),
-        &format!("{}/nixos", home),
-        &format!("{}/.nixos", home),
-    ];
+    let mut flake_dirs: Vec<String> = Vec::new();
+    if let Some(p) = config_path {
+        flake_dirs.push(p.to_string());
+    }
+    flake_dirs.extend([
+        "/etc/nixos".to_string(),
+        format!("{}/.config/nixos", home),
+        format!("{}/nixos", home),
+        format!("{}/.nixos", home),
+    ]);
 
     let flake_dir = flake_dirs
         .iter()

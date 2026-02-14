@@ -292,6 +292,14 @@ pub struct Strings {
     pub settings_ollama_model: &'static str,
     pub settings_editing_hint: &'static str,
 
+    // === Settings: Paths section ===
+    pub settings_paths_section: &'static str,
+    pub settings_nixos_config_path: &'static str,
+    pub settings_path_found_flake: &'static str,
+    pub settings_path_found_config: &'static str,
+    pub settings_path_not_found: &'static str,
+    pub settings_path_no_config: &'static str,
+
     // === Services & Ports module ===
     pub svc_overview: &'static str,
     pub svc_ports: &'static str,
@@ -346,6 +354,9 @@ pub struct Strings {
     pub rb_config_flakes: &'static str,
     pub rb_config_channels: &'static str,
     pub rb_flake_path: &'static str,
+    pub rb_flake_update: &'static str,
+    pub rb_updating_flake: &'static str,
+    pub rb_flake_update_failed: &'static str,
     pub rb_current_mode: &'static str,
     pub rb_cycle_mode: &'static str,
     pub rb_last_build: &'static str,
@@ -838,6 +849,14 @@ static EN: Strings = Strings {
     settings_ollama_model: "Ollama Model",
     settings_editing_hint: "Enter=Save  Esc=Cancel",
 
+    // Settings: Paths section
+    settings_paths_section: "Paths",
+    settings_nixos_config_path: "NixOS Config Path",
+    settings_path_found_flake: "Found flake.nix",
+    settings_path_found_config: "Found configuration.nix",
+    settings_path_not_found: "Path does not exist",
+    settings_path_no_config: "No flake.nix or configuration.nix found",
+
     // Services & Ports module
     svc_overview: "Overview",
     svc_ports: "Ports",
@@ -892,6 +911,9 @@ static EN: Strings = Strings {
     rb_config_flakes: "Flakes",
     rb_config_channels: "Channels (configuration.nix)",
     rb_flake_path: "Flake path",
+    rb_flake_update: "Flake Update:",
+    rb_updating_flake: "Updating flake inputs...",
+    rb_flake_update_failed: "Flake update failed",
     rb_current_mode: "Mode:",
     rb_cycle_mode: "cycle",
     rb_last_build: "Last build:",
@@ -1376,6 +1398,14 @@ static DE: Strings = Strings {
     settings_ollama_model: "Ollama-Modell",
     settings_editing_hint: "Enter=Speichern  Esc=Abbrechen",
 
+    // Settings: Paths section
+    settings_paths_section: "Pfade",
+    settings_nixos_config_path: "NixOS-Konfigurationspfad",
+    settings_path_found_flake: "flake.nix gefunden",
+    settings_path_found_config: "configuration.nix gefunden",
+    settings_path_not_found: "Pfad existiert nicht",
+    settings_path_no_config: "Keine flake.nix oder configuration.nix gefunden",
+
     // Services & Ports module
     svc_overview: "Übersicht",
     svc_ports: "Ports",
@@ -1430,6 +1460,9 @@ static DE: Strings = Strings {
     rb_config_flakes: "Flakes",
     rb_config_channels: "Channels (configuration.nix)",
     rb_flake_path: "Flake-Pfad",
+    rb_flake_update: "Flake-Update:",
+    rb_updating_flake: "Aktualisiere Flake-Inputs...",
+    rb_flake_update_failed: "Flake-Update fehlgeschlagen",
     rb_current_mode: "Modus:",
     rb_cycle_mode: "wechseln",
     rb_last_build: "Letzter Build:",
