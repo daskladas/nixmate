@@ -14,6 +14,7 @@ use crate::config::Language;
 use crate::i18n;
 use crate::types::FlashMessage;
 use crate::ui::theme::Theme;
+use crate::ui::widgets;
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
@@ -1006,7 +1007,8 @@ pub fn render(
                 .add_modifier(Modifier::BOLD),
         )
         .divider(" │ ");
-    frame.render_widget(tabs_widget, chunks[1]);
+    let tabs_area = widgets::render_sub_tab_nav(frame, theme, chunks[1]);
+    frame.render_widget(tabs_widget, tabs_area);
 
     // Content
     match state.sub_tab {

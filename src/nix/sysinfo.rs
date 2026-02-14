@@ -803,20 +803,21 @@ fn get_users() -> Vec<String> {
 }
 
 fn detect_bootloader() -> String {
-    // Check systemd-boot: look for EFI entries
-    if std::path::Path::new("/boot/loader/loader.conf").exists()
-        || std::path::Path::new("/boot/EFI/systemd/systemd-bootx64.efi").exists()
-        || std::path::Path::new("/boot/efi/EFI/systemd/systemd-bootx64.efi").exists()
+    // Priority 1: NixOS authoritative source.
+    // The active system's switch-to-configuration script references the actual
+    // configured bootloader — immune to leftover files from previous setups.
+    if let Ok(content) = std::fs::read_to_string("/run/current-system/bin/switch-to-configuration")
     {
-        return "systemd-boot".into();
+        let lower = content.to_lowercase();
+        if lower.contains("systemd-boot") || lower.contains("bootctl") {
+            return "systemd-boot".into();
+        }
+        if lower.contains("grub") {
+            return "GRUB".into();
+        }
     }
-    // Check GRUB
-    if std::path::Path::new("/boot/grub/grub.cfg").exists()
-        || std::path::Path::new("/boot/EFI/grub").exists()
-    {
-        return "GRUB".into();
-    }
-    // Try bootctl (might work without root)
+
+    // Priority 2: bootctl status (works without root on most systems)
     if let Some(out) = cmd_any("bootctl", &["status"], 3) {
         if out.contains("systemd-boot") {
             return "systemd-boot".into();
@@ -825,6 +826,21 @@ fn detect_bootloader() -> String {
             return "GRUB".into();
         }
     }
+
+    // Priority 3: Filesystem heuristics (last resort — may give false positives
+    // if bootloader was changed without cleaning up old files)
+    if std::path::Path::new("/boot/loader/loader.conf").exists()
+        || std::path::Path::new("/boot/EFI/systemd/systemd-bootx64.efi").exists()
+        || std::path::Path::new("/boot/efi/EFI/systemd/systemd-bootx64.efi").exists()
+    {
+        return "systemd-boot".into();
+    }
+    if std::path::Path::new("/boot/grub/grub.cfg").exists()
+        || std::path::Path::new("/boot/EFI/grub").exists()
+    {
+        return "GRUB".into();
+    }
+
     "unknown".into()
 }
 

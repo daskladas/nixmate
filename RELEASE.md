@@ -1,6 +1,6 @@
-# Release Guide for nixmate v0.7.0
+# Release Guide for nixmate
 
-Everything you need for the first official release.
+Everything you need to prepare and publish a release.
 
 ---
 
@@ -12,7 +12,7 @@ Run through this before tagging:
 - [ ] `cargo test` passes all tests
 - [ ] `nix build` completes successfully
 - [ ] `nix run .` launches correctly
-- [ ] Version shows `0.7.0` in: welcome screen, help tab, sidebar, `--version` flag
+- [ ] Version matches in: Cargo.toml, flake.nix, Cargo.lock, sidebar display, `--version` flag
 - [ ] Both languages work (switch to German, check a few modules)
 - [ ] Theme switching works (cycle through all 13)
 - [ ] Pipe mode works: `echo "undefined variable" | cargo run`

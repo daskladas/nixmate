@@ -1076,7 +1076,8 @@ fn render_sub_tabs(
         .style(theme.tab_inactive())
         .divider("│");
 
-    frame.render_widget(tabs, area);
+    let tabs_area = widgets::render_sub_tab_nav(frame, theme, area);
+    frame.render_widget(tabs, tabs_area);
 }
 
 fn render_dashboard(
@@ -2068,13 +2069,6 @@ fn render_confirm_popup(
     let cmd = state.current_command();
     let mode_label = state.mode.label(lang);
 
-    // Password mask
-    let pw_display = if state.password_buffer.is_empty() {
-        s.rb_password_hint.to_string()
-    } else {
-        "●".repeat(state.password_buffer.len())
-    };
-
     let content = vec![
         Line::raw(""),
         Line::from(vec![
@@ -2100,7 +2094,7 @@ fn render_confirm_popup(
         )]),
         Line::from(vec![Span::styled(
             format!("  {}", s.rb_sudo_note),
-            Style::default().fg(theme.fg_dim),
+            Style::default().fg(theme.warning),
         )]),
         Line::raw(""),
         Line::from(vec![
@@ -2108,20 +2102,23 @@ fn render_confirm_popup(
                 format!("  {} ", s.rb_password_label),
                 Style::default().fg(theme.fg),
             ),
-            Span::styled(
-                format!("[{}]", pw_display),
-                if state.password_buffer.is_empty() {
-                    Style::default().fg(theme.fg_dim)
-                } else {
+            if state.password_buffer.is_empty() {
+                Span::styled(
+                    format!("▏{}", s.rb_password_hint),
+                    Style::default().fg(theme.fg_dim),
+                )
+            } else {
+                Span::styled(
+                    format!("{}▏", "●".repeat(state.password_buffer.len())),
                     Style::default()
                         .fg(theme.accent)
-                        .add_modifier(Modifier::BOLD)
-                },
-            ),
+                        .add_modifier(Modifier::BOLD),
+                )
+            },
         ]),
         Line::from(vec![
             Span::styled("  ", Style::default()),
-            Span::styled(s.rb_nopasswd_hint, Style::default().fg(theme.fg_dim)),
+            Span::styled(s.rb_nopasswd_hint, Style::default().fg(theme.fg)),
         ]),
     ];
 
@@ -2163,7 +2160,7 @@ fn render_confirm_popup(
     let buttons = Line::from(vec![
         Span::styled("[", theme.text_dim()),
         Span::styled(
-            "⏎",
+            "Enter",
             Style::default()
                 .fg(theme.accent)
                 .add_modifier(Modifier::BOLD),
@@ -2173,7 +2170,7 @@ fn render_confirm_popup(
         Span::raw("    "),
         Span::styled("[", theme.text_dim()),
         Span::styled(
-            "⎋",
+            "Esc",
             Style::default()
                 .fg(theme.accent)
                 .add_modifier(Modifier::BOLD),

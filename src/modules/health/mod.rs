@@ -14,6 +14,7 @@ use crate::config::Language;
 use crate::i18n;
 use crate::types::FlashMessage;
 use crate::ui::theme::Theme;
+use crate::ui::widgets;
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
@@ -703,7 +704,8 @@ pub fn render(frame: &mut Frame, state: &HealthState, theme: &Theme, lang: Langu
         .style(theme.tab_inactive())
         .highlight_style(theme.tab_active())
         .divider(" ");
-    frame.render_widget(tabs, chunks[0]);
+    let tabs_area = widgets::render_sub_tab_nav(frame, theme, chunks[0]);
+    frame.render_widget(tabs, tabs_area);
 
     if state.scanning {
         let lines = vec![

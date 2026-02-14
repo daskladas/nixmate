@@ -691,12 +691,7 @@ fn render_sub_tab_bar(
         .divider(" │ ")
         .style(theme.text());
 
-    let tabs_area = Rect {
-        x: area.x + 1,
-        y: area.y,
-        width: area.width.saturating_sub(2),
-        height: area.height.min(1),
-    };
+    let tabs_area = widgets::render_sub_tab_nav(frame, theme, area);
     frame.render_widget(tabs, tabs_area);
 }
 

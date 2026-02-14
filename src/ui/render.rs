@@ -1119,7 +1119,7 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
             match gen_state.active_sub_tab {
                 crate::modules::generations::GenSubTab::Overview => {
                     format!(
-                        "[j/k] {}  [Tab] Panel  [Enter] Pkgs  [[ / ]] Tab  {}",
+                        "[j/k] {}  [Tab] Panel  [Enter] Pkgs  [/] Sub-Tab  {}",
                         s.navigate, s.status_quit
                     )
                 }
@@ -1159,7 +1159,7 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                 crate::modules::errors::ErrSubTab::Analyze => {
                     if err_state.input_mode {
                         format!(
-                            "[Enter] {}  [Esc] {}  [[ / ]] Tab  {}",
+                            "[Enter] {}  [Esc] {}  [/] Sub-Tab  {}",
                             s.confirm, s.back, s.status_quit
                         )
                     } else if err_state.ai_loading {
@@ -1174,7 +1174,7 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                         )
                     } else if err_state.result.is_some() {
                         format!(
-                            "[j/k] Scroll  [n] {}  [s] Submit  [[ / ]] Tab  {}",
+                            "[j/k] Scroll  [n] {}  [s] Submit  [/] Sub-Tab  {}",
                             s.err_new_analysis, s.status_quit
                         )
                     } else if !err_state.input_buffer.is_empty() && app.config.ai_available() {
@@ -1184,7 +1184,7 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                         )
                     } else {
                         format!(
-                            "[i] {}  [s] {}  [[ / ]] Tab  {}",
+                            "[i] {}  [s] {}  [/] Sub-Tab  {}",
                             s.err_start_input, s.err_submit_pattern, s.status_quit
                         )
                     }
@@ -1208,26 +1208,26 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                             format!("[Enter] {}  [Esc] {}  {}", s.confirm, s.back, s.status_quit)
                         } else {
                             format!(
-                            "[j/k] {}  [/] Search  [f] Filter  [r] Refresh  [Enter] Logs  [m] Manage  [[ / ]] Tab  {}",
+                            "[j/k] {}  [/] Search  [f] Filter  [r] Refresh  [Enter] Logs  [m] Manage  [/] Sub-Tab  {}",
                             s.navigate, s.status_quit
                         )
                         }
                     }
                     crate::modules::services::SvcSubTab::Ports => {
                         format!(
-                            "[j/k] {}  [r] Refresh  [[ / ]] Tab  {}",
+                            "[j/k] {}  [r] Refresh  [/] Sub-Tab  {}",
                             s.navigate, s.status_quit
                         )
                     }
                     crate::modules::services::SvcSubTab::Manage => {
                         format!(
-                            "[j/k] {}  [Enter] Execute  [[ / ]] Tab  {}",
+                            "[j/k] {}  [Enter] Execute  [/] Sub-Tab  {}",
                             s.navigate, s.status_quit
                         )
                     }
                     crate::modules::services::SvcSubTab::Logs => {
                         format!(
-                            "[j/k] Scroll  [r] Refresh  [g/G] Top/End  [[ / ]] Tab  {}",
+                            "[j/k] Scroll  [r] Refresh  [g/G] Top/End  [/] Sub-Tab  {}",
                             s.status_quit
                         )
                     }
@@ -1241,26 +1241,26 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
             } else {
                 match sto_state.active_sub_tab {
                     crate::modules::storage::StoSubTab::Dashboard => {
-                        format!("[r] Refresh  [[ / ]] Tab  {}", s.status_quit)
+                        format!("[r] Refresh  [/] Sub-Tab  {}", s.status_quit)
                     }
                     crate::modules::storage::StoSubTab::Explorer => {
                         if sto_state.explorer_search_active {
                             format!("[Enter] {}  [Esc] {}  {}", s.confirm, s.back, s.status_quit)
                         } else {
                             format!(
-                                "[j/k] {}  [/] Search  [f] Filter  [r] Refresh  [[ / ]] Tab  {}",
+                                "[j/k] {}  [/] Search  [f] Filter  [r] Refresh  [/] Sub-Tab  {}",
                                 s.navigate, s.status_quit
                             )
                         }
                     }
                     crate::modules::storage::StoSubTab::Clean => {
                         format!(
-                            "[j/k] {}  [Enter] Execute  [[ / ]] Tab  {}",
+                            "[j/k] {}  [Enter] Execute  [/] Sub-Tab  {}",
                             s.navigate, s.status_quit
                         )
                     }
                     crate::modules::storage::StoSubTab::History => {
-                        format!("[j/k] Scroll  [r] Refresh  [[ / ]] Tab  {}", s.status_quit)
+                        format!("[j/k] Scroll  [r] Refresh  [/] Sub-Tab  {}", s.status_quit)
                     }
                 }
             }
@@ -1283,10 +1283,10 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                 crate::modules::config_showcase::CfgSubTab::Diagram => s.cfg_diag_scanning,
             };
             if is_scanning {
-                format!("⏳ {}  [[ / ]] Tab  {}", scanning_label, s.status_quit)
+                format!("⏳ {}  [/] Sub-Tab  {}", scanning_label, s.status_quit)
             } else {
                 format!(
-                    "[Enter/g] {}  [[ / ]] Tab  {}",
+                    "[Enter/g] {}  [/] Sub-Tab  {}",
                     generate_label, s.status_quit
                 )
             }
@@ -1308,15 +1308,15 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
         }
         ModuleTab::Health => {
             if app.health.scanning {
-                format!("⏳ Scanning...  [[ / ]] Tab  {}", s.status_quit)
+                format!("⏳ Scanning...  [/] Sub-Tab  {}", s.status_quit)
             } else if app.health.sub_tab == crate::modules::health::HealthSubTab::Fix {
                 format!(
-                    "[j/k] {}  [Enter] Fix  [r] Rescan  [[ / ]] Tab  {}",
+                    "[j/k] {}  [Enter] Fix  [r] Rescan  [/] Sub-Tab  {}",
                     s.navigate, s.status_quit
                 )
             } else {
                 format!(
-                    "[j/k] {}  [r] Rescan  [[ / ]] Tab  {}",
+                    "[j/k] {}  [r] Rescan  [/] Sub-Tab  {}",
                     s.navigate, s.status_quit
                 )
             }
@@ -1327,10 +1327,10 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                 match rb.sub_tab {
                     crate::modules::rebuild::RebuildSubTab::Dashboard
                     | crate::modules::rebuild::RebuildSubTab::Log => {
-                        format!("[j/k] Scroll  [G] Live  [[ / ]] Tab  {}", s.status_quit)
+                        format!("[j/k] Scroll  [G] Live  [/] Sub-Tab  {}", s.status_quit)
                     }
                     _ => {
-                        format!("[j/k] Scroll  [[ / ]] Tab  {}", s.status_quit)
+                        format!("[j/k] Scroll  [/] Sub-Tab  {}", s.status_quit)
                     }
                 }
             } else if rb.log_search_active {
@@ -1339,22 +1339,55 @@ fn render_status_bar(frame: &mut Frame, app: &App, area: Rect) {
                 match rb.sub_tab {
                     crate::modules::rebuild::RebuildSubTab::Dashboard => {
                         format!(
-                            "[Enter/r] Rebuild  [m] Mode  [[ / ]] Tab  {}",
+                            "[Enter/r] Rebuild  [m] Mode  [/] Sub-Tab  {}",
                             s.status_quit
                         )
                     }
                     crate::modules::rebuild::RebuildSubTab::Log => {
                         format!(
-                            "[j/k] Scroll  [/] Search  [g/G] Top/End  [[ / ]] Tab  {}",
+                            "[j/k] Scroll  [/] Search  [g/G] Top/End  [/] Sub-Tab  {}",
                             s.status_quit
                         )
                     }
                     crate::modules::rebuild::RebuildSubTab::Changes => {
-                        format!("[j/k] Scroll  [[ / ]] Tab  {}", s.status_quit)
+                        format!("[j/k] Scroll  [/] Sub-Tab  {}", s.status_quit)
                     }
                     crate::modules::rebuild::RebuildSubTab::History => {
-                        format!("[j/k] {}  [[ / ]] Tab  {}", s.navigate, s.status_quit)
+                        format!("[j/k] {}  [/] Sub-Tab  {}", s.navigate, s.status_quit)
                     }
+                }
+            }
+        }
+        ModuleTab::Options => {
+            let opt = &app.options;
+            if opt.search_active {
+                format!("[Enter] {}  [Esc] {}  {}", s.confirm, s.back, s.status_quit)
+            } else if opt.detail_open {
+                format!(
+                    "[j/k] Scroll  [r] Related  [Esc] {}  {}",
+                    s.back, s.status_quit
+                )
+            } else {
+                format!(
+                    "[j/k] {}  [/] Search  [Enter] Details  [/] Sub-Tab  {}",
+                    s.navigate, s.status_quit
+                )
+            }
+        }
+        ModuleTab::FlakeInputs => {
+            let fi = &app.flake_inputs;
+            match fi.sub_tab {
+                crate::modules::flake_inputs::FlakeSubTab::Update => {
+                    format!(
+                        "[j/k] {}  [Space] Select  [u] Update  [/] Sub-Tab  {}",
+                        s.navigate, s.status_quit
+                    )
+                }
+                _ => {
+                    format!(
+                        "[j/k] {}  [Enter] Details  [/] Sub-Tab  {}",
+                        s.navigate, s.status_quit
+                    )
                 }
             }
         }

@@ -13,6 +13,7 @@ use crate::config::Language;
 use crate::i18n;
 use crate::types::FlashMessage;
 use crate::ui::theme::Theme;
+use crate::ui::widgets;
 use anyhow::Result;
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::{
@@ -1210,7 +1211,8 @@ fn render_tab_bar(
         )
         .divider(" │ ");
 
-    frame.render_widget(tabs_widget, area);
+    let tabs_area = widgets::render_sub_tab_nav(frame, theme, area);
+    frame.render_widget(tabs_widget, tabs_area);
 
     // Option count on the right
     let count_text = format!("{} options ", state.options.len());

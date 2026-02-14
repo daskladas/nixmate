@@ -3,6 +3,19 @@
 Full development history of nixmate — every version, every feature.
 
 
+## v0.7.2 — UI Polish + Bootloader Fix
+
+### Fixed
+- **Bootloader detection:** Config Showcase now reads the active NixOS system configuration (`/run/current-system`) instead of relying on leftover files in `/boot/`. Users who switched from systemd-boot to GRUB (or vice versa) no longer see stale bootloader info.
+- **Sub-tab hints:** Replaced unreadable `[[ / ]]` notation in the status bar with `[/] Sub-Tab`. All status bar strings updated across every module.
+- **Sub-tab navigation hints:** Every sub-tab bar now shows `[` and `]` at the edges to indicate the actual keys for switching. Implemented via shared `render_sub_tab_nav` helper — no per-module duplication.
+- **Missing status bar hints:** Options Explorer and Flake Input Manager now show context-sensitive keybinding hints in the status bar (were falling through to generic default).
+- **Status bar contrast:** Keybinding hints are now rendered in normal text color instead of dim gray. Readable on all 13 themes.
+- **Rebuild sudo popup:** Warning text uses yellow instead of dim gray, password field has a visible cursor indicator (`▏`), NOPASSWD hint is now readable, and buttons show `Enter`/`Esc` instead of Unicode symbols that render incorrectly in some terminal fonts.
+- **Version mismatch:** `flake.nix` now matches `Cargo.toml` (was stuck at v0.7.0).
+
+---
+
 ## v0.7.1 — Keybinding Overhaul + Code Quality
 
 ### Changed

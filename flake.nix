@@ -32,7 +32,7 @@
       in {
         packages.default = pkgs.rustPlatform.buildRustPackage {
           pname = "nixmate";
-          version = "0.7.0";
+          version = "0.7.2";
           src = ./.;
 
           cargoLock = {

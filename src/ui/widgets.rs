@@ -191,7 +191,7 @@ pub fn render_status_bar(
 
     frame.render_widget(Clear, status_area);
 
-    let left_widget = Paragraph::new(left_content).style(theme.text_dim());
+    let left_widget = Paragraph::new(left_content).style(theme.text());
 
     let right_len = right_content.len() as u16;
     let right_area = Rect {
@@ -200,7 +200,7 @@ pub fn render_status_bar(
         width: right_len + 1,
         height: 1,
     };
-    let right_widget = Paragraph::new(right_content).style(theme.text_dim());
+    let right_widget = Paragraph::new(right_content).style(theme.text());
 
     frame.render_widget(left_widget, status_area);
     frame.render_widget(right_widget, right_area);
@@ -215,5 +215,39 @@ pub fn centered_rect(width: u16, height: u16, area: Rect) -> Rect {
         y,
         width,
         height,
+    }
+}
+
+/// Render sub-tab navigation hints and return the inner area for the Tabs widget.
+/// Shows the actual keys `[` and `]` at the edges of the tab bar so users
+/// immediately see which keys switch sub-tabs.
+pub fn render_sub_tab_nav(frame: &mut Frame, theme: &Theme, area: Rect) -> Rect {
+    if area.width < 12 || area.height < 1 {
+        return area;
+    }
+    let style = theme.text_dim();
+    frame.render_widget(
+        Paragraph::new(" [").style(style),
+        Rect {
+            x: area.x,
+            y: area.y,
+            width: 2,
+            height: 1,
+        },
+    );
+    frame.render_widget(
+        Paragraph::new("]").style(style),
+        Rect {
+            x: area.x + area.width.saturating_sub(1),
+            y: area.y,
+            width: 1,
+            height: 1,
+        },
+    );
+    Rect {
+        x: area.x + 3,
+        y: area.y,
+        width: area.width.saturating_sub(4),
+        height: area.height,
     }
 }

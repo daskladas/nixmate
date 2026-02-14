@@ -348,7 +348,8 @@ fn render_sub_tabs(
         )
         .divider(Span::styled(" │ ", Style::default().fg(theme.border)));
 
-    frame.render_widget(tabs, area);
+    let tabs_area = widgets::render_sub_tab_nav(frame, theme, area);
+    frame.render_widget(tabs, tabs_area);
 }
 
 fn render_overview(
