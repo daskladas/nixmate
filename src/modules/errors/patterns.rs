@@ -706,7 +706,7 @@ Make inputs use the same nixpkgs:
 
 UPDATING INPUTS:
   nix flake update            # Update all inputs
-  nix flake lock --update-input nixpkgs  # Update one",
+  nix flake update nixpkgs    # Update one",
         tip: None,
     },
 
@@ -1860,7 +1860,7 @@ CHECK THE TYPE:
 nix flake update
 
 # Update specific input:
-nix flake lock --update-input $1",
+nix flake update $1",
         deep_dive: "\
 WHY THIS HAPPENS:
 flake.lock pins exact versions of inputs. When you change flake.nix 
@@ -1872,7 +1872,7 @@ UPDATE ALL:
   nix flake update
 
 UPDATE ONE INPUT:
-  nix flake lock --update-input nixpkgs
+  nix flake update nixpkgs
 
 RECREATE LOCK:
   rm flake.lock

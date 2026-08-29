@@ -8,7 +8,7 @@
 //!   Details  — full info for the selected input
 //!
 //! Data source: flake.lock (JSON) + flake.nix parsing.
-//! Updates via `nix flake lock --update-input <name>`.
+//! Updates via `nix flake update <name>`.
 
 use crate::config::Language;
 use crate::i18n;
@@ -809,7 +809,7 @@ fn run_selective_update(
         ));
 
         let result = Command::new("nix")
-            .args(["flake", "lock", "--update-input", name])
+            .args(["flake", "update", name])
             .current_dir(flake_dir)
             .output();
 

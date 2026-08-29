@@ -456,7 +456,7 @@ FLAKE-STRUKTUR:
 
 INPUTS UPDATEN:
   nix flake update
-  nix flake lock --update-input nixpkgs",
+  nix flake update nixpkgs",
             tip: None,
         },
     );
@@ -1046,7 +1046,7 @@ HÄUFIGE FEHLER:
 nix flake update
 
 # Spezifischen Input updaten:
-nix flake lock --update-input $1",
+nix flake update $1",
             deep_dive: "\
 WARUM PASSIERT DAS:
 flake.lock pinnt exakte Versionen der Inputs. Wenn du flake.nix 
@@ -1054,7 +1054,7 @@ flake.lock pinnt exakte Versionen der Inputs. Wenn du flake.nix
 
 BEFEHLE:
   nix flake update           # Alle updaten
-  nix flake lock --update-input nixpkgs  # Einen updaten
+  nix flake update nixpkgs  # Einen updaten
   rm flake.lock && nix flake lock  # Neu erstellen",
             tip: Some("'nix flake update' nach Input-Änderungen"),
         },
